@@ -68,7 +68,7 @@ public class SendError {
                 mailSender.send(mimeMessage);
                 logger.info("【定时任务】--邮件发送成功");
             }
-        }catch (MessagingException e){
+        }catch (Exception e){
             logger.error("【定时邮件任务】--发送邮件失败");
             logger.error("【定时邮件任务】--"+ ExceptionInfo.getErrorInfo(e).toString());
         }finally {
