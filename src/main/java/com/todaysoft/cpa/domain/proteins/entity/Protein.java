@@ -11,7 +11,7 @@ import javax.persistence.*;
  * @date: 2017/8/14 14:28
  */
 @Entity
-@Table(name = "kt_protein", schema = "project_kb", catalog = "")
+@Table(name = "kt_protein")
 public class Protein {
     private String proteinKey;
     private String geneKey;

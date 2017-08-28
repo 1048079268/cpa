@@ -8,7 +8,7 @@ import javax.persistence.*;
  * @date: 2017/8/14 14:28
  */
 @Entity
-@Table(name = "kt_protein_synonym", schema = "project_kb", catalog = "")
+@Table(name = "kt_protein_synonym")
 public class ProteinSynonym {
     private String proteinSynonymKey;
     private String proteinKey;

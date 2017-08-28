@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @date: 2017/8/9 9:55
  */
 @Entity
-@Table(name = "kt_drug", schema = "project_kb")
+@Table(name = "kt_drug")
 public class Drug implements Serializable{
     private static final long serialVersionUID = 1L;
     private String drugKey;

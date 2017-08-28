@@ -10,7 +10,7 @@ import javax.persistence.*;
  * @date: 2017/8/14 11:39
  */
 @Entity
-@Table(name = "kt_gene_location", schema = "project_kb", catalog = "")
+@Table(name = "kt_gene_location")
 public class GeneLocation {
     private String geneLocationKey;
     private String geneKey;

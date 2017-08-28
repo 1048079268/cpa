@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @date: 2017/8/9 9:56
  */
 @Entity
-@Table(name = "kt_drug_interaction", schema = "project_kb")
+@Table(name = "kt_drug_interaction")
 public class DrugInteraction implements Serializable {
     private static final long serialVersionUID = 1L;
     private String interactionKey;
@@ -100,5 +100,16 @@ public class DrugInteraction implements Serializable {
         result = 31 * result + (drugIdInteraction != null ? drugIdInteraction.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "DrugInteraction{" +
+                "interactionKey='" + interactionKey + '\'' +
+                ", drugKey='" + drugKey + '\'' +
+                ", drugId=" + drugId +
+                ", drugIdInteraction=" + drugIdInteraction +
+                ", description='" + description + '\'' +
+                '}';
     }
 }

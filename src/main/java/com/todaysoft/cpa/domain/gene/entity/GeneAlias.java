@@ -8,7 +8,7 @@ import javax.persistence.*;
  * @date: 2017/8/14 11:39
  */
 @Entity
-@Table(name = "kt_gene_alias", schema = "project_kb", catalog = "")
+@Table(name = "kt_gene_alias")
 public class GeneAlias {
     private String geneAliasKey;
     private String geneKey;

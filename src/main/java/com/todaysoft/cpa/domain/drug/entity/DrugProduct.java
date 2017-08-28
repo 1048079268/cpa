@@ -13,7 +13,7 @@ import java.sql.Timestamp;
  * @date: 2017/8/9 9:56
  */
 @Entity
-@Table(name = "kt_drug_product", schema = "project_kb")
+@Table(name = "kt_drug_product")
 public class DrugProduct implements Serializable {
     private static final long serialVersionUID = 1L;
     private String productKey;

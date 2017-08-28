@@ -11,7 +11,7 @@ import javax.persistence.*;
  * @date: 2017/8/14 11:39
  */
 @Entity
-@Table(name = "kt_gene", schema = "project_kb")
+@Table(name = "kt_gene")
 public class Gene {
     private String geneKey;
     @JSONField(name = "id")

@@ -139,9 +139,6 @@ public class DrugService implements BaseService {
             if (keggPathways!=null&&keggPathways.size()>0){
                 List<DrugKeggPathway> keggPathwayList=new ArrayList<>(keggPathways.size());
                 for (int i=0;i<keggPathways.size();i++){
-                    /**
-                     * TODO 插入通路(待定)
-                     */
                     String keggId=keggPathways.getJSONObject(i).getString("id");
                     KeggPathway pathway = new KeggPathway();
                     pathway.setPathwayKey(PkGenerator.generator(KeggPathway.class));
@@ -192,12 +189,18 @@ public class DrugService implements BaseService {
             //11.药物相互作用
             JSONArray interactions=object.getJSONArray("interactions");
             if (interactions!=null&&interactions.size()>0){
+                Set<Integer> interactionId=new HashSet<>();
                 List<DrugInteraction> interactionList=new ArrayList<>(interactions.size());
                 for (int i=0;i<interactions.size();i++){
                     DrugInteraction interaction=interactions.getJSONObject(i).toJavaObject(DrugInteraction.class);
+                    //去重
+                    if (interactionId.contains(interaction.getDrugIdInteraction())){
+                        continue;
+                    }
+                    interactionId.add(interaction.getDrugIdInteraction());
+                    interaction.setInteractionKey(PkGenerator.generator(DrugInteraction.class));
                     interaction.setDrugId(drug.getDrugId());
                     interaction.setDrugKey(drug.getDrugKey());
-                    interaction.setInteractionKey(PkGenerator.generator(DrugInteraction.class));
                     interactionList.add(interaction);
                 }
                 drugInteractionRepository.save(interactionList);
@@ -216,7 +219,7 @@ public class DrugService implements BaseService {
                     product.setMarketingEnd(DateUtil.stringToTimestamp(marketingEnd));
                     product.setMarketingStart(DateUtil.stringToTimestamp(marketingStart));
                     product.setCreatedAt(System.currentTimeMillis());
-                    product.setCheckState(1);
+                    product.setCheckState(2);
                     product=drugProductRepository.save(product);
                     if (product!=null){
                         //12.1 药品外部id
@@ -266,7 +269,7 @@ public class DrugService implements BaseService {
 //                    foodInteraction.setFoodInteractionKey(PkGenerator.generator(DrugFoodInteraction.class));
 //                    foodInteraction.setDrugId(drug.getDrugId());
 //                    foodInteraction.setDrugKey(drug.getDrugKey());
-//                    //foodInteraction.setFoodInteraction();TODO 该字段还没有解析
+//                    //foodInteraction.setFoodInteraction();//该字段还没有解析
 //                    foodInteractionList.add(foodInteraction);
 //                }
 //                drugFoodInteractionRepository.save(foodInteractionList);
