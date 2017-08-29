@@ -141,6 +141,8 @@ public class DrugService implements BaseService {
                 for (int i=0;i<keggPathways.size();i++){
                     String keggId=keggPathways.getJSONObject(i).getString("id");
                     KeggPathway pathway = new KeggPathway();
+                    pathway.setCreateAt(System.currentTimeMillis());
+                    pathway.setCreateWay(2);
                     pathway.setPathwayKey(PkGenerator.generator(KeggPathway.class));
                     pathway.setKeggId(keggId.trim());
                     pathway.setPathwayName(keggPathways.getJSONObject(i).getString("name"));

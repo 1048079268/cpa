@@ -17,6 +17,8 @@ public class KeggPathway implements Serializable {
     private String pathwayName;
     private String keggLink;
     private String selleckLink;
+    private Long createAt;
+    private Integer createWay;
 
     @Id
     @Column(name = "pathway_key", nullable = false, length = 64)
@@ -68,29 +70,56 @@ public class KeggPathway implements Serializable {
         this.selleckLink = selleckLink;
     }
 
+    @Basic
+    @Column(name = "created_at", nullable = true, length = 64)
+    public Long getCreateAt() {
+        return createAt;
+    }
+
+    public void setCreateAt(Long createAt) {
+        this.createAt = createAt;
+    }
+
+    @Basic
+    @Column(name = "created_way", nullable = true, length = 64)
+    public Integer getCreateWay() {
+        return createWay;
+    }
+
+    public void setCreateWay(Integer createWay) {
+        this.createWay = createWay;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof KeggPathway)) return false;
 
         KeggPathway that = (KeggPathway) o;
 
-        if (pathwayKey != null ? !pathwayKey.equals(that.pathwayKey) : that.pathwayKey != null) return false;
-        if (keggId != null ? !keggId.equals(that.keggId) : that.keggId != null) return false;
-        if (pathwayName != null ? !pathwayName.equals(that.pathwayName) : that.pathwayName != null) return false;
-        if (keggLink != null ? !keggLink.equals(that.keggLink) : that.keggLink != null) return false;
-        if (selleckLink != null ? !selleckLink.equals(that.selleckLink) : that.selleckLink != null) return false;
-
-        return true;
+        if (getPathwayKey() != null ? !getPathwayKey().equals(that.getPathwayKey()) : that.getPathwayKey() != null)
+            return false;
+        if (getKeggId() != null ? !getKeggId().equals(that.getKeggId()) : that.getKeggId() != null) return false;
+        if (getPathwayName() != null ? !getPathwayName().equals(that.getPathwayName()) : that.getPathwayName() != null)
+            return false;
+        if (getKeggLink() != null ? !getKeggLink().equals(that.getKeggLink()) : that.getKeggLink() != null)
+            return false;
+        if (getSelleckLink() != null ? !getSelleckLink().equals(that.getSelleckLink()) : that.getSelleckLink() != null)
+            return false;
+        if (getCreateAt() != null ? !getCreateAt().equals(that.getCreateAt()) : that.getCreateAt() != null)
+            return false;
+        return getCreateWay() != null ? getCreateWay().equals(that.getCreateWay()) : that.getCreateWay() == null;
     }
 
     @Override
     public int hashCode() {
-        int result = pathwayKey != null ? pathwayKey.hashCode() : 0;
-        result = 31 * result + (keggId != null ? keggId.hashCode() : 0);
-        result = 31 * result + (pathwayName != null ? pathwayName.hashCode() : 0);
-        result = 31 * result + (keggLink != null ? keggLink.hashCode() : 0);
-        result = 31 * result + (selleckLink != null ? selleckLink.hashCode() : 0);
+        int result = getPathwayKey() != null ? getPathwayKey().hashCode() : 0;
+        result = 31 * result + (getKeggId() != null ? getKeggId().hashCode() : 0);
+        result = 31 * result + (getPathwayName() != null ? getPathwayName().hashCode() : 0);
+        result = 31 * result + (getKeggLink() != null ? getKeggLink().hashCode() : 0);
+        result = 31 * result + (getSelleckLink() != null ? getSelleckLink().hashCode() : 0);
+        result = 31 * result + (getCreateAt() != null ? getCreateAt().hashCode() : 0);
+        result = 31 * result + (getCreateWay() != null ? getCreateWay().hashCode() : 0);
         return result;
     }
 }
