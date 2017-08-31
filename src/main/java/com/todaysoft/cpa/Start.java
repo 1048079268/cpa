@@ -29,21 +29,9 @@ public class Start implements CommandLineRunner {
     private static Logger logger= LoggerFactory.getLogger(Start.class);
     @Autowired
     private MainService mainService;
-    @Autowired
-    private KeggPathwaysService keggPathwaysService;
-    @Autowired
-    private CPAProperties cpaProperties;
     @Override
     public void run(String... strings) throws Exception {
-        //初始化数据
-        Param.CONTENT_QUEUE=new LinkedBlockingQueue<>(cpaProperties.getMaxBlockingNum());
-        Param.FAILURE_QUEUE=new LinkedBlockingQueue<>(cpaProperties.getMaxFailureBlockingNum());
-        Param.AUTHORIZATION=cpaProperties.getAuthorization();
-        //初始化数据库已有的id
-        mainService.initDrug();
-        mainService.initGene();
-        mainService.initProtein();
-        keggPathwaysService.init();
+        mainService.init();
         mainService.manager();
         logger.info("<<<<<<<<<启动完成>>>>>>>>>");
     }

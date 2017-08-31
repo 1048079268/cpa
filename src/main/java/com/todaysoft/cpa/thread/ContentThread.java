@@ -2,6 +2,7 @@ package com.todaysoft.cpa.thread;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Param;
 import com.todaysoft.cpa.service.BaseService;
@@ -47,8 +48,9 @@ public class ContentThread implements Runnable{
                     }else {
                         baseService.save(jsonObject);
                     }
+                    logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                 }
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 if (contentParam==null){
                     logger.info("【content】结束...");
@@ -76,6 +78,7 @@ public class ContentThread implements Runnable{
         try {
             Param.FAILURE_QUEUE.put(contentParam);
         } catch (InterruptedException e) {
+            contentParam.getCpa().dbId.remove(contentParam.getId());
             logger.error("写入异常重试队列失败:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
             logger.error("【"+contentParam.getCpa().name()+"】"+ ExceptionInfo.getErrorInfo(e));
         }

@@ -21,7 +21,7 @@ public class KeggPathwaysService {
     private KeggPathwayRepository keggPathwayRepository;
 
     public void init(){
-        keggPathwayRepository.findAll().forEach(keggPathway -> {
+        keggPathwayRepository.findIdByCPA().stream().forEach(keggPathway -> {
             PATH_ID.put(keggPathway.getKeggId(),keggPathway);
         });
     }

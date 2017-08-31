@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.param;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,7 +15,7 @@ public enum CPA {
     public String contentUrl;
     public String name;
     CPA() {
-        dbId=new HashSet<>();
+        dbId= Collections.synchronizedSet(new HashSet<>());
         contentUrl=null;
         name=null;
     }

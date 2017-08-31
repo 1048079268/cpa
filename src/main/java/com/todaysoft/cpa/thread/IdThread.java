@@ -59,17 +59,8 @@ public class IdThread implements Runnable {
                             for (int i=0;i<array.size();i++){
                                 JSONObject idObject=array.getJSONObject(i);
                                 String id=idObject.getString("id");
-//                                if (needJudge){
-                                if (true){
-                                    if (!cpa.dbId.contains(id)){
-                                        //如果set里面没有该数据那就将该id存入队列
-                                        ContentParam param=ContentParam.create(contentParam);
-                                        param.setId(id);
-                                        Param.CONTENT_QUEUE.put(param);
-                                        insertCount++;
-                                        needJudge=false;
-                                    }
-                                }else {
+                                if (cpa.dbId.add(id)){
+                                    //如果set里面没有该数据那就将该id存入队列
                                     ContentParam param=ContentParam.create(contentParam);
                                     param.setId(id);
                                     Param.CONTENT_QUEUE.put(param);

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @desc:
@@ -12,5 +13,6 @@ import java.util.List;
  * @date: 2017/8/9 10:11
  */
 public interface KeggPathwayRepository extends JpaRepository<KeggPathway,String> {
-    List<KeggPathway> findByKeggId(String keggId);
+    @Query("select k from KeggPathway k where k.createWay=2")
+    Set<KeggPathway>findIdByCPA();
 }

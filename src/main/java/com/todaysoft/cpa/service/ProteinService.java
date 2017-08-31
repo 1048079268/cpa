@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,6 +39,7 @@ public class ProteinService implements BaseService {
     public void save(JSONObject object) {}
 
     @Override
+    @Transactional
     public void saveByDependence(JSONObject object, String dependenceKey) {
         Protein protein=object.toJavaObject(Protein.class);
         protein.setProteinKey(PkGenerator.generator(Protein.class));
@@ -60,9 +62,6 @@ public class ProteinService implements BaseService {
                 }
                 proteinSynonymRepository.save(synonymList);
             }
-            //END:全部插入完成，将id保存到相应集合
-            logger.info("【"+ CPA.PROTEIN.name()+"】插入数据库成功,id="+protein.getProteinId());
-            CPA.PROTEIN.dbId.add(String.valueOf(protein.getProteinId()));
         }
     }
 

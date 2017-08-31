@@ -48,6 +48,7 @@ public class ExceptionThread implements Runnable {
                         }else {
                             baseService.save(jsonObject);
                         }
+                        logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                     }catch (Exception e){
                         logger.error("【exception】存入数据异常，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
                         logger.error("【exception】"+ ExceptionInfo.getErrorInfo(e));
@@ -58,12 +59,14 @@ public class ExceptionThread implements Runnable {
                 if (contentParam==null){
                     logger.info("【exception】结束...");
                 }else{
+                    contentParam.getCpa().dbId.remove(contentParam.getId());
                     logger.error("【exception】意外结束，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
                 }
             } catch (Exception e) {
                 if (contentParam==null){
                     logger.info("【exception】异常结束，未获取到队列内容，等待父线程重启");
                 }else{
+                    contentParam.getCpa().dbId.remove(contentParam.getId());
                     logger.error("【exception】抓取异常，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
                 }
             }

@@ -41,6 +41,8 @@ public class GeneService implements BaseService {
     @Autowired
     private ProteinService proteinService;
     @Autowired
+    private VariantService variantService;
+    @Autowired
     private CPAProperties cpaProperties;
 
     @Override
@@ -106,14 +108,16 @@ public class GeneService implements BaseService {
                 }
                 geneOtherNameRepository.save(otherNameList);
             }
-            //END:全部插入完成，将id保存到相应集合
-            logger.info("【" + CPA.GENE.name() + "】插入数据库成功,id=" + gene.getGeneId());
-            CPA.GENE.dbId.add(String.valueOf(gene.getGeneId()));
             //插入与该id关联的蛋白质
             logger.info("【" + CPA.GENE.name() + "】开始插入关联的蛋白质");
-            Page page=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.PROTEIN.name+"s");
-            ContentParam param=new ContentParam(CPA.PROTEIN,proteinService,true,gene.getGeneKey());
-            new Thread(new IdThread(page,param)).start();
+            Page proteinPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.PROTEIN.name+"s");
+            ContentParam proteinParam=new ContentParam(CPA.PROTEIN,proteinService,true,gene.getGeneKey());
+            new Thread(new IdThread(proteinPage,proteinParam)).start();
+            //插入与该id关联的突变
+            logger.info("【" + CPA.GENE.name() + "】开始插入关联的突变");
+            Page variantPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.VARIANT.name+"s");
+            ContentParam variantParam=new ContentParam(CPA.VARIANT,variantService,true,gene.getGeneKey());
+            new Thread(new IdThread(variantPage,variantParam)).start();
         }
     }
 

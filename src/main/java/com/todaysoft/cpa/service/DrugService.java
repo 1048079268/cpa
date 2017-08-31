@@ -55,6 +55,8 @@ public class DrugService implements BaseService {
     private DrugSynonymRepository drugSynonymRepository;
     @Autowired
     private KeggPathwaysService keggPathwaysService;
+    @Autowired
+    private MeshCategoryService meshCategoryService;
 
     @Override
     @Transactional
@@ -147,15 +149,18 @@ public class DrugService implements BaseService {
                     pathway.setKeggId(keggId.trim());
                     pathway.setPathwayName(keggPathways.getJSONObject(i).getString("name"));
                     pathway = keggPathwaysService.save(pathway);
-                    DrugKeggPathway keggPathway=new DrugKeggPathway();
-                    keggPathway.setDrugId(drug.getDrugId());
-                    keggPathway.setDrugKey(drug.getDrugKey());
-                    keggPathway.setPathwayKey(pathway.getPathwayKey());
-                    keggPathway.setKeggId(pathway.getKeggId());
-                    keggPathway.setPathwayName(pathway.getPathwayName());
-                    keggPathwayList.add(keggPathway);
+                    if (pathway!=null){
+                        DrugKeggPathway keggPathway=new DrugKeggPathway();
+                        keggPathway.setDrugId(drug.getDrugId());
+                        keggPathway.setDrugKey(drug.getDrugKey());
+                        keggPathway.setPathwayKey(pathway.getPathwayKey());
+                        keggPathway.setKeggId(pathway.getKeggId());
+                        keggPathway.setPathwayName(pathway.getPathwayName());
+//                        keggPathwayList.add(keggPathway);
+                        drugKeggPathwayRepository.save(keggPathway);
+                    }
                 }
-                drugKeggPathwayRepository.save(keggPathwayList);
+//                drugKeggPathwayRepository.save(keggPathwayList);
             }
             //8.药物结构化适应症
             JSONArray structuredIndications=object.getJSONArray("structuredIndications");
@@ -240,13 +245,23 @@ public class DrugService implements BaseService {
             if (categories!=null&&categories.size()>0){
                 List<DrugCategory> categoryList=new ArrayList<>(categories.size());
                 for (int i=0;i<categories.size();i++){
-                    DrugCategory category=categories.getJSONObject(i).toJavaObject(DrugCategory.class);
-                    category.setCategoryKey(PkGenerator.generator(DrugCategory.class));
-                    category.setDrugId(drug.getDrugId());
-                    category.setDrugKey(drug.getDrugKey());
-                    categoryList.add(category);
+                    MeshCategory meshCategory=categories.getObject(i,MeshCategory.class);
+                    meshCategory.setMeshCategoryKey(PkGenerator.generator(MeshCategory.class));
+                    meshCategory.setCreatedAt(System.currentTimeMillis());
+                    meshCategory.setCreatedWay(2);
+                    meshCategory=meshCategoryService.save(meshCategory);
+                    if (meshCategory!=null){
+                        DrugCategory category=new DrugCategory();
+                        category.setMeshId(meshCategory.getMeshId());
+                        category.setCategoryName(meshCategory.getCategoryName());
+                        category.setMeshCategoryKey(meshCategory.getMeshCategoryKey());
+                        category.setDrugId(drug.getDrugId());
+                        category.setDrugKey(drug.getDrugKey());
+//                        categoryList.add(category);
+                        drugCategoryRepository.save(category);
+                    }
                 }
-                drugCategoryRepository.save(categoryList);
+//                drugCategoryRepository.save(categoryList);
             }
             //14.药物序列
             JSONArray sequences=object.getJSONArray("sequences");
@@ -276,9 +291,6 @@ public class DrugService implements BaseService {
 //                }
 //                drugFoodInteractionRepository.save(foodInteractionList);
 //            }
-            //END:全部插入完成，将id保存到相应集合
-            logger.info("【"+CPA.DRUG.name()+"】插入数据库成功,id="+drug.getDrugId());
-            CPA.DRUG.dbId.add(String.valueOf(drug.getDrugId()));
         }
     }
 
