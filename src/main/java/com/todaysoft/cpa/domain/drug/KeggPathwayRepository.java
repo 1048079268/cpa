@@ -14,5 +14,5 @@ import java.util.Set;
  */
 public interface KeggPathwayRepository extends JpaRepository<KeggPathway,String> {
     @Query("select k from KeggPathway k where k.createWay=2")
-    Set<KeggPathway>findIdByCPA();
+    List<KeggPathway>findByCPA();
 }

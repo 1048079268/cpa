@@ -10,13 +10,14 @@ import javax.persistence.*;
  * @date: 2017/8/31 11:25
  */
 @Entity
-@Table(name = "kt_cancer", schema = "project_kb_en", catalog = "")
+@Table(name = "kt_cancer")
 public class Cancer {
     private String cancerKey;
     private String doid;
     private String cancerName;
     private String parentId;
     private String cancerDefinition;
+    private String parentKey;
 
     @Id
     @Column(name = "cancer_key", nullable = false, length = 64)
@@ -49,7 +50,8 @@ public class Cancer {
     }
 
     @Basic
-    @Column(name = "parent_id", nullable = true, length = 11)
+    @Column(name = "parent_ids")
+    @Type(type = "text")
     public String getParentId() {
         return parentId;
     }
@@ -57,6 +59,18 @@ public class Cancer {
     public void setParentId(String parentId) {
         this.parentId = parentId;
     }
+
+    @Basic
+    @Column(name = "parent_keys")
+    @Type(type = "text")
+    public String getParentKey() {
+        return parentKey;
+    }
+
+    public void setParentKey(String parentKey) {
+        this.parentKey = parentKey;
+    }
+
 
     @Basic
     @Column(name = "cancer_definition", nullable = true, length = -1)
@@ -72,27 +86,30 @@ public class Cancer {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Cancer)) return false;
 
         Cancer cancer = (Cancer) o;
 
-        if (cancerKey != null ? !cancerKey.equals(cancer.cancerKey) : cancer.cancerKey != null) return false;
-        if (doid != null ? !doid.equals(cancer.doid) : cancer.doid != null) return false;
-        if (cancerName != null ? !cancerName.equals(cancer.cancerName) : cancer.cancerName != null) return false;
-        if (parentId != null ? !parentId.equals(cancer.parentId) : cancer.parentId != null) return false;
-        if (cancerDefinition != null ? !cancerDefinition.equals(cancer.cancerDefinition) : cancer.cancerDefinition != null)
+        if (getCancerKey() != null ? !getCancerKey().equals(cancer.getCancerKey()) : cancer.getCancerKey() != null)
             return false;
-
-        return true;
+        if (getDoid() != null ? !getDoid().equals(cancer.getDoid()) : cancer.getDoid() != null) return false;
+        if (getCancerName() != null ? !getCancerName().equals(cancer.getCancerName()) : cancer.getCancerName() != null)
+            return false;
+        if (getParentId() != null ? !getParentId().equals(cancer.getParentId()) : cancer.getParentId() != null)
+            return false;
+        if (getCancerDefinition() != null ? !getCancerDefinition().equals(cancer.getCancerDefinition()) : cancer.getCancerDefinition() != null)
+            return false;
+        return getParentKey() != null ? getParentKey().equals(cancer.getParentKey()) : cancer.getParentKey() == null;
     }
 
     @Override
     public int hashCode() {
-        int result = cancerKey != null ? cancerKey.hashCode() : 0;
-        result = 31 * result + (doid != null ? doid.hashCode() : 0);
-        result = 31 * result + (cancerName != null ? cancerName.hashCode() : 0);
-        result = 31 * result + (parentId != null ? parentId.hashCode() : 0);
-        result = 31 * result + (cancerDefinition != null ? cancerDefinition.hashCode() : 0);
+        int result = getCancerKey() != null ? getCancerKey().hashCode() : 0;
+        result = 31 * result + (getDoid() != null ? getDoid().hashCode() : 0);
+        result = 31 * result + (getCancerName() != null ? getCancerName().hashCode() : 0);
+        result = 31 * result + (getParentId() != null ? getParentId().hashCode() : 0);
+        result = 31 * result + (getCancerDefinition() != null ? getCancerDefinition().hashCode() : 0);
+        result = 31 * result + (getParentKey() != null ? getParentKey().hashCode() : 0);
         return result;
     }
 }

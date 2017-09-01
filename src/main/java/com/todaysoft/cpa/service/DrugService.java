@@ -137,42 +137,39 @@ public class DrugService implements BaseService {
                 drugInternationalBrandRepository.save(internationalBrandList);
             }
             //7.药物通路
+            List<DrugKeggPathway> pathwayList=new ArrayList<>();
             JSONArray keggPathways=object.getJSONArray("keggPathways");
             if (keggPathways!=null&&keggPathways.size()>0){
-                List<DrugKeggPathway> keggPathwayList=new ArrayList<>(keggPathways.size());
                 for (int i=0;i<keggPathways.size();i++){
                     String keggId=keggPathways.getJSONObject(i).getString("id");
                     KeggPathway pathway = new KeggPathway();
                     pathway.setCreateAt(System.currentTimeMillis());
                     pathway.setCreateWay(2);
+                    pathway.setCheckState(1);
                     pathway.setPathwayKey(PkGenerator.generator(KeggPathway.class));
                     pathway.setKeggId(keggId.trim());
                     pathway.setPathwayName(keggPathways.getJSONObject(i).getString("name"));
-                    pathway = keggPathwaysService.save(pathway);
-                    if (pathway!=null){
-                        DrugKeggPathway keggPathway=new DrugKeggPathway();
-                        keggPathway.setDrugId(drug.getDrugId());
-                        keggPathway.setDrugKey(drug.getDrugKey());
-                        keggPathway.setPathwayKey(pathway.getPathwayKey());
-                        keggPathway.setKeggId(pathway.getKeggId());
-                        keggPathway.setPathwayName(pathway.getPathwayName());
-//                        keggPathwayList.add(keggPathway);
-                        drugKeggPathwayRepository.save(keggPathway);
-                    }
+                    pathway=keggPathwaysService.save(pathway);
+                    DrugKeggPathway drugKeggPathway=new DrugKeggPathway();
+                    drugKeggPathway.setPathwayKey(pathway.getPathwayKey());
+                    drugKeggPathway.setDrugKey(drug.getDrugKey());
+                    drugKeggPathway.setKeggId(pathway.getKeggId());
+                    drugKeggPathway.setDrugId(drug.getDrugId());
+                    drugKeggPathway.setPathwayName(pathway.getPathwayName());
+                    pathwayList.add(drugKeggPathway);
                 }
-//                drugKeggPathwayRepository.save(keggPathwayList);
             }
-            //8.药物结构化适应症
+            //TODO 8.药物结构化适应症
             JSONArray structuredIndications=object.getJSONArray("structuredIndications");
             if (structuredIndications!=null&&structuredIndications.size()>0){
                 List<DrugStructuredIndication> structuredIndicationList=new ArrayList<>(structuredIndications.size());
                 for (int i=0;i<structuredIndications.size();i++){
-                    DrugStructuredIndication structuredIndication=new DrugStructuredIndication();
-                    structuredIndication.setDrugId(drug.getDrugId());
-                    structuredIndication.setDrugKey(drug.getDrugKey());
-                    structuredIndication.setStructuredIndicationKey(PkGenerator.generator(DrugStructuredIndication.class));
-                    structuredIndication.setStructuredIndication(structuredIndications.getString(i));
-                    structuredIndicationList.add(structuredIndication);
+//                    DrugStructuredIndication structuredIndication=new DrugStructuredIndication();
+//                    structuredIndication.setDrugId(drug.getDrugId());
+//                    structuredIndication.setDrugKey(drug.getDrugKey());
+//                    structuredIndication.setIndicationKey(PkGenerator.generator(DrugStructuredIndication.class));
+//                    structuredIndication.setStructuredIndication(structuredIndications.getString(i));
+//                    structuredIndicationList.add(structuredIndication);
                 }
                 drugStructuredIndicationRepository.save(structuredIndicationList);
             }
@@ -180,16 +177,17 @@ public class DrugService implements BaseService {
             JSONArray clinicalTrials=object.getJSONArray("clinicalTrials");
             if (clinicalTrials!=null&&clinicalTrials.size()>0){
             }
-            //10.药物不良反应
+            //TODO 10.药物不良反应
             JSONArray adverseReactions=object.getJSONArray("adverseReactions");
             if (adverseReactions!=null&&adverseReactions.size()>0){
                 List<DrugAdverseReaction> adverseReactionsList=new ArrayList<>(adverseReactions.size());
                 for (int i=0;i<adverseReactions.size();i++){
-                    DrugAdverseReaction adverseReaction=adverseReactions.getJSONObject(i).toJavaObject(DrugAdverseReaction.class);
-                    adverseReaction.setDrugId(drug.getDrugId());
-                    adverseReaction.setDrugKey(drug.getDrugKey());
-                    adverseReaction.setAdverseReactionKey(PkGenerator.generator(DrugAdverseReaction.class));
-                    adverseReactionsList.add(adverseReaction);
+                    //
+//                    DrugAdverseReaction adverseReaction=adverseReactions.getJSONObject(i).toJavaObject(DrugAdverseReaction.class);
+//                    adverseReaction.setDrugId(drug.getDrugId());
+//                    adverseReaction.setDrugKey(drug.getDrugKey());
+//                    adverseReaction.setSideEffectKey(PkGenerator.generator(DrugAdverseReaction.class));
+//                    adverseReactionsList.add(adverseReaction);
                 }
                 drugAdverseReactionRepository.save(adverseReactionsList);
             }
@@ -199,7 +197,7 @@ public class DrugService implements BaseService {
                 Set<Integer> interactionId=new HashSet<>();
                 List<DrugInteraction> interactionList=new ArrayList<>(interactions.size());
                 for (int i=0;i<interactions.size();i++){
-                    DrugInteraction interaction=interactions.getJSONObject(i).toJavaObject(DrugInteraction.class);
+                    DrugInteraction interaction=interactions.getObject(i,DrugInteraction.class);
                     //去重
                     if (interactionId.contains(interaction.getDrugIdInteraction())){
                         continue;
@@ -226,7 +224,8 @@ public class DrugService implements BaseService {
                     product.setMarketingEnd(DateUtil.stringToTimestamp(marketingEnd));
                     product.setMarketingStart(DateUtil.stringToTimestamp(marketingStart));
                     product.setCreatedAt(System.currentTimeMillis());
-                    product.setCheckState(2);
+                    product.setCheckState(1);
+                    product.setCreateWay(2);
                     product=drugProductRepository.save(product);
                     if (product!=null){
                         //12.1 药品外部id
@@ -242,26 +241,22 @@ public class DrugService implements BaseService {
             }
             //13.药物分类
             JSONArray categories=object.getJSONArray("categories");
+            List<DrugCategory> drugCategoryList=new ArrayList<>();
             if (categories!=null&&categories.size()>0){
-                List<DrugCategory> categoryList=new ArrayList<>(categories.size());
                 for (int i=0;i<categories.size();i++){
                     MeshCategory meshCategory=categories.getObject(i,MeshCategory.class);
                     meshCategory.setMeshCategoryKey(PkGenerator.generator(MeshCategory.class));
                     meshCategory.setCreatedAt(System.currentTimeMillis());
                     meshCategory.setCreatedWay(2);
+                    meshCategory.setCheckState(1);
                     meshCategory=meshCategoryService.save(meshCategory);
-                    if (meshCategory!=null){
-                        DrugCategory category=new DrugCategory();
-                        category.setMeshId(meshCategory.getMeshId());
-                        category.setCategoryName(meshCategory.getCategoryName());
-                        category.setMeshCategoryKey(meshCategory.getMeshCategoryKey());
-                        category.setDrugId(drug.getDrugId());
-                        category.setDrugKey(drug.getDrugKey());
-//                        categoryList.add(category);
-                        drugCategoryRepository.save(category);
-                    }
+                    DrugCategory drugCategory=new DrugCategory();
+                    drugCategory.setDrugKey(drug.getDrugKey());
+                    drugCategory.setDrugId(drug.getDrugId());
+                    drugCategory.setMeshId(meshCategory.getMeshId());
+                    drugCategory.setMeshCategoryKey(meshCategory.getMeshCategoryKey());
+                    drugCategory.setCategoryName(meshCategory.getCategoryName());
                 }
-//                drugCategoryRepository.save(categoryList);
             }
             //14.药物序列
             JSONArray sequences=object.getJSONArray("sequences");
@@ -291,6 +286,9 @@ public class DrugService implements BaseService {
 //                }
 //                drugFoodInteractionRepository.save(foodInteractionList);
 //            }
+            //多对多关系表的插入
+            drugKeggPathwayRepository.save(pathwayList);
+            drugCategoryRepository.save(drugCategoryList);
         }
     }
 

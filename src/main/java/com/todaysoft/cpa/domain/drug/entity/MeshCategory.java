@@ -1,5 +1,7 @@
 package com.todaysoft.cpa.domain.drug.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import javax.persistence.*;
 
 /**
@@ -11,10 +13,13 @@ import javax.persistence.*;
 @Table(name = "kt_mesh_category")
 public class MeshCategory {
     private String meshCategoryKey;
+    @JSONField(name = "meshId")
     private String meshId;
+    @JSONField(name = "categoryName")
     private String categoryName;
     private Long createdAt;
     private Integer createdWay;
+    private Integer checkState;
 
     @Id
     @Column(name = "mesh_category_key", nullable = false, length = 64)
@@ -66,30 +71,55 @@ public class MeshCategory {
         this.createdWay = createdWay;
     }
 
+    @Basic
+    @Column(name = "check_state", nullable = true)
+    public Integer getCheckState() {
+        return checkState;
+    }
+
+    public void setCheckState(Integer checkState) {
+        this.checkState = checkState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof MeshCategory)) return false;
 
         MeshCategory that = (MeshCategory) o;
 
-        if (meshCategoryKey != null ? !meshCategoryKey.equals(that.meshCategoryKey) : that.meshCategoryKey != null)
+        if (getMeshCategoryKey() != null ? !getMeshCategoryKey().equals(that.getMeshCategoryKey()) : that.getMeshCategoryKey() != null)
             return false;
-        if (meshId != null ? !meshId.equals(that.meshId) : that.meshId != null) return false;
-        if (categoryName != null ? !categoryName.equals(that.categoryName) : that.categoryName != null) return false;
-        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
-        if (createdWay != null ? !createdWay.equals(that.createdWay) : that.createdWay != null) return false;
-
-        return true;
+        if (getMeshId() != null ? !getMeshId().equals(that.getMeshId()) : that.getMeshId() != null) return false;
+        if (getCategoryName() != null ? !getCategoryName().equals(that.getCategoryName()) : that.getCategoryName() != null)
+            return false;
+        if (getCreatedAt() != null ? !getCreatedAt().equals(that.getCreatedAt()) : that.getCreatedAt() != null)
+            return false;
+        if (getCreatedWay() != null ? !getCreatedWay().equals(that.getCreatedWay()) : that.getCreatedWay() != null)
+            return false;
+        return getCheckState() != null ? getCheckState().equals(that.getCheckState()) : that.getCheckState() == null;
     }
 
     @Override
     public int hashCode() {
-        int result = meshCategoryKey != null ? meshCategoryKey.hashCode() : 0;
-        result = 31 * result + (meshId != null ? meshId.hashCode() : 0);
-        result = 31 * result + (categoryName != null ? categoryName.hashCode() : 0);
-        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
-        result = 31 * result + (createdWay != null ? createdWay.hashCode() : 0);
+        int result = getMeshCategoryKey() != null ? getMeshCategoryKey().hashCode() : 0;
+        result = 31 * result + (getMeshId() != null ? getMeshId().hashCode() : 0);
+        result = 31 * result + (getCategoryName() != null ? getCategoryName().hashCode() : 0);
+        result = 31 * result + (getCreatedAt() != null ? getCreatedAt().hashCode() : 0);
+        result = 31 * result + (getCreatedWay() != null ? getCreatedWay().hashCode() : 0);
+        result = 31 * result + (getCheckState() != null ? getCheckState().hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "MeshCategory{" +
+                "meshCategoryKey='" + meshCategoryKey + '\'' +
+                ", meshId='" + meshId + '\'' +
+                ", categoryName='" + categoryName + '\'' +
+                ", createdAt=" + createdAt +
+                ", createdWay=" + createdWay +
+                ", checkState=" + checkState +
+                '}';
     }
 }

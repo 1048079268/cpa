@@ -48,6 +48,7 @@ public class DrugProduct implements Serializable {
     private Boolean approved;
     private Integer checkState;
     private Long createdAt;
+    private Integer createWay;
 
     @Id
     @Column(name = "product_key", nullable = false, length = 64)
@@ -257,6 +258,16 @@ public class DrugProduct implements Serializable {
 
     public void setCreatedAt(Long createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "created_way",nullable = false)
+    public Integer getCreateWay() {
+        return createWay;
+    }
+
+    public void setCreateWay(Integer createWay) {
+        this.createWay = createWay;
     }
 
     @Override

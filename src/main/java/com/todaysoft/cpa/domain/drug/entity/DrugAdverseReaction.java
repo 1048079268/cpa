@@ -1,47 +1,41 @@
 package com.todaysoft.cpa.domain.drug.entity;
 
-import com.alibaba.fastjson.annotation.JSONField;
-
 import javax.persistence.*;
-import java.io.Serializable;
 
 /**
  * @desc:
  * @author: 鱼唇的人类
- * @date: 2017/8/9 9:55
+ * @date: 2017/9/1 9:35
  */
 @Entity
 @Table(name = "kt_drug_adverse_reaction")
-public class DrugAdverseReaction implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private String adverseReactionKey;
+@IdClass(DrugAdverseReactionPK.class)
+public class DrugAdverseReaction {
     private String drugKey;
+    private String sideEffectKey;
     private Integer drugId;
-    @JSONField(name = "adrName")
     private String adressName;
-    @JSONField(name = "frequency")
     private String ferquency;
-    @JSONField(name = "placeboFrequency")
     private String placeboFrequency;
 
     @Id
-    @Column(name = "adverse_reaction_key", nullable = false, length = 64)
-    public String getAdverseReactionKey() {
-        return adverseReactionKey;
-    }
-
-    public void setAdverseReactionKey(String adverseReactionKey) {
-        this.adverseReactionKey = adverseReactionKey;
-    }
-
-    @Basic
-    @Column(name = "drug_key", nullable = true, length = 64)
+    @Column(name = "drug_key", nullable = false, length = 64)
     public String getDrugKey() {
         return drugKey;
     }
 
     public void setDrugKey(String drugKey) {
         this.drugKey = drugKey;
+    }
+
+    @Id
+    @Column(name = "side_effect_key", nullable = false, length = 64)
+    public String getSideEffectKey() {
+        return sideEffectKey;
+    }
+
+    public void setSideEffectKey(String sideEffectKey) {
+        this.sideEffectKey = sideEffectKey;
     }
 
     @Basic
@@ -91,9 +85,9 @@ public class DrugAdverseReaction implements Serializable {
 
         DrugAdverseReaction that = (DrugAdverseReaction) o;
 
-        if (adverseReactionKey != null ? !adverseReactionKey.equals(that.adverseReactionKey) : that.adverseReactionKey != null)
-            return false;
         if (drugKey != null ? !drugKey.equals(that.drugKey) : that.drugKey != null) return false;
+        if (sideEffectKey != null ? !sideEffectKey.equals(that.sideEffectKey) : that.sideEffectKey != null)
+            return false;
         if (drugId != null ? !drugId.equals(that.drugId) : that.drugId != null) return false;
         if (adressName != null ? !adressName.equals(that.adressName) : that.adressName != null) return false;
         if (ferquency != null ? !ferquency.equals(that.ferquency) : that.ferquency != null) return false;
@@ -105,8 +99,8 @@ public class DrugAdverseReaction implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = adverseReactionKey != null ? adverseReactionKey.hashCode() : 0;
-        result = 31 * result + (drugKey != null ? drugKey.hashCode() : 0);
+        int result = drugKey != null ? drugKey.hashCode() : 0;
+        result = 31 * result + (sideEffectKey != null ? sideEffectKey.hashCode() : 0);
         result = 31 * result + (drugId != null ? drugId.hashCode() : 0);
         result = 31 * result + (adressName != null ? adressName.hashCode() : 0);
         result = 31 * result + (ferquency != null ? ferquency.hashCode() : 0);

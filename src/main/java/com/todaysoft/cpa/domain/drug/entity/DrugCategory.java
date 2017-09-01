@@ -94,4 +94,15 @@ public class DrugCategory {
         result = 31 * result + (categoryName != null ? categoryName.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "DrugCategory{" +
+                "drugKey='" + drugKey + '\'' +
+                ", meshCategoryKey='" + meshCategoryKey + '\'' +
+                ", drugId=" + drugId +
+                ", meshId='" + meshId + '\'' +
+                ", categoryName='" + categoryName + '\'' +
+                '}';
+    }
 }

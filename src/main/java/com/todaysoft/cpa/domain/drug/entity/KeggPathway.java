@@ -19,6 +19,8 @@ public class KeggPathway implements Serializable {
     private String selleckLink;
     private Long createAt;
     private Integer createWay;
+    private Integer checkState;
+
 
     @Id
     @Column(name = "pathway_key", nullable = false, length = 64)
@@ -90,6 +92,16 @@ public class KeggPathway implements Serializable {
         this.createWay = createWay;
     }
 
+    @Basic
+    @Column(name = "check_state", nullable = true)
+    public Integer getCheckState() {
+        return checkState;
+    }
+
+    public void setCheckState(Integer checkState) {
+        this.checkState = checkState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -108,7 +120,9 @@ public class KeggPathway implements Serializable {
             return false;
         if (getCreateAt() != null ? !getCreateAt().equals(that.getCreateAt()) : that.getCreateAt() != null)
             return false;
-        return getCreateWay() != null ? getCreateWay().equals(that.getCreateWay()) : that.getCreateWay() == null;
+        if (getCreateWay() != null ? !getCreateWay().equals(that.getCreateWay()) : that.getCreateWay() != null)
+            return false;
+        return getCheckState() != null ? getCheckState().equals(that.getCheckState()) : that.getCheckState() == null;
     }
 
     @Override
@@ -120,6 +134,7 @@ public class KeggPathway implements Serializable {
         result = 31 * result + (getSelleckLink() != null ? getSelleckLink().hashCode() : 0);
         result = 31 * result + (getCreateAt() != null ? getCreateAt().hashCode() : 0);
         result = 31 * result + (getCreateWay() != null ? getCreateWay().hashCode() : 0);
+        result = 31 * result + (getCheckState() != null ? getCheckState().hashCode() : 0);
         return result;
     }
 }
