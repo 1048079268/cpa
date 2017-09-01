@@ -10,11 +10,11 @@ import java.util.Set;
  * @date: 2017/8/15 10:25
  */
 public enum CPA {
-    GENE,DRUG,VARIANT,EVIDENCE,PROTEIN,CLINICAL_TRIAL,REGIMEN;
+    GENE,DRUG,VARIANT,EVIDENCE,PROTEIN,CLINICAL_TRIAL,REGIMEN,MUTATION_STATISTICS;
     public Set<String> dbId;
     public String contentUrl;
     public String name;
-    CPA() {
+    CPA(){
         dbId= Collections.synchronizedSet(new HashSet<>());
         contentUrl=null;
         name=null;

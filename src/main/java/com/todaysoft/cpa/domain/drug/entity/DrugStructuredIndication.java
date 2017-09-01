@@ -14,7 +14,6 @@ public class DrugStructuredIndication {
     private String drugKey;
     private String indicationKey;
     private int drugId;
-    private String structuredIndication;
 
     @Id
     @Column(name = "drug_key", nullable = false, length = 64)
@@ -67,9 +66,6 @@ public class DrugStructuredIndication {
         if (drugKey != null ? !drugKey.equals(that.drugKey) : that.drugKey != null) return false;
         if (indicationKey != null ? !indicationKey.equals(that.indicationKey) : that.indicationKey != null)
             return false;
-        if (structuredIndication != null ? !structuredIndication.equals(that.structuredIndication) : that.structuredIndication != null)
-            return false;
-
         return true;
     }
 
@@ -78,7 +74,6 @@ public class DrugStructuredIndication {
         int result = drugKey != null ? drugKey.hashCode() : 0;
         result = 31 * result + (indicationKey != null ? indicationKey.hashCode() : 0);
         result = 31 * result + drugId;
-        result = 31 * result + (structuredIndication != null ? structuredIndication.hashCode() : 0);
         return result;
     }
 }

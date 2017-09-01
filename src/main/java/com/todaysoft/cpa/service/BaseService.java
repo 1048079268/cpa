@@ -8,7 +8,7 @@ import com.alibaba.fastjson.JSONObject;
  * @date: 2017/8/15 10:35
  */
 public interface BaseService {
-    void save(JSONObject object);
+    void save(JSONObject object) throws InterruptedException;
     void saveByDependence(JSONObject object,String dependenceKey);
     void initDB();
 }

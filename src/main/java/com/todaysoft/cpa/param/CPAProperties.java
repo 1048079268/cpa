@@ -22,6 +22,8 @@ public class CPAProperties {
     private String proteinName;
     private String clinicalTrialUrl;
     private String clinicalTrialName;
+    private String mutationStatisticsUrl;
+    private String mutationStatisticsName;
     private String regimenUrl;
     private String regimenName;
     private int maxThreadNum;
@@ -188,5 +190,21 @@ public class CPAProperties {
 
     public void setMaxFailureBlockingNum(int maxFailureBlockingNum) {
         this.maxFailureBlockingNum = maxFailureBlockingNum;
+    }
+
+    public String getMutationStatisticsUrl() {
+        return mutationStatisticsUrl;
+    }
+
+    public void setMutationStatisticsUrl(String mutationStatisticsUrl) {
+        this.mutationStatisticsUrl = mutationStatisticsUrl;
+    }
+
+    public String getMutationStatisticsName() {
+        return mutationStatisticsName;
+    }
+
+    public void setMutationStatisticsName(String mutationStatisticsName) {
+        this.mutationStatisticsName = mutationStatisticsName;
     }
 }

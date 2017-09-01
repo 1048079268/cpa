@@ -50,7 +50,7 @@ public class ContentThread implements Runnable{
                     }
                     logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                 }
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 if (contentParam==null){
                     logger.info("【content】结束...");

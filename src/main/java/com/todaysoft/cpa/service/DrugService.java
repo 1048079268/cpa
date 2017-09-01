@@ -57,10 +57,14 @@ public class DrugService implements BaseService {
     private KeggPathwaysService keggPathwaysService;
     @Autowired
     private MeshCategoryService meshCategoryService;
+    @Autowired
+    private IndicationService indicationService;
+    @Autowired
+    private SideEffectService sideEffectService;
 
     @Override
     @Transactional
-    public void save(JSONObject object) {
+    public void save(JSONObject object) throws InterruptedException {
         //1.解析药物基本信息
         Drug drug=object.toJavaObject(Drug.class);
         drug.setDrugKey(PkGenerator.generator(Drug.class));
@@ -159,37 +163,59 @@ public class DrugService implements BaseService {
                     pathwayList.add(drugKeggPathway);
                 }
             }
-            //TODO 8.药物结构化适应症
+            //8.药物结构化适应症
             JSONArray structuredIndications=object.getJSONArray("structuredIndications");
+            List<DrugStructuredIndication> structuredIndicationList=new ArrayList<>();
             if (structuredIndications!=null&&structuredIndications.size()>0){
-                List<DrugStructuredIndication> structuredIndicationList=new ArrayList<>(structuredIndications.size());
                 for (int i=0;i<structuredIndications.size();i++){
-//                    DrugStructuredIndication structuredIndication=new DrugStructuredIndication();
-//                    structuredIndication.setDrugId(drug.getDrugId());
-//                    structuredIndication.setDrugKey(drug.getDrugKey());
-//                    structuredIndication.setIndicationKey(PkGenerator.generator(DrugStructuredIndication.class));
-//                    structuredIndication.setStructuredIndication(structuredIndications.getString(i));
-//                    structuredIndicationList.add(structuredIndication);
+                    Indication indication=new Indication();
+                    indication.setCheckState(1);
+                    indication.setCreatedAt(System.currentTimeMillis());
+                    indication.setCreatedWay(2);
+                    indication.setIndicationKey(PkGenerator.generator(Indication.class));
+                    indication.setMeddraConceptName(structuredIndications.getString(i));
+                    List<Indication> indicationList=indicationService.save(indication);
+                    if (indicationList!=null&&indicationList.size()>0){
+                        for (Indication indic:indicationList){
+                            DrugStructuredIndication structuredIndication=new DrugStructuredIndication();
+                            structuredIndication.setDrugId(drug.getDrugId());
+                            structuredIndication.setDrugKey(drug.getDrugKey());
+                            structuredIndication.setIndicationKey(indic.getIndicationKey());
+                            structuredIndicationList.add(structuredIndication);
+                        }
+                    }
                 }
-                drugStructuredIndicationRepository.save(structuredIndicationList);
             }
             // TODO 9.药物临床实验
             JSONArray clinicalTrials=object.getJSONArray("clinicalTrials");
             if (clinicalTrials!=null&&clinicalTrials.size()>0){
             }
-            //TODO 10.药物不良反应
+            //10.药物不良反应
             JSONArray adverseReactions=object.getJSONArray("adverseReactions");
+            List<DrugAdverseReaction> adverseReactionsList=new ArrayList<>();
             if (adverseReactions!=null&&adverseReactions.size()>0){
-                List<DrugAdverseReaction> adverseReactionsList=new ArrayList<>(adverseReactions.size());
                 for (int i=0;i<adverseReactions.size();i++){
-                    //
-//                    DrugAdverseReaction adverseReaction=adverseReactions.getJSONObject(i).toJavaObject(DrugAdverseReaction.class);
-//                    adverseReaction.setDrugId(drug.getDrugId());
-//                    adverseReaction.setDrugKey(drug.getDrugKey());
-//                    adverseReaction.setSideEffectKey(PkGenerator.generator(DrugAdverseReaction.class));
-//                    adverseReactionsList.add(adverseReaction);
+                    SideEffect sideEffect=new SideEffect();
+                    DrugAdverseReaction adverseReaction=adverseReactions.getObject(i,DrugAdverseReaction.class);
+                    sideEffect.setCheckState(1);
+                    sideEffect.setCreatedAt(System.currentTimeMillis());
+                    sideEffect.setCreatedWay(2);
+                    sideEffect.setSideEffectName(adverseReaction.getAdressName());
+                    sideEffect.setSideEffectKey(PkGenerator.generator(DrugAdverseReaction.class));
+                    List<SideEffect> sideEffectList=sideEffectService.save(sideEffect);
+                    if (sideEffectList!=null&&sideEffectList.size()>0){
+                        for (SideEffect effect:sideEffectList){
+                            DrugAdverseReaction drugAdverseReaction=new DrugAdverseReaction();
+                            drugAdverseReaction.setAdressName(adverseReaction.getAdressName());
+                            drugAdverseReaction.setFerquency(adverseReaction.getFerquency());
+                            drugAdverseReaction.setPlaceboFrequency(adverseReaction.getPlaceboFrequency());
+                            drugAdverseReaction.setDrugId(drug.getDrugId());
+                            drugAdverseReaction.setDrugKey(drug.getDrugKey());
+                            drugAdverseReaction.setSideEffectKey(effect.getSideEffectKey());
+                            adverseReactionsList.add(drugAdverseReaction);
+                        }
+                    }
                 }
-                drugAdverseReactionRepository.save(adverseReactionsList);
             }
             //11.药物相互作用
             JSONArray interactions=object.getJSONArray("interactions");
@@ -287,8 +313,12 @@ public class DrugService implements BaseService {
 //                drugFoodInteractionRepository.save(foodInteractionList);
 //            }
             //多对多关系表的插入
+            //非常重要!!!!要给缓冲时间,等待依赖的id全部插入完成，不然会报错
+            Thread.sleep(1000);
             drugKeggPathwayRepository.save(pathwayList);
             drugCategoryRepository.save(drugCategoryList);
+            drugStructuredIndicationRepository.save(structuredIndicationList);
+            drugAdverseReactionRepository.save(adverseReactionsList);
         }
     }
 
