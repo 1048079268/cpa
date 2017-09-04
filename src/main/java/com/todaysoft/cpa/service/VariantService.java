@@ -13,6 +13,7 @@ import com.todaysoft.cpa.domain.variants.entity.VariantTumorType;
 import com.todaysoft.cpa.domain.variants.entity.VariantTumorTypeDoid;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
+import com.todaysoft.cpa.param.Page;
 import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +44,9 @@ public class VariantService implements BaseService{
     @Autowired
     private VariantTumorTypeDoidRepository variantTumorTypeDoidRepository;
     @Autowired
-    private CancerRepository cancerRepository;
+    private MutationStatisticService mutationStatisticService;
+    @Autowired
+    private CancerService cancerService;
 
     @Override
     public void save(JSONObject object) {}
@@ -58,6 +62,7 @@ public class VariantService implements BaseService{
         variant=variantRepository.save(variant);
         if (variant!=null){
             JSONArray tumorTypes=object.getJSONArray("tumorTypes");
+            List<VariantTumorTypeDoid> doidList=new ArrayList<>();
             if (tumorTypes!=null&&tumorTypes.size()>0) {
                 for (int i=0;i<tumorTypes.size();i++){
                     JSONObject tumorType=tumorTypes.getJSONObject(i);
@@ -69,21 +74,24 @@ public class VariantService implements BaseService{
                         variantTumorType=variantTumorTypeRepository.save(variantTumorType);
                         JSONObject doid=tumorType.getJSONObject("doid");
                         if (variantTumorType!=null&&doid!=null){
-                            VariantTumorTypeDoid tumorTypeDoid=doid.toJavaObject(VariantTumorTypeDoid.class);
+                            Cancer cancer=doid.toJavaObject(Cancer.class);
+                            cancer.setCancerKey(PkGenerator.generator(cancer.getClass()));
+                            cancer.setCheckState(1);
+                            cancer.setCreatedAt(System.currentTimeMillis());
+                            cancer.setCreatedWay(2);
+                            cancer=cancerService.save(cancer);
+                            VariantTumorTypeDoid tumorTypeDoid=new VariantTumorTypeDoid();
+                            tumorTypeDoid.setName(cancer.getCancerName());
+                            tumorTypeDoid.setDoid(Integer.valueOf(cancer.getDoid()));
                             tumorTypeDoid.setTypeKey(variantTumorType.getTypeKey());
                             tumorTypeDoid.setVariantId(variant.getVariantId());
-                            //TODO 待定
-                            List<Cancer> cancerList = cancerRepository.findByDoid(String.valueOf(tumorTypeDoid.getDoid()));
-                            if (cancerList!=null&&cancerList.size()>0){
-                                tumorTypeDoid.setCancerKey(cancerList.get(0).getCancerKey());
-                            }else {
-                                throw  new DataException("未找到关联的doid");
-                            }
-                            variantTumorTypeDoidRepository.save(tumorTypeDoid);
+                            tumorTypeDoid.setCancerKey(cancer.getCancerKey());
+                            doidList.add(tumorTypeDoid);
                         }
                     }
                 }
             }
+            variantTumorTypeDoidRepository.save(doidList);
         }
     }
 

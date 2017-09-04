@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.service;
 
+import com.todaysoft.cpa.domain.cacer.Cancer;
 import com.todaysoft.cpa.domain.drug.entity.MeshCategory;
 import com.todaysoft.cpa.param.*;
 import com.todaysoft.cpa.thread.ContentManagerThread;
@@ -36,6 +37,10 @@ public class MainService {
     private KeggPathwaysService keggPathwaysService;
     @Autowired
     private MeshCategoryService meshCategoryService;
+    @Autowired
+    private CancerService cancerService;
+    @Autowired
+    private ClinicalTrailService clinicalTrailService;
 
     /**
      * @desc: 初始化数据
@@ -45,12 +50,14 @@ public class MainService {
         Param.CONTENT_QUEUE=new LinkedBlockingQueue<>(cpaProperties.getMaxBlockingNum());
         Param.FAILURE_QUEUE=new LinkedBlockingQueue<>(cpaProperties.getMaxFailureBlockingNum());
         Param.AUTHORIZATION=cpaProperties.getAuthorization();
-        keggPathwaysService.init();
         drugService.initDB();
         geneService.initDB();
         proteinService.initDB();
         variantService.initDB();
+        clinicalTrailService.initDB();
         meshCategoryService.init();
+        cancerService.init();
+        keggPathwaysService.init();
     }
 
     /**
@@ -66,7 +73,8 @@ public class MainService {
             //开始各业务的抓取id线程
             ExecutorService exe = Executors.newFixedThreadPool(cpaProperties.getMaxThreadNum());
 //            exe.execute(gene());
-            exe.execute(drug());
+//            exe.execute(drug());
+            exe.execute(clinicalTrail());
             logger.info("【manager】线程全部启动完成");
             exe.shutdown();
             while (true) {
@@ -93,5 +101,11 @@ public class MainService {
         Page page=new Page(cpaProperties.getGeneUrl());
         ContentParam param=new ContentParam(CPA.GENE,geneService);
         return new Thread(new IdThread(page,param));
+    }
+
+    public Thread clinicalTrail(){
+        Page page=new Page(cpaProperties.getClinicalTrialUrl());
+        ContentParam param=new ContentParam(CPA.CLINICAL_TRIAL,clinicalTrailService);
+        return  new Thread(new IdThread(page,param));
     }
 }

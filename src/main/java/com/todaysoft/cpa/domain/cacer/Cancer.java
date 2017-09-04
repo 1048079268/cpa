@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.domain.cacer;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -13,11 +14,16 @@ import javax.persistence.*;
 @Table(name = "kt_cancer")
 public class Cancer {
     private String cancerKey;
+    @JSONField(name = "id")
     private String doid;
+    @JSONField(name = "name")
     private String cancerName;
-    private String parentId;
+    private String parentIds;
     private String cancerDefinition;
-    private String parentKey;
+    private String parentKeys;
+    private Long createdAt;
+    private Integer createdWay;
+    private Integer checkState;
 
     @Id
     @Column(name = "cancer_key", nullable = false, length = 64)
@@ -52,23 +58,23 @@ public class Cancer {
     @Basic
     @Column(name = "parent_ids")
     @Type(type = "text")
-    public String getParentId() {
-        return parentId;
+    public String getParentIds() {
+        return parentIds;
     }
 
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
+    public void setParentIds(String parentId) {
+        this.parentIds = parentId;
     }
 
     @Basic
     @Column(name = "parent_keys")
     @Type(type = "text")
-    public String getParentKey() {
-        return parentKey;
+    public String getParentKeys() {
+        return parentKeys;
     }
 
-    public void setParentKey(String parentKey) {
-        this.parentKey = parentKey;
+    public void setParentKeys(String parentKey) {
+        this.parentKeys = parentKey;
     }
 
 
@@ -83,6 +89,37 @@ public class Cancer {
         this.cancerDefinition = cancerDefinition;
     }
 
+
+    @Basic
+    @Column(name = "created_at", nullable = true)
+    public Long getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Long createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Basic
+    @Column(name = "created_way", nullable = true)
+    public Integer getCreatedWay() {
+        return createdWay;
+    }
+
+    public void setCreatedWay(Integer createdWay) {
+        this.createdWay = createdWay;
+    }
+
+    @Basic
+    @Column(name = "check_state", nullable = true)
+    public Integer getCheckState() {
+        return checkState;
+    }
+
+    public void setCheckState(Integer checkState) {
+        this.checkState = checkState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -95,11 +132,11 @@ public class Cancer {
         if (getDoid() != null ? !getDoid().equals(cancer.getDoid()) : cancer.getDoid() != null) return false;
         if (getCancerName() != null ? !getCancerName().equals(cancer.getCancerName()) : cancer.getCancerName() != null)
             return false;
-        if (getParentId() != null ? !getParentId().equals(cancer.getParentId()) : cancer.getParentId() != null)
+        if (getParentIds() != null ? !getParentIds().equals(cancer.getParentIds()) : cancer.getParentIds() != null)
             return false;
         if (getCancerDefinition() != null ? !getCancerDefinition().equals(cancer.getCancerDefinition()) : cancer.getCancerDefinition() != null)
             return false;
-        return getParentKey() != null ? getParentKey().equals(cancer.getParentKey()) : cancer.getParentKey() == null;
+        return getParentKeys() != null ? getParentKeys().equals(cancer.getParentKeys()) : cancer.getParentKeys() == null;
     }
 
     @Override
@@ -107,9 +144,9 @@ public class Cancer {
         int result = getCancerKey() != null ? getCancerKey().hashCode() : 0;
         result = 31 * result + (getDoid() != null ? getDoid().hashCode() : 0);
         result = 31 * result + (getCancerName() != null ? getCancerName().hashCode() : 0);
-        result = 31 * result + (getParentId() != null ? getParentId().hashCode() : 0);
+        result = 31 * result + (getParentIds() != null ? getParentIds().hashCode() : 0);
         result = 31 * result + (getCancerDefinition() != null ? getCancerDefinition().hashCode() : 0);
-        result = 31 * result + (getParentKey() != null ? getParentKey().hashCode() : 0);
+        result = 31 * result + (getParentKeys() != null ? getParentKeys().hashCode() : 0);
         return result;
     }
 }

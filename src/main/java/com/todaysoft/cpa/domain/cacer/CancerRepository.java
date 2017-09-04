@@ -10,5 +10,5 @@ import java.util.List;
  * @date: 2017/8/31 11:26
  */
 public interface CancerRepository extends JpaRepository<Cancer,String>{
-    List<Cancer> findByDoid(String doid);
+    Cancer findByDoid(String doid);
 }
