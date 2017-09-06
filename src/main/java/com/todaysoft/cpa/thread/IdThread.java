@@ -46,6 +46,7 @@ public class IdThread implements Runnable {
                             .userAgent("'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'") // 设置 User-Agent
                             .data("limit", String.valueOf(page.getLimit()))
                             .data("offset", String.valueOf(page.getOffset()))
+                            .data(page.getParam())
                             .header("Authorization", Param.AUTHORIZATION)
                             .header("Accept", "application/test")
                             .ignoreContentType(true)
@@ -74,21 +75,24 @@ public class IdThread implements Runnable {
                     logger.info("【"+cpa.name()+"】完成一次id抓取,开始执行分页偏移，数据量："+insertCount);
                     page.offset();//执行偏移操作
                     retryTimes=3;
-                    if (insertCount>=20)//TODO 测试使用
+                    if (insertCount>=20) {//TODO 测试使用
                         break;
-                    Thread.sleep(500);
+                    }
+                    Thread.sleep(1000);
                 } catch (Exception e) {
                     //发生异常后恢复线程并进行重试3次
                     if (retryTimes>0){
                         logger.info("【"+cpa.name()+"】发生异常，恢复环境...开始重试,第"+(4-retryTimes)+"次--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit());
-                        page=savePage;
+                        page=savePage;//还原偏移参数
                         retryTimes--;
-                        continue;
                     }else {
                         logger.error("【"+cpa.name()+"】【error:重试无效】--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit());
                         logger.error("【"+cpa.name()+"】"+ ExceptionInfo.getErrorInfo(e));
-                        return;
+                        page.offset();
+                        retryTimes=3;
+                        logger.info("【"+cpa.name()+"】【error:重试无效】开始执行下一次偏移");
                     }
+                    continue;
                 }
             }
         }finally {

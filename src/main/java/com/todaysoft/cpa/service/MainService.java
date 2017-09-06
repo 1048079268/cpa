@@ -1,7 +1,5 @@
 package com.todaysoft.cpa.service;
 
-import com.todaysoft.cpa.domain.cacer.Cancer;
-import com.todaysoft.cpa.domain.drug.entity.MeshCategory;
 import com.todaysoft.cpa.param.*;
 import com.todaysoft.cpa.thread.ContentManagerThread;
 import com.todaysoft.cpa.thread.IdThread;
@@ -40,7 +38,11 @@ public class MainService {
     @Autowired
     private CancerService cancerService;
     @Autowired
-    private ClinicalTrailService clinicalTrailService;
+    private ClinicalTrialService clinicalTrialService;
+    @Autowired
+    private MutationStatisticService mutationStatisticService;
+
+    public static ExecutorService childrenTreadPool;
 
     /**
      * @desc: 初始化数据
@@ -54,7 +56,8 @@ public class MainService {
         geneService.initDB();
         proteinService.initDB();
         variantService.initDB();
-        clinicalTrailService.initDB();
+        clinicalTrialService.initDB();
+        mutationStatisticService.initDB();
         meshCategoryService.init();
         cancerService.init();
         keggPathwaysService.init();
@@ -71,16 +74,20 @@ public class MainService {
             ContentManagerThread contentManage=new ContentManagerThread(cpaProperties.getMaxThreadNum());
             contentManage.start();
             //开始各业务的抓取id线程
+            childrenTreadPool=Executors.newFixedThreadPool(cpaProperties.getMaxThreadNum());
             ExecutorService exe = Executors.newFixedThreadPool(cpaProperties.getMaxThreadNum());
-//            exe.execute(gene());
-//            exe.execute(drug());
-            exe.execute(clinicalTrail());
+            //exe.execute(gene());
+            exe.execute(drug());
             logger.info("【manager】线程全部启动完成");
             exe.shutdown();
             while (true) {
                 if (exe.isTerminated()&&contentManage.isAllWaiting()) {
-                    logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()/60000+"】分钟...");
                     contentManage.stopAll();
+                    childrenTreadPool.shutdown();
+                    while (!childrenTreadPool.isTerminated()){
+                        Thread.sleep(10000);
+                    }
+                    logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()/60000+"】分钟...");
                     break;
                 }else {
                     Thread.sleep(10000);
@@ -92,20 +99,20 @@ public class MainService {
         }
     }
 
-    public Thread drug(){
+    public Runnable drug(){
         Page page=new Page(cpaProperties.getDrugUrl());
         ContentParam param=new ContentParam(CPA.DRUG,drugService);
-        return new Thread(new IdThread(page,param));
+        return new IdThread(page,param);
     }
-    public Thread gene(){
+    public Runnable gene(){
         Page page=new Page(cpaProperties.getGeneUrl());
         ContentParam param=new ContentParam(CPA.GENE,geneService);
-        return new Thread(new IdThread(page,param));
+        return new IdThread(page,param);
     }
 
-    public Thread clinicalTrail(){
+    public Runnable clinicalTrail(){
         Page page=new Page(cpaProperties.getClinicalTrialUrl());
-        ContentParam param=new ContentParam(CPA.CLINICAL_TRIAL,clinicalTrailService);
-        return  new Thread(new IdThread(page,param));
+        ContentParam param=new ContentParam(CPA.CLINICAL_TRIAL, clinicalTrialService);
+        return new IdThread(page,param);
     }
 }

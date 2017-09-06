@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.service;
 
+import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.domain.cacer.Cancer;
@@ -13,7 +14,10 @@ import com.todaysoft.cpa.domain.variants.entity.VariantTumorType;
 import com.todaysoft.cpa.domain.variants.entity.VariantTumorTypeDoid;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
+import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Page;
+import com.todaysoft.cpa.thread.IdThread;
+import com.todaysoft.cpa.thread.MutationStatisticThread;
 import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
@@ -49,15 +53,16 @@ public class VariantService implements BaseService{
     private CancerService cancerService;
 
     @Override
-    public void save(JSONObject object) {}
+    public boolean save(JSONObject object) {return false;}
 
     @Override
     @Transactional
-    public void saveByDependence(JSONObject object, String dependenceKey) {
+    public boolean saveByDependence(JSONObject object, String dependenceKey) {
         Variant variant = JSONObject.toJavaObject(object, Variant.class);
         variant.setVariantKey(PkGenerator.generator(Variant.class));
         variant.setGeneKey(dependenceKey);
         variant.setCreatedWay(2);
+        variant.setCheckState(1);
         variant.setCreatedAt(System.currentTimeMillis());
         variant=variantRepository.save(variant);
         if (variant!=null){
@@ -92,7 +97,15 @@ public class VariantService implements BaseService{
                 }
             }
             variantTumorTypeDoidRepository.save(doidList);
+            if (!StringUtils.isEmpty(variant.getCosmicId())){
+                logger.info("【" + CPA.GENE.name() + "】开始插入关联的突变疾病样本量");
+                Page msPage=new Page(CPA.MUTATION_STATISTICS.contentUrl);
+                msPage.putParam("cosmicId",variant.getCosmicId());
+                ContentParam msParam=new ContentParam(CPA.MUTATION_STATISTICS,mutationStatisticService,true,variant.getVariantKey());
+                MainService.childrenTreadPool.execute(new MutationStatisticThread(msPage,msParam));
+            }
         }
+        return true;
     }
 
     @Override

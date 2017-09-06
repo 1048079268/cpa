@@ -12,6 +12,10 @@ import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @desc:
@@ -26,27 +30,29 @@ public class MutationStatisticService implements BaseService{
     private CPAProperties cpaProperties;
     @Autowired
     private CancerRepository cancerRepository;
-    @Autowired
-    private VariantRepository variantRepository;
 
     @Override
-    public void save(JSONObject object) {
-        VariantMutationStatistic statistic=object.toJavaObject(VariantMutationStatistic.class);
-        Cancer cancer=cancerRepository.findByDoid(String.valueOf(statistic.getDoid()));
-        Variant variant=variantRepository.findByCosmicId(statistic.getMutationId());
-        boolean aFlag=cancer!=null&&variant!=null;
-        if (aFlag){
-            boolean bFlag= !StringUtils.isEmpty(cancer.getCancerKey())&&!StringUtils.isEmpty(variant.getVariantKey());
-            if (bFlag){
-                statistic.setCancerKey(cancer.getCancerKey());
-                statistic.setVariantKey(variant.getVariantKey());
-                variantMutationStatisticRepository.save(statistic);
-            }
-        }
+    public boolean save(JSONObject object) {
+        return false;
     }
 
     @Override
-    public void saveByDependence(JSONObject object, String dependenceKey) {}
+    @Transactional
+    public boolean saveByDependence(JSONObject object, String dependenceKey) {
+        VariantMutationStatistic statistic=object.toJavaObject(VariantMutationStatistic.class);
+        Cancer cancer=cancerRepository.findByDoid(String.valueOf(statistic.getDoid()));
+        boolean aFlag=cancer!=null;
+        if (aFlag){
+            boolean bFlag= !StringUtils.isEmpty(cancer.getCancerKey());
+            if (bFlag){
+                statistic.setCancerKey(cancer.getCancerKey());
+                statistic.setVariantKey(dependenceKey);
+                variantMutationStatisticRepository.save(statistic);
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public void initDB() {

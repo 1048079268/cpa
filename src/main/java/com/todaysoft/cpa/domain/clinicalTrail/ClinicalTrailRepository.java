@@ -14,4 +14,6 @@ import java.util.Set;
 public interface ClinicalTrailRepository extends JpaRepository<ClinicalTrial,String>{
     @Query("select c.clinicalTrialId from ClinicalTrial c where c.createdWay=2")
     Set<String> findIdByCPA();
+
+    ClinicalTrial findByClinicalTrialId(String clinicalTrialId);
 }

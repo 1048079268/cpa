@@ -8,9 +8,9 @@ import javax.persistence.*;
  * @date: 2017/9/4 13:55
  */
 @Entity
-@Table(name = "kt_clinical_trail_cancer")
-@IdClass(ClinicalTrailCancerPK.class)
-public class ClinicalTrailCancer {
+@Table(name = "kt_clinical_trial_cancer")
+@IdClass(ClinicalTrialCancerPK.class)
+public class ClinicalTrialCancer {
     private String clinicalTrialKey;
     private String cancerKey;
     private Integer doid;
@@ -47,7 +47,7 @@ public class ClinicalTrailCancer {
     }
 
     @Basic
-    @Column(name = "clinical_trail_id", nullable = false, length = 64)
+    @Column(name = "clinical_trial_id", nullable = false, length = 64)
     public String getClinicalTrailId() {
         return clinicalTrailId;
     }
@@ -59,9 +59,9 @@ public class ClinicalTrailCancer {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ClinicalTrailCancer)) return false;
+        if (!(o instanceof ClinicalTrialCancer)) return false;
 
-        ClinicalTrailCancer that = (ClinicalTrailCancer) o;
+        ClinicalTrialCancer that = (ClinicalTrialCancer) o;
 
         if (getClinicalTrialKey() != null ? !getClinicalTrialKey().equals(that.getClinicalTrialKey()) : that.getClinicalTrialKey() != null)
             return false;

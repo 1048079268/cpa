@@ -36,11 +36,11 @@ public class ProteinService implements BaseService {
     private CPAProperties cpaProperties;
 
     @Override
-    public void save(JSONObject object) {}
+    public boolean save(JSONObject object) {return false;}
 
     @Override
     @Transactional
-    public void saveByDependence(JSONObject object, String dependenceKey) {
+    public boolean saveByDependence(JSONObject object, String dependenceKey) {
         Protein protein=object.toJavaObject(Protein.class);
         protein.setProteinKey(PkGenerator.generator(Protein.class));
         protein.setCreatedAt(System.currentTimeMillis());
@@ -63,6 +63,7 @@ public class ProteinService implements BaseService {
                 proteinSynonymRepository.save(synonymList);
             }
         }
+        return true;
     }
 
     @Override

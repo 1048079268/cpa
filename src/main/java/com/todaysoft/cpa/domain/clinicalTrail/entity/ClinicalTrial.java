@@ -141,6 +141,7 @@ public class ClinicalTrial {
 
     @Basic
     @Column(name = "countries", nullable = true, length = 64)
+    @Type(type = "text")
     public String getCountries() {
         return countries;
     }

@@ -11,8 +11,8 @@ import javax.persistence.*;
  * @date: 2017/9/4 13:55
  */
 @Entity
-@Table(name = "kt_clinical_trail_outcome")
-public class ClinicalTrailOutcome {
+@Table(name = "kt_clinical_trial_outcome")
+public class ClinicalTrialOutcome {
     private String clinicalTrailOutcomeKey;
     private String clinicalTrialKey;
     private String clinicalTrailId;
@@ -40,8 +40,7 @@ public class ClinicalTrailOutcome {
     private Double dispMax;
 
     @Id
-    @Column(name = "clinical_trail_outcome_key", nullable = false, length = 64)
-    @Type(type = "char")
+    @Column(name = "clinical_trial_outcome_key", nullable = false, length = 64)
     public String getClinicalTrailOutcomeKey() {
         return clinicalTrailOutcomeKey;
     }
@@ -61,8 +60,7 @@ public class ClinicalTrailOutcome {
     }
 
     @Basic
-    @Column(name = "clinical_trail_id", nullable = false, length = 64)
-    @Type(type = "char")
+    @Column(name = "clinical_trial_id", nullable = false, length = 64)
     public String getClinicalTrailId() {
         return clinicalTrailId;
     }
@@ -187,7 +185,7 @@ public class ClinicalTrailOutcome {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ClinicalTrailOutcome that = (ClinicalTrailOutcome) o;
+        ClinicalTrialOutcome that = (ClinicalTrialOutcome) o;
 
         if (clinicalTrailOutcomeKey != null ? !clinicalTrailOutcomeKey.equals(that.clinicalTrailOutcomeKey) : that.clinicalTrailOutcomeKey != null)
             return false;

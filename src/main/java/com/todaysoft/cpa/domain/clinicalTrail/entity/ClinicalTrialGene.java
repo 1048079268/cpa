@@ -13,7 +13,7 @@ import javax.persistence.*;
 public class ClinicalTrialGene {
     private String clinicalTrialKey;
     private String geneKey;
-    private int clinicalTrailId;
+    private String clinicalTrailId;
     private int geneId;
 
     @Id
@@ -37,12 +37,12 @@ public class ClinicalTrialGene {
     }
 
     @Basic
-    @Column(name = "clinical_trail_id", nullable = false)
-    public int getClinicalTrailId() {
+    @Column(name = "clinical_trial_id", nullable = false)
+    public String getClinicalTrailId() {
         return clinicalTrailId;
     }
 
-    public void setClinicalTrailId(int clinicalTrailId) {
+    public void setClinicalTrailId(String clinicalTrailId) {
         this.clinicalTrailId = clinicalTrailId;
     }
 
@@ -63,7 +63,8 @@ public class ClinicalTrialGene {
 
         ClinicalTrialGene that = (ClinicalTrialGene) o;
 
-        if (clinicalTrailId != that.clinicalTrailId) return false;
+        if (clinicalTrailId != null ? !clinicalTrailId.equals(that.clinicalTrailId) : that.clinicalTrailId != null)
+            return false;
         if (geneId != that.geneId) return false;
         if (clinicalTrialKey != null ? !clinicalTrialKey.equals(that.clinicalTrialKey) : that.clinicalTrialKey != null)
             return false;
@@ -76,7 +77,7 @@ public class ClinicalTrialGene {
     public int hashCode() {
         int result = clinicalTrialKey != null ? clinicalTrialKey.hashCode() : 0;
         result = 31 * result + (geneKey != null ? geneKey.hashCode() : 0);
-        result = 31 * result + clinicalTrailId;
+        result = 31 * result + (clinicalTrailId != null ? clinicalTrailId.hashCode() : 0);
         result = 31 * result + geneId;
         return result;
     }

@@ -9,7 +9,7 @@ import java.io.Serializable;
  * @author: 鱼唇的人类
  * @date: 2017/9/4 13:55
  */
-public class ClinicalTrailCancerPK implements Serializable {
+public class ClinicalTrialCancerPK implements Serializable {
     private String clinicalTrialKey;
     private String cancerKey;
 
@@ -38,7 +38,7 @@ public class ClinicalTrailCancerPK implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ClinicalTrailCancerPK that = (ClinicalTrailCancerPK) o;
+        ClinicalTrialCancerPK that = (ClinicalTrialCancerPK) o;
 
         if (clinicalTrialKey != null ? !clinicalTrialKey.equals(that.clinicalTrialKey) : that.clinicalTrialKey != null)
             return false;

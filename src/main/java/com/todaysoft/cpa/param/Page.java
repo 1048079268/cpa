@@ -1,5 +1,8 @@
 package com.todaysoft.cpa.param;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @desc: 抓取id时的分页
  * @author: 鱼唇的人类
@@ -11,6 +14,7 @@ public class Page {
     private int offset;
     private int originalLimit;
     private int originalOffset;
+    private Map<String,String> param;
 
     public synchronized void offset(){
         this.offset+=this.limit;
@@ -27,6 +31,7 @@ public class Page {
         this.offset = offset;
         this.originalLimit=limit;
         this.originalOffset=offset;
+        this.param=new HashMap<>();
     }
 
     public Page(String url) {
@@ -35,6 +40,7 @@ public class Page {
         this.offset=0;
         this.originalOffset=this.offset;
         this.originalLimit=this.limit;
+        this.param=new HashMap<>();
     }
 
     public String getUrl() {
@@ -59,5 +65,20 @@ public class Page {
 
     public void setOffset(int offset) {
         this.offset = offset;
+    }
+
+    public Map<String, String> getParam() {
+        return param;
+    }
+
+    public void setParam(Map<String, String> param) {
+        this.param = param;
+    }
+
+    public void putParam(String key,String value){
+        if (this.param==null){
+            this.param=new HashMap<>();
+        }
+        this.param.put(key,value);
     }
 }

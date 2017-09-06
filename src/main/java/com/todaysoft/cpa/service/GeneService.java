@@ -46,7 +46,7 @@ public class GeneService implements BaseService {
     private CPAProperties cpaProperties;
 
     @Override
-    public void save(JSONObject object) {
+    public boolean save(JSONObject object) {
         //1.基因
         Gene gene = object.toJavaObject(Gene.class);
         gene.setGeneKey(PkGenerator.generator(Gene.class));
@@ -112,17 +112,20 @@ public class GeneService implements BaseService {
             logger.info("【" + CPA.GENE.name() + "】开始插入关联的蛋白质");
             Page proteinPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.PROTEIN.name+"s");
             ContentParam proteinParam=new ContentParam(CPA.PROTEIN,proteinService,true,gene.getGeneKey());
-            new Thread(new IdThread(proteinPage,proteinParam)).start();
+            MainService.childrenTreadPool.execute(new IdThread(proteinPage,proteinParam));
             //插入与该id关联的突变
             logger.info("【" + CPA.GENE.name() + "】开始插入关联的突变");
             Page variantPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.VARIANT.name+"s");
             ContentParam variantParam=new ContentParam(CPA.VARIANT,variantService,true,gene.getGeneKey());
-            new Thread(new IdThread(variantPage,variantParam)).start();
+            MainService.childrenTreadPool.execute(new IdThread(variantPage,variantParam));
         }
+        return true;
     }
 
     @Override
-    public void saveByDependence (JSONObject object, String dependenceKey){}
+    public boolean saveByDependence (JSONObject object, String dependenceKey){
+        return false;
+    }
 
     @Override
     public void initDB () {
