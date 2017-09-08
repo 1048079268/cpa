@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.service;
 
+import com.todaysoft.cpa.param.Param;
 import com.todaysoft.cpa.param.*;
 import com.todaysoft.cpa.thread.ContentManagerThread;
 import com.todaysoft.cpa.thread.IdThread;
@@ -42,16 +43,16 @@ public class MainService {
     @Autowired
     private MutationStatisticService mutationStatisticService;
 
-    public static ExecutorService childrenTreadPool;
+    protected static ExecutorService childrenTreadPool;
 
     /**
      * @desc: 初始化数据
      * @author: 鱼唇的人类
      */
     public void init(){
-        Param.CONTENT_QUEUE=new LinkedBlockingQueue<>(cpaProperties.getMaxBlockingNum());
-        Param.FAILURE_QUEUE=new LinkedBlockingQueue<>(cpaProperties.getMaxFailureBlockingNum());
-        Param.AUTHORIZATION=cpaProperties.getAuthorization();
+        Param.setContentQueue(new LinkedBlockingQueue<>(cpaProperties.getMaxBlockingNum()));
+        Param.setFailureQueue(new LinkedBlockingQueue<>(cpaProperties.getMaxFailureBlockingNum()));
+        Param.setAUTHORIZATION(cpaProperties.getAuthorization());
         drugService.initDB();
         geneService.initDB();
         proteinService.initDB();

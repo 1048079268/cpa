@@ -8,7 +8,6 @@ import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Page;
 import com.todaysoft.cpa.param.Param;
 import com.todaysoft.cpa.utils.ExceptionInfo;
-import netscape.javascript.JSObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -48,7 +47,7 @@ public class MutationStatisticThread implements Runnable {
                             .data("limit", String.valueOf(page.getLimit()))
                             .data("offset", String.valueOf(page.getOffset()))
                             .data(page.getParam())
-                            .header("Authorization", Param.AUTHORIZATION)
+                            .header("Authorization", Param.getAUTHORIZATION())
                             .header("Accept", "application/test")
                             .ignoreContentType(true)
                             .timeout(12000)// 设置连接超时时间

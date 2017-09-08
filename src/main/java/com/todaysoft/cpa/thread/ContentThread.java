@@ -2,7 +2,6 @@ package com.todaysoft.cpa.thread;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Param;
 import com.todaysoft.cpa.service.BaseService;
@@ -26,11 +25,11 @@ public class ContentThread implements Runnable{
             ContentParam contentParam=null;
             BaseService baseService =null;
             try {
-                contentParam=Param.CONTENT_QUEUE.take();
+                contentParam=Param.getContentQueue().take();
                 baseService =contentParam.getBaseService();
                 Document doc = Jsoup.connect(contentParam.getCpa().contentUrl + "/" + contentParam.getId())
                         .userAgent("'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'") // 设置 User-Agent
-                        .header("Authorization", Param.AUTHORIZATION)
+                        .header("Authorization", Param.getAUTHORIZATION())
                         .header("Accept", "application/test")
                         .ignoreContentType(true)
                         .maxBodySize(0)//设置最大响应长度为0 ，否则太长的返回数据不会完整显示
@@ -76,7 +75,7 @@ public class ContentThread implements Runnable{
      */
     private void writeFailureQueue(ContentParam contentParam){
         try {
-            Param.FAILURE_QUEUE.put(contentParam);
+            Param.getFailureQueue().put(contentParam);
         } catch (InterruptedException e) {
             contentParam.getCpa().dbId.remove(contentParam.getId());
             logger.error("写入异常重试队列失败:"+contentParam.getCpa().name()+"-->"+contentParam.getId());

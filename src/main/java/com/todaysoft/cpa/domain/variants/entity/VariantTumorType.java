@@ -139,7 +139,7 @@ public class VariantTumorType {
 
         VariantTumorType that = (VariantTumorType) o;
 
-        if (variantId != that.variantId) return false;
+        if (variantId != null ? !variantId.equals(that.variantId) : that.variantId != null) return false;
         if (typeKey != null ? !typeKey.equals(that.typeKey) : that.typeKey != null) return false;
         if (variantKey != null ? !variantKey.equals(that.variantKey) : that.variantKey != null) return false;
         if (site1 != null ? !site1.equals(that.site1) : that.site1 != null) return false;

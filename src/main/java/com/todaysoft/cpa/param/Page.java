@@ -59,11 +59,11 @@ public class Page {
         this.limit = limit;
     }
 
-    public int getOffset() {
+    public synchronized int  getOffset() {
         return offset;
     }
 
-    public void setOffset(int offset) {
+    public synchronized void  setOffset(int offset) {
         this.offset = offset;
     }
 

@@ -3,6 +3,7 @@ package com.todaysoft.cpa.utils;
 
 import org.springframework.util.DigestUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 
 /**
@@ -19,7 +20,12 @@ public class PkGenerator {
     public static String generator(Class<?> clazz) {
         UUID u = UUID.randomUUID();
         String str =clazz.getSimpleName()+u.toString();
-        String generator = DigestUtils.md5DigestAsHex(str.getBytes());
+        String generator = null;
+        try {
+            generator = DigestUtils.md5DigestAsHex(str.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         return generator;
     }
 }

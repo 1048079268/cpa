@@ -203,21 +203,21 @@ public class DrugProduct implements Serializable {
     @Basic
     @Column(name = "marketing_start", nullable = true)
     public Timestamp getMarketingStart() {
-        return marketingStart;
+        return (Timestamp) marketingStart.clone();
     }
 
     public void setMarketingStart(Timestamp marketingStart) {
-        this.marketingStart = marketingStart;
+        this.marketingStart = (Timestamp) marketingStart.clone();
     }
 
     @Basic
     @Column(name = "marketing_end", nullable = true)
     public Timestamp getMarketingEnd() {
-        return marketingEnd;
+        return (Timestamp) marketingEnd.clone();
     }
 
     public void setMarketingEnd(Timestamp marketingEnd) {
-        this.marketingEnd = marketingEnd;
+        this.marketingEnd = (Timestamp) marketingEnd.clone();
     }
 
     @Basic

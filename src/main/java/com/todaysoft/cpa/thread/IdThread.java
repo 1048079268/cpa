@@ -47,7 +47,7 @@ public class IdThread implements Runnable {
                             .data("limit", String.valueOf(page.getLimit()))
                             .data("offset", String.valueOf(page.getOffset()))
                             .data(page.getParam())
-                            .header("Authorization", Param.AUTHORIZATION)
+                            .header("Authorization", Param.getAUTHORIZATION())
                             .header("Accept", "application/test")
                             .ignoreContentType(true)
                             .timeout(12000)// 设置连接超时时间
@@ -64,7 +64,7 @@ public class IdThread implements Runnable {
                                     //如果set里面没有该数据那就将该id存入队列
                                     ContentParam param=ContentParam.create(contentParam);
                                     param.setId(id);
-                                    Param.CONTENT_QUEUE.put(param);
+                                    Param.getContentQueue().put(param);
                                     insertCount++;
                                 }
                             }

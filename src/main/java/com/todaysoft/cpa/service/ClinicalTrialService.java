@@ -57,7 +57,7 @@ public class ClinicalTrialService implements BaseService{
         clinicalTrial.setCheckState(1);
         clinicalTrial.setCreatedAt(System.currentTimeMillis());
         clinicalTrial.setCreatedWay(2);
-        clinicalTrial.setCountries(JsonUtil.jsonArrayToString(object.getJSONArray("countries")));
+        clinicalTrial.setCountries(JsonUtil.jsonArrayToString(object.getJSONArray("countries"),","));
         clinicalTrial=clinicalTrailRepository.save(clinicalTrial);
         if (clinicalTrial!=null){
             saveFixed(clinicalTrial,object);
@@ -73,7 +73,7 @@ public class ClinicalTrialService implements BaseService{
         clinicalTrial.setCheckState(1);
         clinicalTrial.setCreatedAt(System.currentTimeMillis());
         clinicalTrial.setCreatedWay(2);
-        clinicalTrial.setCountries(JsonUtil.jsonArrayToString(object.getJSONArray("countries")));
+        clinicalTrial.setCountries(JsonUtil.jsonArrayToString(object.getJSONArray("countries"),","));
         clinicalTrial=clinicalTrailRepository.save(clinicalTrial);
         if (clinicalTrial!=null){
             saveFixed(clinicalTrial,object);
@@ -103,7 +103,7 @@ public class ClinicalTrialService implements BaseService{
     private void saveFixed(ClinicalTrial clinicalTrial,JSONObject object){
         //成果
         JSONArray outcomes=object.getJSONArray("outcomes");
-        List<ClinicalTrialOutcome> outcomeList=new ArrayList<>(outcomes.size());
+        List<ClinicalTrialOutcome> outcomeList=new ArrayList<>();
         if (outcomes!=null&&outcomes.size()>0){
             for (int i=0;i<outcomes.size();i++){
                 ClinicalTrialOutcome outcome=outcomes.getObject(i,ClinicalTrialOutcome.class);
