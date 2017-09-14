@@ -3,6 +3,7 @@ package com.todaysoft.cpa.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.domain.cacer.Cancer;
+import com.todaysoft.cpa.domain.cacer.CancerRepository;
 import com.todaysoft.cpa.domain.clinicalTrail.ClinicalTrialCancerRepository;
 import com.todaysoft.cpa.domain.clinicalTrail.ClinicalTrialOutcomeRepository;
 import com.todaysoft.cpa.domain.clinicalTrail.ClinicalTrailRepository;
@@ -16,6 +17,7 @@ import com.todaysoft.cpa.domain.drug.entity.DrugClinicalTrial;
 import com.todaysoft.cpa.domain.drug.entity.DrugClinicalTrialPK;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
+import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.JsonUtil;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,8 @@ public class ClinicalTrialService implements BaseService{
     private ClinicalTrialCancerRepository clinicalTrialCancerRepository;
     @Autowired
     private CancerService cancerService;
+    @Autowired
+    private CancerRepository cancerRepository;
     @Autowired
     private DrugRepository drugRepository;
     @Autowired
@@ -119,15 +123,8 @@ public class ClinicalTrialService implements BaseService{
         List<ClinicalTrialCancer> trailCancerList=new ArrayList<>();
         if (diseases!=null&&diseases.size()>0){
             for (int i=0;i<diseases.size();i++){
-                Cancer cancer=new Cancer();
-                cancer.setCancerName(diseases.getJSONObject(i).getString("name"));
-                cancer.setDoid(diseases.getJSONObject(i).getString("doid"));
-                cancer.setCancerKey(PkGenerator.generator(cancer.getClass()));
-                cancer.setCheckState(1);
-                cancer.setCreatedAt(System.currentTimeMillis());
-                cancer.setCreatedWay(2);
-                //如果有疾病会返回，没有就创建一个空的疾病
-                cancer=cancerService.save(cancer);
+                String doid=diseases.getJSONObject(i).getString("doid");
+                Cancer cancer = cancerRepository.findByDoid(doid);
                 if (cancer!=null){
                     ClinicalTrialCancer clinicalTrialCancer =new ClinicalTrialCancer();
                     clinicalTrialCancer.setCancerKey(cancer.getCancerKey());
@@ -135,6 +132,8 @@ public class ClinicalTrialService implements BaseService{
                     clinicalTrialCancer.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
                     clinicalTrialCancer.setDoid(Integer.valueOf(cancer.getDoid()));
                     trailCancerList.add(clinicalTrialCancer);
+                }else {
+                    throw new DataException("未找到相应的疾病，info->doid="+doid);
                 }
             }
         }

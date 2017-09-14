@@ -48,7 +48,7 @@ public class ProteinService implements BaseService {
         protein.setCreateWay(2);
         protein=proteinRepository.save(protein);
         if (protein!=null){
-            //3.药物别名
+            //3.别名
             JSONArray synonyms=object.getJSONArray("synonyms");
             if (synonyms!=null&&synonyms.size()>0){
                 List<ProteinSynonym> synonymList=new ArrayList<>(synonyms.size());

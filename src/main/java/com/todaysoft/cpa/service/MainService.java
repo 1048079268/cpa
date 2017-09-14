@@ -42,12 +42,16 @@ public class MainService {
     private ClinicalTrialService clinicalTrialService;
     @Autowired
     private MutationStatisticService mutationStatisticService;
+    @Autowired
+    private MedicationPlanService medicationPlanService;
 
+    protected static ExecutorService geneChildrenTreadPool;
+
+    protected static ExecutorService drugChildrenTreadPool;
     protected static ExecutorService childrenTreadPool;
 
     /**
      * @desc: 初始化数据
-     * @author: 鱼唇的人类
      */
     public void init(){
         Param.setContentQueue(new LinkedBlockingQueue<>(cpaProperties.getMaxBlockingNum()));
@@ -65,55 +69,98 @@ public class MainService {
     }
 
     /**
-     * 启动线程入口
+     * @desc: 线程管理异步方法，启动线程入口
+     * 分为子线程、一级线程和二级线程
+     * 子线程是由其他线程启动的线程，数据库关系一般为一对一或者一对多，如一个基因对应一个蛋白，所以该蛋白线程由对应的基因线程启动
+     * 一级线程的执行不依赖其他线程的结果
+     * 二级线程的执行依赖一级线程的结果，数据库关系一般为多对多。
      * @throws InterruptedException
      */
     @Async
     public void manager() throws InterruptedException {
         while (true){
-            //启动内容和异常管理线程
-            ContentManagerThread contentManage=new ContentManagerThread(cpaProperties.getMaxThreadNum());
-            contentManage.start();
-            //开始各业务的抓取id线程
+            //子业务抓取id线程池
             childrenTreadPool=Executors.newFixedThreadPool(cpaProperties.getMaxThreadNum());
-            ExecutorService exe = Executors.newFixedThreadPool(cpaProperties.getMaxThreadNum());
-            //exe.execute(gene());
-            exe.execute(drug());
-            logger.info("【manager】线程全部启动完成");
-            exe.shutdown();
+            //一线线程（主）
+            ContentManagerThread mainManager=new ContentManagerThread(cpaProperties.getMaxThreadNum());
+            ExecutorService mainPool = Executors.newFixedThreadPool(cpaProperties.getMaxThreadNum());
+            //启动一级线程
+            // mainPool.execute(gene());
+            mainPool.execute(drug());
+            mainManager.start();
+            logger.info("【manager】一级主线程全部启动完成");
+            mainPool.shutdown();
+            //检测一级线程
             while (true) {
-                if (exe.isTerminated()&&contentManage.isAllWaiting()) {
-                    contentManage.stopAll();
-                    childrenTreadPool.shutdown();
-                    while (!childrenTreadPool.isTerminated()){
-                        Thread.sleep(10000);
-                    }
-                    logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()/60000+"】分钟...");
+                if (mainPool.isTerminated()&&mainManager.isAllWaiting()) {
+                    mainManager.stopAll();
+                    logger.info("【manager】一级线程执行完成");
                     break;
                 }else {
                     Thread.sleep(10000);
-                    contentManage.checkAndRestart();
+                    mainManager.checkAndRestart();
                 }
             }
+            //二级线程（依赖于一级线程）
+            ContentManagerThread secondManager=new ContentManagerThread(cpaProperties.getMaxThreadNum());
+            ExecutorService secondPool = Executors.newFixedThreadPool(cpaProperties.getMaxThreadNum());
+            //启动二级线程
+            secondPool.execute(clinicalTrail());
+            secondPool.execute(regimen());
+            secondManager.start();
+            logger.info("【manager】二级主线程全部启动完成");
+            secondPool.shutdown();
+            while (true) {
+                if (secondPool.isTerminated()&&secondManager.isAllWaiting()) {
+                    secondManager.stopAll();
+                    logger.info("【manager】二级线程执行完成");
+                    break;
+                }else {
+                    Thread.sleep(10000);
+                    secondManager.checkAndRestart();
+                }
+            }
+            logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()/60000+"】分钟...");
             Thread.sleep(cpaProperties.getHeartbeat());
             logger.info("【manager】休眠结束，开始重启各线程...");
         }
     }
 
+    //药物（一级线程）
     public Runnable drug(){
         Page page=new Page(cpaProperties.getDrugUrl());
         ContentParam param=new ContentParam(CPA.DRUG,drugService);
         return new IdThread(page,param);
     }
+
+    //基因（一级线程）
     public Runnable gene(){
         Page page=new Page(cpaProperties.getGeneUrl());
         ContentParam param=new ContentParam(CPA.GENE,geneService);
         return new IdThread(page,param);
     }
 
+    /**
+     * 临床实验
+     * 二级线程
+     * 在药物线程中一级抓取过一边，这里做补漏
+     * @return
+     */
     public Runnable clinicalTrail(){
         Page page=new Page(cpaProperties.getClinicalTrialUrl());
         ContentParam param=new ContentParam(CPA.CLINICAL_TRIAL, clinicalTrialService);
+        return new IdThread(page,param);
+    }
+
+    /**
+     * 用药方案
+     * 二级线程
+     * 依赖药物、疾病
+     * @return
+     */
+    public Runnable regimen(){
+        Page page=new Page(cpaProperties.getRegimenUrl());
+        ContentParam param=new ContentParam(CPA.REGIMEN, medicationPlanService);
         return new IdThread(page,param);
     }
 }

@@ -51,6 +51,8 @@ public class VariantService implements BaseService{
     private MutationStatisticService mutationStatisticService;
     @Autowired
     private CancerService cancerService;
+    @Autowired
+    private CancerRepository cancerRepository;
 
     @Override
     public boolean save(JSONObject object) {return false;}
@@ -79,12 +81,11 @@ public class VariantService implements BaseService{
                         variantTumorType=variantTumorTypeRepository.save(variantTumorType);
                         JSONObject doid=tumorType.getJSONObject("doid");
                         if (variantTumorType!=null&&doid!=null){
-                            Cancer cancer=doid.toJavaObject(Cancer.class);
-                            cancer.setCancerKey(PkGenerator.generator(cancer.getClass()));
-                            cancer.setCheckState(1);
-                            cancer.setCreatedAt(System.currentTimeMillis());
-                            cancer.setCreatedWay(2);
-                            cancer=cancerService.save(cancer);
+                            String cancerDoid=doid.getString("id");
+                            Cancer cancer = cancerRepository.findByDoid(cancerDoid);
+                            if (cancer==null){
+                                throw new DataException("未找到相应疾病，info->doid="+cancerDoid);
+                            }
                             VariantTumorTypeDoid tumorTypeDoid=new VariantTumorTypeDoid();
                             tumorTypeDoid.setName(cancer.getCancerName());
                             tumorTypeDoid.setDoid(Integer.valueOf(cancer.getDoid()));

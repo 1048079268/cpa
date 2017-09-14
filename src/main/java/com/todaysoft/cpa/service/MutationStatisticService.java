@@ -10,6 +10,7 @@ import com.todaysoft.cpa.domain.variants.entity.Variant;
 import com.todaysoft.cpa.domain.variants.entity.VariantMutationStatistic;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
+import com.todaysoft.cpa.utils.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,17 +42,14 @@ public class MutationStatisticService implements BaseService{
     public boolean saveByDependence(JSONObject object, String dependenceKey) {
         VariantMutationStatistic statistic=object.toJavaObject(VariantMutationStatistic.class);
         Cancer cancer=cancerRepository.findByDoid(String.valueOf(statistic.getDoid()));
-        boolean aFlag=cancer!=null;
-        if (aFlag){
-            boolean bFlag= !StringUtils.isEmpty(cancer.getCancerKey());
-            if (bFlag){
+        if (cancer!=null&&!StringUtils.isEmpty(cancer.getCancerKey())){
                 statistic.setCancerKey(cancer.getCancerKey());
                 statistic.setVariantKey(dependenceKey);
                 variantMutationStatisticRepository.save(statistic);
                 return true;
-            }
+        }else {
+            throw new DataException("找不到相应的疾病：-->comsic:"+statistic.getMutationId()+",doid:"+statistic.getDoid());
         }
-        return false;
     }
 
     @Override
