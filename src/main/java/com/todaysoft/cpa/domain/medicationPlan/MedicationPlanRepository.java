@@ -12,6 +12,6 @@ import java.util.Set;
  * @date: 2017/9/12 9:33
  */
 public interface MedicationPlanRepository extends JpaRepository<MedicationPlan,String>{
-    @Query("select m from MedicationPlan m where m.createdWay=2")
-    Set<String> findIdByCPA();
+    @Query("select m.medicinePlanId from MedicationPlan m where m.createdWay=2")
+    Set<Integer> findIdByCPA();
 }

@@ -44,6 +44,8 @@ public class MainService {
     private MutationStatisticService mutationStatisticService;
     @Autowired
     private MedicationPlanService medicationPlanService;
+    @Autowired
+    private EvidenceService evidenceService;
 
     protected static ExecutorService geneChildrenTreadPool;
 
@@ -63,6 +65,7 @@ public class MainService {
         variantService.initDB();
         clinicalTrialService.initDB();
         mutationStatisticService.initDB();
+        evidenceService.initDB();
         meshCategoryService.init();
         cancerService.init();
         keggPathwaysService.init();
@@ -105,7 +108,8 @@ public class MainService {
             ContentManagerThread secondManager=new ContentManagerThread(cpaProperties.getMaxThreadNum());
             ExecutorService secondPool = Executors.newFixedThreadPool(cpaProperties.getMaxThreadNum());
             //启动二级线程
-            secondPool.execute(clinicalTrail());
+//            secondPool.execute(gene());
+//            secondPool.execute(clinicalTrail());
             secondPool.execute(regimen());
             secondManager.start();
             logger.info("【manager】二级主线程全部启动完成");
@@ -133,7 +137,12 @@ public class MainService {
         return new IdThread(page,param);
     }
 
-    //基因（一级线程）
+    /**
+     * 基因
+     * 二级线程
+     * 基因的突变的证据依赖药物
+     * @return
+     */
     public Runnable gene(){
         Page page=new Page(cpaProperties.getGeneUrl());
         ContentParam param=new ContentParam(CPA.GENE,geneService);
@@ -143,7 +152,7 @@ public class MainService {
     /**
      * 临床实验
      * 二级线程
-     * 在药物线程中一级抓取过一边，这里做补漏
+     * 在药物线程中抓取过一遍，这里做补漏，因为有部分临床实验没有药物
      * @return
      */
     public Runnable clinicalTrail(){

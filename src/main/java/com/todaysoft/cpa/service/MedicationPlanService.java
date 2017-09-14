@@ -168,10 +168,10 @@ public class MedicationPlanService implements BaseService{
     public void initDB() {
         CPA.REGIMEN.name=cpaProperties.getRegimenName();
         CPA.REGIMEN.contentUrl=cpaProperties.getRegimenUrl();
-        Set<String> ids=medicationPlanRepository.findIdByCPA();
-        Iterator<String> iterator=ids.iterator();
+        Set<Integer> ids=medicationPlanRepository.findIdByCPA();
+        Iterator<Integer> iterator=ids.iterator();
         while (iterator.hasNext()){
-            CPA.REGIMEN.dbId.add(iterator.next());
+            CPA.REGIMEN.dbId.add(String.valueOf(iterator.next()));
         }
     }
 }

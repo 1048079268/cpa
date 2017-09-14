@@ -53,6 +53,8 @@ public class VariantService implements BaseService{
     private CancerService cancerService;
     @Autowired
     private CancerRepository cancerRepository;
+    @Autowired
+    private  EvidenceService evidenceService;
 
     @Override
     public boolean save(JSONObject object) {return false;}
@@ -99,12 +101,17 @@ public class VariantService implements BaseService{
             }
             variantTumorTypeDoidRepository.save(doidList);
             if (!StringUtils.isEmpty(variant.getCosmicId())){
-                logger.info("【" + CPA.GENE.name() + "】开始插入关联的突变疾病样本量");
+                logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的突变疾病样本量");
                 Page msPage=new Page(CPA.MUTATION_STATISTICS.contentUrl);
                 msPage.putParam("cosmicId",variant.getCosmicId());
                 ContentParam msParam=new ContentParam(CPA.MUTATION_STATISTICS,mutationStatisticService,true,variant.getVariantKey());
                 MainService.childrenTreadPool.execute(new MutationStatisticThread(msPage,msParam));
             }
+            //插入与该id关联的证据
+            logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的证据");
+            Page evidencePage=new Page(CPA.VARIANT.contentUrl+"/"+variant.getVariantId()+"/"+CPA.EVIDENCE.name+"s");
+            ContentParam evidenceParam=new ContentParam(CPA.EVIDENCE,evidenceService,true,variant.getVariantKey());
+            MainService.childrenTreadPool.execute(new IdThread(evidencePage,evidenceParam));
         }
         return true;
     }
