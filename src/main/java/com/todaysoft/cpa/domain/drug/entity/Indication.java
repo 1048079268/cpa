@@ -8,7 +8,7 @@ import javax.persistence.*;
  * @date: 2017/9/1 9:35
  */
 @Entity
-@Table(name = "kt_indication", schema = "project_kb_en", catalog = "")
+@Table(name = "kt_indication")
 public class Indication {
     private String indicationKey;
     private String stitchCompoundId;

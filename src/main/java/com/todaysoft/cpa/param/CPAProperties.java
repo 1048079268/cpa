@@ -26,8 +26,8 @@ public class CPAProperties {
     private String mutationStatisticsName;
     private String regimenUrl;
     private String regimenName;
-    private int maxThreadNum;
-    private int maxCrawlNum;
+    private int maxContentThreadNum;
+    private int maxIdTreadNum;
     private long heartbeat;
     private int maxBlockingNum;
     private int maxFailureBlockingNum;
@@ -96,20 +96,20 @@ public class CPAProperties {
         this.regimenUrl = regimenUrl;
     }
 
-    public int getMaxThreadNum() {
-        return maxThreadNum;
+    public int getMaxContentThreadNum() {
+        return maxContentThreadNum;
     }
 
-    public void setMaxThreadNum(int maxThreadNum) {
-        this.maxThreadNum = maxThreadNum;
+    public void setMaxContentThreadNum(int maxContentThreadNum) {
+        this.maxContentThreadNum = maxContentThreadNum;
     }
 
-    public int getMaxCrawlNum() {
-        return maxCrawlNum;
+    public int getMaxIdTreadNum() {
+        return maxIdTreadNum;
     }
 
-    public void setMaxCrawlNum(int maxCrawlNum) {
-        this.maxCrawlNum = maxCrawlNum;
+    public void setMaxIdTreadNum(int maxIdTreadNum) {
+        this.maxIdTreadNum = maxIdTreadNum;
     }
 
     public String getGeneName() {

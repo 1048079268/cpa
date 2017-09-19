@@ -117,9 +117,6 @@ public class MeshCategory {
                 "meshCategoryKey='" + meshCategoryKey + '\'' +
                 ", meshId='" + meshId + '\'' +
                 ", categoryName='" + categoryName + '\'' +
-                ", createdAt=" + createdAt +
-                ", createdWay=" + createdWay +
-                ", checkState=" + checkState +
                 '}';
     }
 }

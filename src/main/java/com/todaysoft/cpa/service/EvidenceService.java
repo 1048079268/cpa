@@ -18,6 +18,8 @@ import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.PkGenerator;
 import netscape.javascript.JSObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,6 +31,7 @@ import java.util.Set;
  * @author: 鱼唇的人类
  * @date: 2017/9/14 15:46
  */
+@Service
 public class EvidenceService implements BaseService {
     @Autowired
     private CPAProperties cpaProperties;
@@ -49,6 +52,7 @@ public class EvidenceService implements BaseService {
     }
 
     @Override
+    @Transactional
     public boolean saveByDependence(JSONObject object, String dependenceKey) {
         Evidence evidence=object.toJavaObject(Evidence.class);
         evidence.setVariantKey(dependenceKey);

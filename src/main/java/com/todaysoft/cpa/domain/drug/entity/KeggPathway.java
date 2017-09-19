@@ -137,4 +137,13 @@ public class KeggPathway implements Serializable {
         result = 31 * result + (getCheckState() != null ? getCheckState().hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "KeggPathway{" +
+                "pathwayKey='" + pathwayKey + '\'' +
+                ", keggId='" + keggId + '\'' +
+                ", pathwayName='" + pathwayName + '\'' +
+                '}';
+    }
 }

@@ -1,5 +1,7 @@
 package com.todaysoft.cpa.domain.drug.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import javax.persistence.*;
 
 /**
@@ -14,8 +16,11 @@ public class DrugAdverseReaction {
     private String drugKey;
     private String sideEffectKey;
     private Integer drugId;
+    @JSONField(name = "adrName")
     private String adressName;
+    @JSONField(name = "frequency")
     private String ferquency;
+    @JSONField(name = "placeboFrequency")
     private String placeboFrequency;
 
     @Id

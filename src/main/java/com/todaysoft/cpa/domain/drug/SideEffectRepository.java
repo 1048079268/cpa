@@ -14,4 +14,5 @@ import java.util.Set;
  */
 public interface SideEffectRepository extends JpaRepository<SideEffect,String>{
     List<SideEffect> findByCreatedWay(Integer createdWay);
+    SideEffect findByCreatedWayAndSideEffectName(Integer createdWay,String sideEffectName);
 }

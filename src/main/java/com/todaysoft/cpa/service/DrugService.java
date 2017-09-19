@@ -8,10 +8,7 @@ import com.todaysoft.cpa.param.*;
 import com.todaysoft.cpa.domain.drug.*;
 import com.todaysoft.cpa.domain.drug.entity.*;
 import com.todaysoft.cpa.thread.IdThread;
-import com.todaysoft.cpa.utils.DataException;
-import com.todaysoft.cpa.utils.DateUtil;
-import com.todaysoft.cpa.utils.JsonUtil;
-import com.todaysoft.cpa.utils.PkGenerator;
+import com.todaysoft.cpa.utils.*;
 import org.jsoup.helper.DescendableLinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,6 +171,7 @@ public class DrugService implements BaseService {
                         pathwayList.add(drugKeggPathway);
                     }
                 }
+                drugKeggPathwayRepository.save(pathwayList);
             }
             //8.药物结构化适应症
             JSONArray structuredIndications=object.getJSONArray("structuredIndications");
@@ -186,19 +184,16 @@ public class DrugService implements BaseService {
                     indication.setCreatedWay(2);
                     indication.setIndicationKey(PkGenerator.generator(Indication.class));
                     indication.setMeddraConceptName(structuredIndications.getString(i));
-                    List<Indication> indicationList=indicationService.save(indication);
-                    if (indicationList!=null&&indicationList.size()>0){
-                        for (Indication indic:indicationList){
-                            if (indic!=null){
-                                DrugStructuredIndication structuredIndication=new DrugStructuredIndication();
-                                structuredIndication.setDrugId(drug.getDrugId());
-                                structuredIndication.setDrugKey(drug.getDrugKey());
-                                structuredIndication.setIndicationKey(indic.getIndicationKey());
-                                structuredIndicationList.add(structuredIndication);
-                            }
-                        }
+                    indication=indicationService.save(indication);
+                    if (indication!=null){
+                        DrugStructuredIndication structuredIndication=new DrugStructuredIndication();
+                        structuredIndication.setDrugId(drug.getDrugId());
+                        structuredIndication.setDrugKey(drug.getDrugKey());
+                        structuredIndication.setIndicationKey(indication.getIndicationKey());
+                        structuredIndicationList.add(structuredIndication);
                     }
                 }
+                drugStructuredIndicationRepository.save(structuredIndicationList);
             }
             // 9.药物临床实验(见底部)
             JSONArray clinicalTrials=object.getJSONArray("clinicalTrials");
@@ -235,22 +230,19 @@ public class DrugService implements BaseService {
                     sideEffect.setCreatedWay(2);
                     sideEffect.setSideEffectName(adverseReaction.getAdressName());
                     sideEffect.setSideEffectKey(PkGenerator.generator(DrugAdverseReaction.class));
-                    List<SideEffect> sideEffectList=sideEffectService.save(sideEffect);
-                    if (sideEffectList!=null&&sideEffectList.size()>0){
-                        for (SideEffect effect:sideEffectList){
-                            if (effect!=null){
-                                DrugAdverseReaction drugAdverseReaction=new DrugAdverseReaction();
-                                drugAdverseReaction.setAdressName(adverseReaction.getAdressName());
-                                drugAdverseReaction.setFerquency(adverseReaction.getFerquency());
-                                drugAdverseReaction.setPlaceboFrequency(adverseReaction.getPlaceboFrequency());
-                                drugAdverseReaction.setDrugId(drug.getDrugId());
-                                drugAdverseReaction.setDrugKey(drug.getDrugKey());
-                                drugAdverseReaction.setSideEffectKey(effect.getSideEffectKey());
-                                adverseReactionsList.add(drugAdverseReaction);
-                            }
-                        }
+                    sideEffect=sideEffectService.save(sideEffect);
+                    if (sideEffect!=null){
+                        DrugAdverseReaction drugAdverseReaction=new DrugAdverseReaction();
+                        drugAdverseReaction.setAdressName(adverseReaction.getAdressName());
+                        drugAdverseReaction.setFerquency(adverseReaction.getFerquency());
+                        drugAdverseReaction.setPlaceboFrequency(adverseReaction.getPlaceboFrequency());
+                        drugAdverseReaction.setDrugId(drug.getDrugId());
+                        drugAdverseReaction.setDrugKey(drug.getDrugKey());
+                        drugAdverseReaction.setSideEffectKey(sideEffect.getSideEffectKey());
+                        adverseReactionsList.add(drugAdverseReaction);
                     }
                 }
+                drugAdverseReactionRepository.save(adverseReactionsList);
             }
             //11.药物相互作用
             JSONArray interactions=object.getJSONArray("interactions");
@@ -318,8 +310,10 @@ public class DrugService implements BaseService {
                         drugCategory.setMeshId(meshCategory.getMeshId());
                         drugCategory.setMeshCategoryKey(meshCategory.getMeshCategoryKey());
                         drugCategory.setCategoryName(meshCategory.getCategoryName());
+                        drugCategoryList.add(drugCategory);
                     }
                 }
+                drugCategoryRepository.save(drugCategoryList);
             }
             //14.药物序列
             JSONArray sequences=object.getJSONArray("sequences");
@@ -340,11 +334,15 @@ public class DrugService implements BaseService {
 
             //多对多关系表的插入
             //非常重要!!!!要给缓冲时间,等待依赖的id全部插入完成，不然会报错
-            Thread.sleep(2000);
-            drugKeggPathwayRepository.save(pathwayList);
-            drugCategoryRepository.save(drugCategoryList);
-            drugStructuredIndicationRepository.save(structuredIndicationList);
-            drugAdverseReactionRepository.save(adverseReactionsList);
+//            Thread.sleep(2000);
+//            try {
+//                drugKeggPathwayRepository.save(pathwayList);
+//                drugCategoryRepository.save(drugCategoryList);
+//                drugStructuredIndicationRepository.save(structuredIndicationList);
+//                drugAdverseReactionRepository.save(adverseReactionsList);
+//            }catch (Exception e){
+//                System.out.println(ExceptionInfo.getErrorInfo(e).toString());
+//            }
             logger.info("【" + CPA.DRUG.name() + "】开始插入关联的临床实验->id="+drug.getDrugId());
             Page page=new Page(cpaProperties.getClinicalTrialUrl());
             page.putParam("drugId", String.valueOf(drug.getDrugId()));

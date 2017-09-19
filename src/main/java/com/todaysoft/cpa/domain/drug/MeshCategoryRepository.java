@@ -15,4 +15,6 @@ import java.util.Set;
 public interface MeshCategoryRepository extends JpaRepository<MeshCategory,String>{
     @Query("select m from MeshCategory m where m.createdWay=2")
     List<MeshCategory> findByCPA();
+    MeshCategory findByMeshId(String meshId);
+
 }

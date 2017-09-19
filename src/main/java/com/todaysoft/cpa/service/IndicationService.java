@@ -7,6 +7,7 @@ import com.todaysoft.cpa.domain.drug.entity.Indication;
 import com.todaysoft.cpa.domain.drug.entity.KeggPathway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,39 +23,30 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service
 public class IndicationService{
     private final ReentrantLock lock=new ReentrantLock();
-    private static Map<String,List<Indication>> INDICATION_MAP=new HashMap();
+    private static Map<String,Indication> INDICATION_MAP=new HashMap();
     @Autowired
     private IndicationRepository indicationRepository;
 
     public void init() {
-        indicationRepository.findAll().stream().forEach(indication -> {
+        indicationRepository.findByCreatedWay(2).stream().forEach(indication -> {
             String key=indication.getMeddraConceptName();
-            List<Indication> indicationList;
-            if (INDICATION_MAP.containsKey(key)){
-                indicationList=INDICATION_MAP.get(key);
-                indicationList.add(indication);
-                INDICATION_MAP.replace(key,indicationList);
-            }else {
-                indicationList=new ArrayList<>();
-                indicationList.add(indication);
-                INDICATION_MAP.put(key,indicationList);
-            }
+            INDICATION_MAP.put(key,indication);
         });
     }
 
-    public List<Indication> save(Indication indication) {
+    @Transactional
+    public Indication save(Indication indication) {
         lock.lock();
         try {
             String key=indication.getMeddraConceptName();
-            if (INDICATION_MAP.containsKey(key)){
-                return INDICATION_MAP.get(key);
-            }else {
-                List<Indication> indicationList=new ArrayList<>();
-                indication=indicationRepository.save(indication);
-                indicationList.add(indication);
-                INDICATION_MAP.put(key,indicationList);
-                return INDICATION_MAP.get(key);
+            if (!INDICATION_MAP.containsKey(key)){
+                Indication indic=indicationRepository.save(indication);
+                if (indic==null){
+                    System.out.println("IndicationService:-->"+indication.getMeddraConceptName());
+                }
+                INDICATION_MAP.put(key,indic);
             }
+            return INDICATION_MAP.get(key);
         }finally {
             lock.unlock();
         }

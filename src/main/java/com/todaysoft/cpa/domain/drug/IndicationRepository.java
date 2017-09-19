@@ -12,4 +12,5 @@ import java.util.List;
  */
 public interface IndicationRepository extends JpaRepository<Indication,String> {
     List<Indication> findByCreatedWay(Integer createdWay);
+    Indication findByCreatedWayAndMeddraConceptName(Integer createdWay,String meddraConceptName);
 }

@@ -1,20 +1,13 @@
 package com.todaysoft.cpa.service;
 
-import com.todaysoft.cpa.domain.drug.DrugCategoryRepository;
 import com.todaysoft.cpa.domain.drug.MeshCategoryRepository;
-import com.todaysoft.cpa.domain.drug.entity.Drug;
-import com.todaysoft.cpa.domain.drug.entity.DrugCategory;
-import com.todaysoft.cpa.domain.drug.entity.DrugCategoryPK;
 import com.todaysoft.cpa.domain.drug.entity.MeshCategory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -35,17 +28,18 @@ public class MeshCategoryService {
         });
     }
 
+    @Transactional
     public MeshCategory save(MeshCategory meshCategory){
         lock.lock();
         try {
-            MeshCategory category;
-            if (MESH_CATEGORY_MAP.containsKey(meshCategory.getMeshId())){
-                category=MESH_CATEGORY_MAP.get(meshCategory.getMeshId());
-            }else {
-                category=meshCategoryRepository.save(meshCategory);
-                MESH_CATEGORY_MAP.put(category.getMeshId(),category);
+            if (!MESH_CATEGORY_MAP.containsKey(meshCategory.getMeshId())){
+                MeshCategory category=meshCategoryRepository.save(meshCategory);
+                if (category==null){
+                    System.out.println("MeshCategoryService:-->"+meshCategory.getMeshId());
+                }
+                MESH_CATEGORY_MAP.put(meshCategory.getMeshId(),category);
             }
-            return category;
+            return MESH_CATEGORY_MAP.get(meshCategory.getMeshId());
         }finally {
             lock.unlock();
         }

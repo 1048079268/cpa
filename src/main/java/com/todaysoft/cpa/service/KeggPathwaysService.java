@@ -31,17 +31,18 @@ public class KeggPathwaysService{
         });
     }
 
+    @Transactional
     public KeggPathway save(KeggPathway keggPathway){
         lock.lock();
         try {
-            KeggPathway pathway;
-            if (KEGG_PATHWAY_MAP.containsKey(keggPathway.getKeggId())){
-                pathway=KEGG_PATHWAY_MAP.get(keggPathway.getKeggId());
-            }else {
-                pathway=keggPathwayRepository.save(keggPathway);
-                KEGG_PATHWAY_MAP.put(pathway.getKeggId(),pathway);
+            if (!KEGG_PATHWAY_MAP.containsKey(keggPathway.getKeggId())){
+                KeggPathway pathway=keggPathwayRepository.save(keggPathway);
+                if (pathway==null){
+                    System.out.println("KeggPathwaysService:-->"+keggPathway.getKeggId());
+                }
+                KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),pathway);
             }
-            return pathway;
+            return KEGG_PATHWAY_MAP.get(keggPathway.getKeggId());
         } finally {
             lock.unlock();
         }
