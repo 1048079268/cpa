@@ -31,10 +31,17 @@ public class MutationStatisticService implements BaseService{
     private CPAProperties cpaProperties;
     @Autowired
     private CancerRepository cancerRepository;
+    @Autowired
+    private VariantRepository variantRepository;
 
     @Override
     public boolean save(JSONObject object) {
-        return false;
+        VariantMutationStatistic statistic=object.toJavaObject(VariantMutationStatistic.class);
+        Variant variant=variantRepository.findByCosmicIdAndCreatedWay(statistic.getMutationId(),2);
+        if (variant==null){
+            throw new DataException("未找到相应的突变，info->cosmicId="+statistic.getMutationId());
+        }
+        return saveByDependence(object,variant.getVariantKey());
     }
 
     @Override

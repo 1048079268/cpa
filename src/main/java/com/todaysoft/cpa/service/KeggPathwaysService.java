@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -19,7 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Service
 public class KeggPathwaysService{
-    private final ReentrantLock lock=new ReentrantLock();
+    private final Lock lock=new ReentrantLock();
     private static Map<String,KeggPathway> KEGG_PATHWAY_MAP=new HashMap();
     @Autowired
     private KeggPathwayRepository keggPathwayRepository;
@@ -49,23 +50,22 @@ public class KeggPathwaysService{
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<KeggPathway> saveList(List<KeggPathway> keggPathwayList) throws InterruptedException {
-        long start=0L;
         try {
-            lock.lockInterruptibly();
-            List<KeggPathway> resultList=new ArrayList<>();
-            for (KeggPathway pathway:keggPathwayList){
-                KeggPathway keggPathway;
-                if (KEGG_PATHWAY_MAP.containsKey(pathway.getKeggId())){
-                    keggPathway=KEGG_PATHWAY_MAP.get(pathway.getKeggId());
-                }else {
-                    keggPathway=keggPathwayRepository.save(pathway);
-                    KEGG_PATHWAY_MAP.put(pathway.getKeggId(),keggPathway);
+//            lock.lockInterruptibly();
+                List<KeggPathway> resultList=new ArrayList<>();
+                for (KeggPathway pathway:keggPathwayList){
+                    KeggPathway keggPathway;
+                    if (KEGG_PATHWAY_MAP.containsKey(pathway.getKeggId())){
+                        keggPathway=KEGG_PATHWAY_MAP.get(pathway.getKeggId());
+                    }else {
+                        keggPathway=keggPathwayRepository.save(pathway);
+                        KEGG_PATHWAY_MAP.put(pathway.getKeggId(),keggPathway);
+                    }
+                    resultList.add(keggPathway);
                 }
-                resultList.add(keggPathway);
-            }
-            return resultList;
+                return resultList;
         }finally {
-            lock.unlock();
+//            lock.unlock();
         }
     }
 }

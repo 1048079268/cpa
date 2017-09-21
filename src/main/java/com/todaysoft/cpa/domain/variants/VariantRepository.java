@@ -15,5 +15,7 @@ public interface VariantRepository extends JpaRepository<Variant,String> {
     @Query("select v.variantId from Variant v where v.createdWay=2")
     Set<Integer> findIdByCPA();
 
-    Variant findByCosmicId(String cosmicId);
+    Variant findByCosmicIdAndCreatedWay(String cosmicId,Integer createdWay);
+
+    Variant findByVariantIdAndCreatedWay(Integer variantId,Integer createdWay);
 }

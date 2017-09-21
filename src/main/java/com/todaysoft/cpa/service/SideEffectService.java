@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -24,7 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Service
 public class SideEffectService{
-    private final ReentrantLock lock=new ReentrantLock();
+    private final Lock lock=new ReentrantLock();
     private static final Map<String,SideEffect> SIDE_EFFECT_MAP=new HashMap<>();
     @Autowired
     private SideEffectRepository sideEffectRepository;
@@ -53,24 +54,22 @@ public class SideEffectService{
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<SideEffect> saveList(List<SideEffect> sideEffectList) throws InterruptedException {
-        long start=0L;
         try {
-            lock.lockInterruptibly();
-            List<SideEffect> resultList=new ArrayList<>();
-            for (SideEffect sideEffect:sideEffectList){
-                SideEffect effect;
-                String key=sideEffect.getSideEffectName();
-                if (SIDE_EFFECT_MAP.containsKey(key)){
-                    effect=SIDE_EFFECT_MAP.get(key);
-                }else {
-                    effect=sideEffectRepository.save(sideEffect);
-                    SIDE_EFFECT_MAP.put(key,effect);
+                List<SideEffect> resultList=new ArrayList<>();
+                for (SideEffect sideEffect:sideEffectList){
+                    SideEffect effect;
+                    String key=sideEffect.getSideEffectName();
+                    if (SIDE_EFFECT_MAP.containsKey(key)){
+                        effect=SIDE_EFFECT_MAP.get(key);
+                    }else {
+                        effect=sideEffectRepository.save(sideEffect);
+                        SIDE_EFFECT_MAP.put(key,effect);
+                    }
+                    resultList.add(effect);
                 }
-                resultList.add(effect);
-            }
-            return resultList;
+                return resultList;
         }finally {
-            lock.unlock();
+//            lock.unlock();
         }
     }
 }

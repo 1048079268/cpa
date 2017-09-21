@@ -6,7 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Page;
-import com.todaysoft.cpa.param.Param;
+import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.utils.ExceptionInfo;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -48,12 +48,17 @@ public class IdThread implements Runnable {
                             .data("limit", String.valueOf(page.getLimit()))
                             .data("offset", String.valueOf(page.getOffset()))
                             .data(page.getParam())
-                            .header("Authorization", Param.getAUTHORIZATION())
+                            .header("Authorization", GlobalVar.getAUTHORIZATION())
                             .header("Accept", "application/test")
                             .ignoreContentType(true)
                             .timeout(12000)// 设置连接超时时间
+                            .maxBodySize(0)//设置最大响应长度为0 ，否则太长的返回数据不会完整显示
                             .get();
                     String jsonStr=doc.body().text();
+                    if (retryTimes<3){
+                        //针对特殊字符的处理都在重试中进行
+                        jsonStr=doc.body().toString().replaceAll("<.*>|<!--|-->","");
+                    }
                     if (jsonStr!=null&&jsonStr.length()>0){
                         JSONObject jsonObject= JSON.parseObject(jsonStr);
                         JSONArray array=jsonObject.getJSONObject("data").getJSONArray(cpa.name+"s");
@@ -68,7 +73,12 @@ public class IdThread implements Runnable {
                                     //如果set里面没有该数据那就将该id存入队列
                                     ContentParam param=ContentParam.create(contentParam);
                                     param.setId(id);
-                                    Param.getContentQueue().put(param);
+                                    //如果是药物的单独放入药物队列
+                                    if (cpa.equals(CPA.DRUG)){
+                                        GlobalVar.getDrugQueue().put(param);
+                                    }else {
+                                        GlobalVar.getContentQueue().put(param);
+                                    }
                                     insertCount++;
                                 }
                             }

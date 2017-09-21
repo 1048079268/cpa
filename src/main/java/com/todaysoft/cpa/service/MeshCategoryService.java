@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -23,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Service
 public class MeshCategoryService {
-    private final ReentrantLock lock=new ReentrantLock();
+    private final Lock lock=new ReentrantLock();
     private static Map<String,MeshCategory> MESH_CATEGORY_MAP=new HashMap<>();
     @Autowired
     private MeshCategoryRepository meshCategoryRepository;
@@ -53,9 +54,8 @@ public class MeshCategoryService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<MeshCategory> saveList(List<MeshCategory> meshCategoryList) throws InterruptedException {
-        long start=0L;
         try {
-            lock.lockInterruptibly();
+//            lock.lockInterruptibly();
             List<MeshCategory> resultList=new ArrayList<>();
             for (MeshCategory meshCategory:meshCategoryList){
                 MeshCategory category;
@@ -69,7 +69,7 @@ public class MeshCategoryService {
             }
             return resultList;
         }finally {
-            lock.unlock();
+//            lock.unlock();
         }
     }
 }

@@ -12,6 +12,8 @@ import com.todaysoft.cpa.domain.evidence.EvidenceRepository;
 import com.todaysoft.cpa.domain.evidence.entity.Evidence;
 import com.todaysoft.cpa.domain.evidence.entity.EvidenceDrug;
 import com.todaysoft.cpa.domain.evidence.entity.EvidenceReference;
+import com.todaysoft.cpa.domain.variants.VariantRepository;
+import com.todaysoft.cpa.domain.variants.entity.Variant;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.utils.DataException;
@@ -45,10 +47,17 @@ public class EvidenceService implements BaseService {
     private CancerRepository cancerRepository;
     @Autowired
     private DrugRepository drugRepository;
+    @Autowired
+    private VariantRepository variantRepository;
 
     @Override
     public boolean save(JSONObject object) throws InterruptedException {
-        return false;
+        Evidence evidence=object.toJavaObject(Evidence.class);
+        Variant variant=variantRepository.findByVariantIdAndCreatedWay(evidence.getVariantId(),2);
+        if (variant==null){
+            throw new DataException("未找到相应的突变，info->variantId="+evidence.getVariantId());
+        }
+        return saveByDependence(object,variant.getVariantKey());
     }
 
     @Override

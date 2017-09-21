@@ -2,12 +2,15 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.domain.gene.GeneRepository;
+import com.todaysoft.cpa.domain.gene.entity.Gene;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.domain.proteins.ProteinRepository;
 import com.todaysoft.cpa.domain.proteins.ProteinSynonymRepository;
 import com.todaysoft.cpa.domain.proteins.entity.Protein;
 import com.todaysoft.cpa.domain.proteins.entity.ProteinSynonym;
 import com.todaysoft.cpa.param.CPA;
+import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +37,18 @@ public class ProteinService implements BaseService {
     private ProteinSynonymRepository proteinSynonymRepository;
     @Autowired
     private CPAProperties cpaProperties;
+    @Autowired
+    private GeneRepository geneRepository;
 
     @Override
-    public boolean save(JSONObject object) {return false;}
+    public boolean save(JSONObject object) {
+        Protein protein=object.toJavaObject(Protein.class);
+        Gene gene=geneRepository.findByGeneIdAndCreateWay(protein.getGeneId(),2);
+        if (gene==null){
+            throw new DataException("未找到相应的基因，info->geneId="+protein.getGeneId());
+        }
+        return saveByDependence(object,gene.getGeneKey());
+    }
 
     @Override
     @Transactional

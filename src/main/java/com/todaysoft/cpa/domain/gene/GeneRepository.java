@@ -14,4 +14,6 @@ import java.util.Set;
 public interface GeneRepository extends JpaRepository<Gene,String>{
     @Query("select g.geneId from Gene g where g.createWay=2")
     Set<Integer> findIdByCPA();
+
+    Gene findByGeneIdAndCreateWay(Integer geneId,Integer createWay);
 }

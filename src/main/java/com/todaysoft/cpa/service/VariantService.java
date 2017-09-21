@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.domain.cacer.Cancer;
 import com.todaysoft.cpa.domain.cacer.CancerRepository;
+import com.todaysoft.cpa.domain.gene.GeneRepository;
+import com.todaysoft.cpa.domain.gene.entity.Gene;
 import com.todaysoft.cpa.domain.variants.VariantExternalIdRepository;
 import com.todaysoft.cpa.domain.variants.VariantRepository;
 import com.todaysoft.cpa.domain.variants.VariantTumorTypeDoidRepository;
@@ -55,9 +57,18 @@ public class VariantService implements BaseService{
     private CancerRepository cancerRepository;
     @Autowired
     private  EvidenceService evidenceService;
+    @Autowired
+    private GeneRepository geneRepository;
 
     @Override
-    public boolean save(JSONObject object) {return false;}
+    public boolean save(JSONObject object) {
+        Variant variant = JSONObject.toJavaObject(object, Variant.class);
+        Gene gene=geneRepository.findByGeneIdAndCreateWay(variant.getGeneId(),2);
+        if(gene==null){
+            throw new DataException("未找到相应的基因，info->geneId="+variant.getGeneId());
+        }
+        return saveByDependence(object,gene.getGeneKey());
+    }
 
     @Override
     @Transactional

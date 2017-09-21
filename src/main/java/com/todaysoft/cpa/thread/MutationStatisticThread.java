@@ -6,7 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Page;
-import com.todaysoft.cpa.param.Param;
+import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.utils.ExceptionInfo;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -47,7 +47,7 @@ public class MutationStatisticThread implements Runnable {
                             .data("limit", String.valueOf(page.getLimit()))
                             .data("offset", String.valueOf(page.getOffset()))
                             .data(page.getParam())
-                            .header("Authorization", Param.getAUTHORIZATION())
+                            .header("Authorization", GlobalVar.getAUTHORIZATION())
                             .header("Accept", "application/test")
                             .ignoreContentType(true)
                             .timeout(12000)// 设置连接超时时间

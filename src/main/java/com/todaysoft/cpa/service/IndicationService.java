@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -25,7 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Service
 public class IndicationService{
-    private final ReentrantLock lock=new ReentrantLock();
+    private final Lock lock=new ReentrantLock();
     private static Map<String,Indication> INDICATION_MAP=new HashMap();
     @Autowired
     private IndicationRepository indicationRepository;
@@ -57,24 +58,23 @@ public class IndicationService{
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<Indication> saveList(List<Indication> indicationList) throws InterruptedException {
-        long start=0L;
         try {
-            lock.lock();
-            List<Indication> retList=new ArrayList<>();
-            for (Indication indication:indicationList){
-                Indication result;
-                String key=indication.getMeddraConceptName();
-                if (!INDICATION_MAP.containsKey(key)){
-                    result=indicationRepository.save(indication);
-                    INDICATION_MAP.put(key,result);
-                }else {
-                    result=INDICATION_MAP.get(key);
+//            lock.lock();
+                List<Indication> retList=new ArrayList<>();
+                for (Indication indication:indicationList){
+                    Indication result;
+                    String key=indication.getMeddraConceptName();
+                    if (!INDICATION_MAP.containsKey(key)){
+                        result=indicationRepository.save(indication);
+                        INDICATION_MAP.put(key,result);
+                    }else {
+                        result=INDICATION_MAP.get(key);
+                    }
+                    retList.add(result);
                 }
-                retList.add(result);
-            }
-            return retList;
+                return retList;
         }finally {
-            lock.unlock();
+//            lock.unlock();
         }
     }
 }

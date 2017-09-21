@@ -1,10 +1,11 @@
 package com.todaysoft.cpa.service;
 
-import com.todaysoft.cpa.domain.drug.entity.SideEffect;
-import com.todaysoft.cpa.param.Param;
+import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.param.*;
 import com.todaysoft.cpa.thread.ContentManagerThread;
+import com.todaysoft.cpa.thread.DrugThread;
 import com.todaysoft.cpa.thread.IdThread;
+import com.todaysoft.cpa.thread.MutationStatisticThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +59,10 @@ public class MainService {
      * @desc: 初始化数据
      */
     public void init(){
-        Param.setContentQueue(new LinkedBlockingQueue<>(cpaProperties.getMaxBlockingNum()));
-        Param.setFailureQueue(new LinkedBlockingQueue<>(cpaProperties.getMaxFailureBlockingNum()));
-        Param.setAUTHORIZATION(cpaProperties.getAuthorization());
+        GlobalVar.setContentQueue(new LinkedBlockingQueue<>(cpaProperties.getMaxBlockingNum()));
+        GlobalVar.setDrugQueue(new LinkedBlockingQueue<>(cpaProperties.getMaxBlockingNum()));
+        GlobalVar.setFailureQueue(new LinkedBlockingQueue<>(cpaProperties.getMaxFailureBlockingNum()));
+        GlobalVar.setAUTHORIZATION(cpaProperties.getAuthorization());
         drugService.initDB();
         geneService.initDB();
         proteinService.initDB();
@@ -94,19 +96,26 @@ public class MainService {
             childrenTreadPool=Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
             //一线id抓取线程池（主）
             ExecutorService mainPool = Executors.newFixedThreadPool(2);
-            //启动一级线程
+            //启动一级线程（暂时不去除线程池，以便以后扩展）
             mainPool.execute(drug());
+            Thread drugContentThread=new Thread(new DrugThread());
+            drugContentThread.start();
             logger.info("【manager】一级主线程全部启动完成");
             mainPool.shutdown();
             //检测一级线程
             while (true) {
-                //因为由依赖，所以要检测内容线程是否执行完成
-                if (mainPool.isTerminated()&&mainManager.isAllWaiting()) {
+                //因为被依赖，所以要检测内容线程是否执行完成
+                if (mainPool.isTerminated()&&drugContentThread.getState().equals(Thread.State.WAITING)) {
+                    drugContentThread.interrupt();
                     logger.info("【manager】一级线程执行完成");
                     break;
                 }else {
-                    Thread.sleep(10000);
-                    //监控内容抓取线程
+                    Thread.sleep(20000);
+                    //监控内容抓取线程，如果挂掉则重启
+                    if (!drugContentThread.isAlive()){
+                        drugContentThread=new Thread(new DrugThread());
+                        drugContentThread.start();
+                    }
                     mainManager.checkAndRestart();
                 }
             }
@@ -121,6 +130,40 @@ public class MainService {
             while (true) {
                 if (secondPool.isTerminated()) {
                     logger.info("【manager】二级线程执行完成");
+                    break;
+                }else {
+                    Thread.sleep(10000);
+                    //监控内容抓取线程
+                    mainManager.checkAndRestart();
+                }
+            }
+            //三级线程池
+            ExecutorService thirdPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
+            //启动三级线程
+            thirdPool.execute(variant());
+            thirdPool.execute(protein());
+            logger.info("【manager】三级主线程全部启动完成");
+            thirdPool.shutdown();
+            while (true) {
+                if (thirdPool.isTerminated()) {
+                    logger.info("【manager】三级线程执行完成");
+                    break;
+                }else {
+                    Thread.sleep(10000);
+                    //监控内容抓取线程
+                    mainManager.checkAndRestart();
+                }
+            }
+            //三级线程池
+            ExecutorService fourthPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
+            //启动三级线程
+            fourthPool.execute(evidence());
+            fourthPool.execute(mutationStatistic());
+            logger.info("【manager】四级主线程全部启动完成");
+            fourthPool.shutdown();
+            while (true) {
+                if (fourthPool.isTerminated()) {
+                    logger.info("【manager】四级线程执行完成");
                     break;
                 }else {
                     Thread.sleep(10000);
@@ -175,5 +218,52 @@ public class MainService {
         Page page=new Page(cpaProperties.getRegimenUrl());
         ContentParam param=new ContentParam(CPA.REGIMEN, medicationPlanService);
         return new IdThread(page,param);
+    }
+
+    /**
+     * 基因突变
+     * 三级线程
+     * 主要补抓以前出错的记录
+     * （em:在不启动该线程的情况下，id=1的基因插入成功，该基因有一个id=9的突变失败了，那么这个突变数据就永远不会被抓到）
+     * 下面的原因相同
+     * @return
+     */
+    public Runnable variant(){
+        Page page=new Page(cpaProperties.getVariantUrl());
+        ContentParam param=new ContentParam(CPA.VARIANT,variantService);
+        return new IdThread(page,param);
+    }
+
+    /**
+     * 蛋白
+     * 三级线程
+     * @return
+     */
+    public Runnable protein(){
+        Page page=new Page(cpaProperties.getProteinUrl());
+        ContentParam param=new ContentParam(CPA.PROTEIN,proteinService);
+        return new IdThread(page,param);
+    }
+
+    /**
+     * 证据
+     * 四级线程
+     * @return
+     */
+    public Runnable evidence(){
+        Page page=new Page(cpaProperties.getEvidenceUrl());
+        ContentParam param=new ContentParam(CPA.EVIDENCE,evidenceService);
+        return new IdThread(page,param);
+    }
+
+    /**
+     * 突变疾病样本量
+     * 四级线程
+     * @return
+     */
+    public Runnable mutationStatistic(){
+        Page msPage=new Page(cpaProperties.getMutationStatisticsUrl());
+        ContentParam msParam=new ContentParam(CPA.MUTATION_STATISTICS,mutationStatisticService);
+        return new MutationStatisticThread(msPage,msParam);
     }
 }
