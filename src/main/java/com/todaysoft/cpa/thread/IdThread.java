@@ -37,10 +37,11 @@ public class IdThread implements Runnable {
     @Override
     public void run() {
         try {
-            boolean needJudge=true;
             logger.info("【"+cpa.name()+"】开始进行增量对比...");
             while (true){//抓取直到没有数据
                 try {
+                    int metaOffset=0;
+                    int metaTotal=0;
                     savePage=page;//保存这次查询的参数，以便错误后恢复环境
                     Document doc = Jsoup.connect(page.getUrl())
                             .userAgent("'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'") // 设置 User-Agent
@@ -56,6 +57,9 @@ public class IdThread implements Runnable {
                     if (jsonStr!=null&&jsonStr.length()>0){
                         JSONObject jsonObject= JSON.parseObject(jsonStr);
                         JSONArray array=jsonObject.getJSONObject("data").getJSONArray(cpa.name+"s");
+                        JSONObject meta=jsonObject.getJSONObject("meta");
+                        metaOffset=meta.getInteger("offset");
+                        metaTotal=meta.getInteger("total");
                         if (array!=null&&array.size()>0){
                             for (int i=0;i<array.size();i++){
                                 JSONObject idObject=array.getJSONObject(i);
@@ -72,14 +76,14 @@ public class IdThread implements Runnable {
                             break;//如果列表为空则跳出循环
                         }
                     }
-                    logger.info("【"+cpa.name()+"】完成一次id抓取,开始执行分页偏移，数据量："+insertCount);
+                    logger.info("【"+cpa.name()+"】完成一次id抓取,开始执行分页偏移，page["+metaOffset+"/"+metaTotal+"],数据量："+insertCount);
                     page.offset();//执行偏移操作
                     retryTimes=3;
-                    //TODO 测试使用(药物全部抓取)
-                    if (insertCount>=20&&!cpa.equals(CPA.DRUG)) {
-                        break;
-                    }
-                    Thread.sleep(1000);
+//                    //TODO 测试使用(药物全部抓取)
+//                    if (insertCount>=20&&!cpa.equals(CPA.DRUG)) {
+//                        break;
+//                    }
+                    Thread.sleep(200);
                 } catch (Exception e) {
                     //发生异常后恢复线程并进行重试3次
                     if (retryTimes>0){
@@ -87,7 +91,7 @@ public class IdThread implements Runnable {
                         page=savePage;//还原偏移参数
                         retryTimes--;
                     }else {
-                        logger.error("【"+cpa.name()+"】【error:重试无效】--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit());
+                        logger.error("【"+cpa.name()+"】【error:重试无效】url:"+page.getUrl()+"?offset="+savePage.getOffset()+"&limit="+savePage.getLimit()+"&other="+page.getParam());
                         logger.error("【"+cpa.name()+"】"+ ExceptionInfo.getErrorInfo(e));
                         page.offset();
                         retryTimes=3;

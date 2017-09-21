@@ -1,13 +1,19 @@
 package com.todaysoft.cpa.service;
 
 import com.todaysoft.cpa.domain.drug.MeshCategoryRepository;
+import com.todaysoft.cpa.domain.drug.entity.KeggPathway;
 import com.todaysoft.cpa.domain.drug.entity.MeshCategory;
+import com.todaysoft.cpa.utils.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -28,7 +34,7 @@ public class MeshCategoryService {
         });
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public MeshCategory save(MeshCategory meshCategory){
         lock.lock();
         try {
@@ -40,6 +46,28 @@ public class MeshCategoryService {
                 MESH_CATEGORY_MAP.put(meshCategory.getMeshId(),category);
             }
             return MESH_CATEGORY_MAP.get(meshCategory.getMeshId());
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public List<MeshCategory> saveList(List<MeshCategory> meshCategoryList) throws InterruptedException {
+        long start=0L;
+        try {
+            lock.lockInterruptibly();
+            List<MeshCategory> resultList=new ArrayList<>();
+            for (MeshCategory meshCategory:meshCategoryList){
+                MeshCategory category;
+                if (MESH_CATEGORY_MAP.containsKey(meshCategory.getMeshId())){
+                    category=MESH_CATEGORY_MAP.get(meshCategory.getMeshId());
+                }else {
+                    category=meshCategoryRepository.save(meshCategory);
+                    MESH_CATEGORY_MAP.put(meshCategory.getMeshId(),category);
+                }
+                resultList.add(category);
+            }
+            return resultList;
         }finally {
             lock.unlock();
         }

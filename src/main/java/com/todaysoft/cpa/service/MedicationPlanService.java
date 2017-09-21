@@ -93,15 +93,17 @@ public class MedicationPlanService implements BaseService{
             }
             //疾病
             JSONObject doid=object.getJSONObject("doid");
-            PlanCancer planCancer=doid.toJavaObject(PlanCancer.class);
-            Cancer cancer=cancerRepository.findByDoid(String.valueOf(planCancer.getDoid()));
-            if (cancer==null){
-                throw new DataException("未找到相应疾病，info->doid="+planCancer.getDoid());
+            if (doid!=null){
+                PlanCancer planCancer=doid.toJavaObject(PlanCancer.class);
+                Cancer cancer=cancerRepository.findByDoid(String.valueOf(planCancer.getDoid()));
+                if (cancer==null){
+                    throw new DataException("未找到相应疾病，info->doid="+planCancer.getDoid());
+                }
+                planCancer.setCancerKey(cancer.getCancerKey());
+                planCancer.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
+                planCancer.setMedicinePlanId(medicationPlan.getMedicinePlanId());
+                planCancerRepository.save(planCancer);
             }
-            planCancer.setCancerKey(cancer.getCancerKey());
-            planCancer.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
-            planCancer.setMedicinePlanId(medicationPlan.getMedicinePlanId());
-            planCancerRepository.save(planCancer);
             //参考文献
             JSONArray references=object.getJSONArray("references");
             if (references!=null&&references.size()>0){
@@ -131,9 +133,9 @@ public class MedicationPlanService implements BaseService{
                         JSONArray instructionList=instructions.getJSONObject(i).getJSONArray("instructionList");
                         if (instructionList!=null&&instructionList.size()>0){
                             List<PlanInstructionMessage> instructionMessages=new ArrayList<>();
-                            for (int j=0;j<instructionList.size();i++){
-                                JSONObject jo=instructionList.getJSONObject(i);
-                                PlanInstructionMessage message=instructionList.getObject(i,PlanInstructionMessage.class);
+                            for (int j=0;j<instructionList.size();j++){
+                                JSONObject jo=instructionList.getJSONObject(j);
+                                PlanInstructionMessage message=instructionList.getObject(j,PlanInstructionMessage.class);
                                 message.setInstructionId(planInstruction.getInstructionId());
                                 message.setPlanInstructionKey(planInstruction.getPlanInstructionKey());
                                 message.setPlanInstructionMessageKey(PkGenerator.generator(PlanInstructionMessage.class));

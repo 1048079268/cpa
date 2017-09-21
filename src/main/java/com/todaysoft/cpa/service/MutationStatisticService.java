@@ -41,6 +41,9 @@ public class MutationStatisticService implements BaseService{
     @Transactional
     public boolean saveByDependence(JSONObject object, String dependenceKey) {
         VariantMutationStatistic statistic=object.toJavaObject(VariantMutationStatistic.class);
+        if (statistic.getDoid()==null){
+            return false;
+        }
         Cancer cancer=cancerRepository.findByDoid(String.valueOf(statistic.getDoid()));
         if (cancer!=null&&!StringUtils.isEmpty(cancer.getCancerKey())){
                 statistic.setCancerKey(cancer.getCancerKey());

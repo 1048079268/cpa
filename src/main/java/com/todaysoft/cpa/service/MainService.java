@@ -68,6 +68,7 @@ public class MainService {
         clinicalTrialService.initDB();
         mutationStatisticService.initDB();
         evidenceService.initDB();
+        medicationPlanService.initDB();
         meshCategoryService.init();
         keggPathwaysService.init();
         indicationService.init();

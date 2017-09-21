@@ -42,7 +42,7 @@ public class EvidenceReference {
     }
 
     @Basic
-    @Column(name = "evidence_id", nullable = false)
+    @Column(name = "evidence_id", nullable = true)
     public Integer getEvidenceId() {
         return evidenceId;
     }
@@ -52,7 +52,7 @@ public class EvidenceReference {
     }
 
     @Basic
-    @Column(name = "ref_type", nullable = false, length = 32)
+    @Column(name = "ref_type", nullable = true, length = 32)
     public String getRefType() {
         return refType;
     }
@@ -62,7 +62,7 @@ public class EvidenceReference {
     }
 
     @Basic
-    @Column(name = "reference_id", nullable = false)
+    @Column(name = "reference_id", nullable = true)
     public Integer getReferenceId() {
         return referenceId;
     }
@@ -72,7 +72,7 @@ public class EvidenceReference {
     }
 
     @Basic
-    @Column(name = "external_id", nullable = false)
+    @Column(name = "external_id", nullable = true)
     public Integer getExternalId() {
         return externalId;
     }

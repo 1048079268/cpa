@@ -17,6 +17,7 @@ public class Evidence {
     @JSONField(name = "id")
     private Integer evidenceId;
     private String cancerKey;
+    @JSONField(name = "unParse")
     private Integer doid;
     private String doidName;
     private String variantKey;
@@ -55,7 +56,7 @@ public class Evidence {
     }
 
     @Basic
-    @Column(name = "cancer_key", nullable = false, length = 64)
+    @Column(name = "cancer_key", nullable = true, length = 64)
     public String getCancerKey() {
         return cancerKey;
     }
@@ -65,7 +66,7 @@ public class Evidence {
     }
 
     @Basic
-    @Column(name = "doid", nullable = false)
+    @Column(name = "doid", nullable = true)
     public Integer getDoid() {
         return doid;
     }

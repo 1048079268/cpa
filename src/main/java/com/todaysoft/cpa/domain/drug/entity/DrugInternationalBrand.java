@@ -59,7 +59,7 @@ public class DrugInternationalBrand implements Serializable {
     }
 
     @Basic
-    @Column(name = "brand_company", nullable = true, length = 100)
+    @Column(name = "brand_company", nullable = true, length = 500)
     public String getBrandCompany() {
         return brandCompany;
     }

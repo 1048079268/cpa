@@ -11,6 +11,15 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "kt_mesh_category")
+@NamedStoredProcedureQueries(value = {
+        @NamedStoredProcedureQuery(name = "proc_mesh_category",procedureName = "proc_mesh_category", parameters = {
+                @StoredProcedureParameter(name = "meshKey",type = String.class),
+                @StoredProcedureParameter(name = "meshId",type = String.class),
+                @StoredProcedureParameter(name = "categoryName",type = String.class),
+                @StoredProcedureParameter(name = "drugKey",type = String.class),
+                @StoredProcedureParameter(name = "drugId",type = Integer.class)
+        })
+})
 public class MeshCategory {
     private String meshCategoryKey;
     @JSONField(name = "meshId")

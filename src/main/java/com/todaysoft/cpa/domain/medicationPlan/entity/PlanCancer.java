@@ -16,7 +16,7 @@ public class PlanCancer {
     private String medicationPlanKey;
     private String cancerKey;
     private int medicinePlanId;
-    @JSONField(name = "doid")
+    @JSONField(name = "id")
     private int doid;
     @JSONField(name = "name")
     private String doidName;

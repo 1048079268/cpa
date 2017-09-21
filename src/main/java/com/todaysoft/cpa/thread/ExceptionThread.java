@@ -50,6 +50,7 @@ public class ExceptionThread implements Runnable {
                         }
                         logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                     }catch (Exception e){
+                        contentParam.getCpa().dbId.remove(contentParam.getId());
                         logger.error("【exception】存入数据异常，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
                         logger.error("【exception】"+ ExceptionInfo.getErrorInfo(e));
                     }
