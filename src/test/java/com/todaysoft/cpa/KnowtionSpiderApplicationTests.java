@@ -33,31 +33,31 @@ public class KnowtionSpiderApplicationTests {
 	private JavaMailSender mailSender;
 	@Test
 	public void contextLoads() throws MessagingException, UnsupportedEncodingException {
-		MimeMessage mimeMessage = mailSender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true,"utf-8");
-		helper.setFrom(sendTo);
-		helper.setTo(sendTo);
-		helper.setSubject("CPA 错误日志-"+DateUtil.yesterday());
-		helper.setText("CPA错误日志，详情请查看附件！谢谢！");
-		File dir=new File(errorPath);
-		String regex="error-"+DateUtil.yesterday()+".*";
-		List<File> fileList=new ArrayList<>();
-		if (dir.exists()){
-			File[]files=dir.listFiles();
-			if (files!=null&&files.length>0){
-				Arrays.stream(files)
-						.filter(file -> file.exists() && file.length() > 0 && file.getName().matches(regex))
-						.forEach(file -> fileList.add(file));
-			}
-		}
-		if (fileList!=null&&fileList.size()>0){
-			for (int i=0;i<fileList.size();i++){
-				helper.addAttachment("cpa-"+fileList.get(i).getName(), fileList.get(i));
-			}
-			mailSender.send(mimeMessage);
-		}else {
-			System.out.println("不发送邮件");
-		}
+//		MimeMessage mimeMessage = mailSender.createMimeMessage();
+//		MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true,"utf-8");
+//		helper.setFrom(sendTo);
+//		helper.setTo(sendTo);
+//		helper.setSubject("CPA 错误日志-"+DateUtil.yesterday());
+//		helper.setText("CPA错误日志，详情请查看附件！谢谢！");
+//		File dir=new File(errorPath);
+//		String regex="error-"+DateUtil.yesterday()+".*";
+//		List<File> fileList=new ArrayList<>();
+//		if (dir.exists()){
+//			File[]files=dir.listFiles();
+//			if (files!=null&&files.length>0){
+//				Arrays.stream(files)
+//						.filter(file -> file.exists() && file.length() > 0 && file.getName().matches(regex))
+//						.forEach(file -> fileList.add(file));
+//			}
+//		}
+//		if (fileList!=null&&fileList.size()>0){
+//			for (int i=0;i<fileList.size();i++){
+//				helper.addAttachment("cpa-"+fileList.get(i).getName(), fileList.get(i));
+//			}
+//			mailSender.send(mimeMessage);
+//		}else {
+//			System.out.println("不发送邮件");
+//		}
 	}
 
 }

@@ -6,6 +6,7 @@ import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.ExceptionInfo;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -27,15 +28,15 @@ public class ContentThread implements Runnable{
             try {
                 contentParam= GlobalVar.getContentQueue().take();
                 baseService =contentParam.getBaseService();
-                Document doc = Jsoup.connect(contentParam.getCpa().contentUrl + "/" + contentParam.getId())
+                Connection.Response response= Jsoup.connect(contentParam.getCpa().contentUrl + "/" + contentParam.getId())
                         .userAgent("'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'") // 设置 User-Agent
                         .header("Authorization", GlobalVar.getAUTHORIZATION())
                         .header("Accept", "application/test")
                         .ignoreContentType(true)
                         .maxBodySize(0)//设置最大响应长度为0 ，否则太长的返回数据不会完整显示
                         .timeout(120000)// 设置连接超时时间
-                        .get();
-                String jsonStr = doc.body().text();
+                        .execute();
+                String jsonStr = response.body();
                 if (jsonStr != null && jsonStr.length() > 0) {
                     JSONObject jsonObject = JSON.parseObject(jsonStr).getJSONObject("data").getJSONObject(contentParam.getCpa().name);
                     if (jsonObject == null || jsonObject.toJSONString().length() <= 0) {
@@ -49,7 +50,6 @@ public class ContentThread implements Runnable{
                     }
                     logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                 }
-                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 if (contentParam==null){
                     logger.info("【content】结束...");

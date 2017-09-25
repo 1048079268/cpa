@@ -8,6 +8,7 @@ import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Page;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.utils.ExceptionInfo;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class IdThread implements Runnable {
                     int metaOffset=0;
                     int metaTotal=0;
                     savePage=page;//保存这次查询的参数，以便错误后恢复环境
-                    Document doc = Jsoup.connect(page.getUrl())
+                    Connection.Response response = Jsoup.connect(page.getUrl())
                             .userAgent("'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'") // 设置 User-Agent
                             .data("limit", String.valueOf(page.getLimit()))
                             .data("offset", String.valueOf(page.getOffset()))
@@ -53,12 +54,8 @@ public class IdThread implements Runnable {
                             .ignoreContentType(true)
                             .timeout(12000)// 设置连接超时时间
                             .maxBodySize(0)//设置最大响应长度为0 ，否则太长的返回数据不会完整显示
-                            .get();
-                    String jsonStr=doc.body().text();
-                    if (retryTimes<3){
-                        //针对特殊字符的处理都在重试中进行
-                        jsonStr=doc.body().toString().replaceAll("<.*>|<!--|-->","");
-                    }
+                            .execute();
+                    String jsonStr=response.body();
                     if (jsonStr!=null&&jsonStr.length()>0){
                         JSONObject jsonObject= JSON.parseObject(jsonStr);
                         JSONArray array=jsonObject.getJSONObject("data").getJSONArray(cpa.name+"s");
