@@ -1,7 +1,7 @@
 package com.todaysoft.cpa.service;
 
-import com.todaysoft.cpa.domain.cacer.Cancer;
-import com.todaysoft.cpa.domain.cacer.CancerRepository;
+import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
+import com.todaysoft.cpa.domain.entity.Cancer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

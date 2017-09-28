@@ -2,9 +2,9 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.domain.en.gene.*;
+import com.todaysoft.cpa.domain.entity.*;
 import com.todaysoft.cpa.param.CPAProperties;
-import com.todaysoft.cpa.domain.gene.*;
-import com.todaysoft.cpa.domain.gene.entity.*;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Page;
@@ -26,7 +26,7 @@ import java.util.Set;
  * @date: 2017/8/14 11:21
  */
 @Service
-public class GeneService implements BaseService {
+public class GeneService extends BaseService {
     private static Logger logger = LoggerFactory.getLogger(GeneService.class);
     @Autowired
     private GeneRepository geneRepository;

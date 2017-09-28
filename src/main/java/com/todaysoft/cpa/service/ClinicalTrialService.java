@@ -2,19 +2,23 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.todaysoft.cpa.domain.cacer.Cancer;
-import com.todaysoft.cpa.domain.cacer.CancerRepository;
-import com.todaysoft.cpa.domain.clinicalTrail.ClinicalTrialCancerRepository;
-import com.todaysoft.cpa.domain.clinicalTrail.ClinicalTrialOutcomeRepository;
-import com.todaysoft.cpa.domain.clinicalTrail.ClinicalTrailRepository;
-import com.todaysoft.cpa.domain.clinicalTrail.entity.ClinicalTrialCancer;
-import com.todaysoft.cpa.domain.clinicalTrail.entity.ClinicalTrialOutcome;
-import com.todaysoft.cpa.domain.clinicalTrail.entity.ClinicalTrial;
-import com.todaysoft.cpa.domain.drug.DrugClinicalTrialRepository;
-import com.todaysoft.cpa.domain.drug.DrugRepository;
-import com.todaysoft.cpa.domain.drug.entity.Drug;
-import com.todaysoft.cpa.domain.drug.entity.DrugClinicalTrial;
-import com.todaysoft.cpa.domain.drug.entity.DrugClinicalTrialPK;
+import com.todaysoft.cpa.domain.cn.clinicalTrail.CnClinicalTrailRepository;
+import com.todaysoft.cpa.domain.cn.clinicalTrail.CnClinicalTrialCancerRepository;
+import com.todaysoft.cpa.domain.cn.clinicalTrail.CnClinicalTrialOutcomeRepository;
+import com.todaysoft.cpa.domain.cn.drug.CnDrugClinicalTrialRepository;
+import com.todaysoft.cpa.domain.entity.Cancer;
+import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
+import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrialCancerRepository;
+import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrialOutcomeRepository;
+import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrailRepository;
+import com.todaysoft.cpa.domain.entity.ClinicalTrialCancer;
+import com.todaysoft.cpa.domain.entity.ClinicalTrialOutcome;
+import com.todaysoft.cpa.domain.entity.ClinicalTrial;
+import com.todaysoft.cpa.domain.en.drug.DrugClinicalTrialRepository;
+import com.todaysoft.cpa.domain.en.drug.DrugRepository;
+import com.todaysoft.cpa.domain.entity.Drug;
+import com.todaysoft.cpa.domain.entity.DrugClinicalTrial;
+import com.todaysoft.cpa.domain.entity.DrugClinicalTrialPK;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.utils.DataException;
@@ -35,9 +39,15 @@ import java.util.Set;
  * @date: 2017/9/4 14:08
  */
 @Service
-public class ClinicalTrialService implements BaseService{
+public class ClinicalTrialService extends BaseService{
     @Autowired
     private CPAProperties cpaProperties;
+    @Autowired
+    private CnClinicalTrailRepository cnClinicalTrailRepository;
+    @Autowired
+    private CnClinicalTrialOutcomeRepository cnClinicalTrialOutcomeRepository;
+    @Autowired
+    private CnClinicalTrialCancerRepository cnClinicalTrialCancerRepository;
     @Autowired
     private ClinicalTrailRepository clinicalTrailRepository;
     @Autowired
@@ -45,13 +55,13 @@ public class ClinicalTrialService implements BaseService{
     @Autowired
     private ClinicalTrialCancerRepository clinicalTrialCancerRepository;
     @Autowired
-    private CancerService cancerService;
-    @Autowired
     private CancerRepository cancerRepository;
     @Autowired
     private DrugRepository drugRepository;
     @Autowired
     private DrugClinicalTrialRepository drugClinicalTrialRepository;
+    @Autowired
+    private CnDrugClinicalTrialRepository cnDrugClinicalTrialRepository;
 
     @Override
     @Transactional
@@ -63,9 +73,8 @@ public class ClinicalTrialService implements BaseService{
         clinicalTrial.setCreatedWay(2);
         clinicalTrial.setCountries(JsonUtil.jsonArrayToString(object.getJSONArray("countries"),","));
         clinicalTrial=clinicalTrailRepository.save(clinicalTrial);
-        if (clinicalTrial!=null){
-            saveFixed(clinicalTrial,object);
-        }
+        cnClinicalTrailRepository.save(clinicalTrial);
+        saveFixed(clinicalTrial,object);
         return true;
     }
 
@@ -79,21 +88,21 @@ public class ClinicalTrialService implements BaseService{
         clinicalTrial.setCreatedWay(2);
         clinicalTrial.setCountries(JsonUtil.jsonArrayToString(object.getJSONArray("countries"),","));
         clinicalTrial=clinicalTrailRepository.save(clinicalTrial);
-        if (clinicalTrial!=null){
-            saveFixed(clinicalTrial,object);
-            Drug drug=drugRepository.findOne(dependenceKey);
-            if (drug!=null){
-                DrugClinicalTrialPK pk=new DrugClinicalTrialPK();
-                pk.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
-                pk.setDrugKey(drug.getDrugKey());
-                if (drugClinicalTrialRepository.findOne(pk)==null){
-                    DrugClinicalTrial drugClinicalTrial=new DrugClinicalTrial();
-                    drugClinicalTrial.setDrugKey(dependenceKey);
-                    drugClinicalTrial.setDrugId(drug.getDrugId());
-                    drugClinicalTrial.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
-                    drugClinicalTrial.setClinicalTrialId(clinicalTrial.getClinicalTrialId());
-                    drugClinicalTrialRepository.save(drugClinicalTrial);
-                }
+        cnClinicalTrailRepository.save(clinicalTrial);
+        saveFixed(clinicalTrial,object);
+        Drug drug=drugRepository.findOne(dependenceKey);
+        if (drug!=null){
+            DrugClinicalTrialPK pk=new DrugClinicalTrialPK();
+            pk.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
+            pk.setDrugKey(drug.getDrugKey());
+            if (drugClinicalTrialRepository.findOne(pk)==null){
+                DrugClinicalTrial drugClinicalTrial=new DrugClinicalTrial();
+                drugClinicalTrial.setDrugKey(dependenceKey);
+                drugClinicalTrial.setDrugId(drug.getDrugId());
+                drugClinicalTrial.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
+                drugClinicalTrial.setClinicalTrialId(clinicalTrial.getClinicalTrialId());
+                drugClinicalTrialRepository.save(drugClinicalTrial);
+                cnDrugClinicalTrialRepository.save(drugClinicalTrial);
             }
         }
         return true;
@@ -117,6 +126,7 @@ public class ClinicalTrialService implements BaseService{
                 outcomeList.add(outcome);
             }
             clinicalTrialOutcomeRepository.save(outcomeList);
+            cnClinicalTrialOutcomeRepository.save(outcomeList);
         }
         //与疾病关联
         JSONArray diseases=object.getJSONArray("diseases");
@@ -138,6 +148,7 @@ public class ClinicalTrialService implements BaseService{
             }
         }
         clinicalTrialCancerRepository.save(trailCancerList);
+        cnClinicalTrialCancerRepository.save(trailCancerList);
     }
 
     @Override

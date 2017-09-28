@@ -1,15 +1,14 @@
 package com.todaysoft.cpa.service;
 
-import com.todaysoft.cpa.domain.drug.KeggPathwayRepository;
-import com.todaysoft.cpa.domain.drug.entity.KeggPathway;
-import com.todaysoft.cpa.utils.DataException;
+import com.todaysoft.cpa.domain.cn.drug.CnKeggPathwayRepository;
+import com.todaysoft.cpa.domain.en.drug.KeggPathwayRepository;
+import com.todaysoft.cpa.domain.entity.KeggPathway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -24,6 +23,8 @@ public class KeggPathwaysService{
     private static Map<String,KeggPathway> KEGG_PATHWAY_MAP=new HashMap();
     @Autowired
     private KeggPathwayRepository keggPathwayRepository;
+    @Autowired
+    private CnKeggPathwayRepository cnKeggPathwayRepository;
 
     public void init(){
         keggPathwayRepository.findByCPA().stream().forEach(keggPathway -> {
@@ -37,6 +38,7 @@ public class KeggPathwaysService{
         try {
             if (!KEGG_PATHWAY_MAP.containsKey(keggPathway.getKeggId())){
                 KeggPathway pathway=keggPathwayRepository.save(keggPathway);
+                cnKeggPathwayRepository.save(keggPathway);
                 if (pathway==null){
                     System.out.println("KeggPathwaysService:-->"+keggPathway.getKeggId());
                 }
@@ -50,22 +52,18 @@ public class KeggPathwaysService{
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<KeggPathway> saveList(List<KeggPathway> keggPathwayList) throws InterruptedException {
-        try {
-//            lock.lockInterruptibly();
-                List<KeggPathway> resultList=new ArrayList<>();
-                for (KeggPathway pathway:keggPathwayList){
-                    KeggPathway keggPathway;
-                    if (KEGG_PATHWAY_MAP.containsKey(pathway.getKeggId())){
-                        keggPathway=KEGG_PATHWAY_MAP.get(pathway.getKeggId());
-                    }else {
-                        keggPathway=keggPathwayRepository.save(pathway);
-                        KEGG_PATHWAY_MAP.put(pathway.getKeggId(),keggPathway);
-                    }
-                    resultList.add(keggPathway);
-                }
-                return resultList;
-        }finally {
-//            lock.unlock();
+        List<KeggPathway> resultList=new ArrayList<>();
+        for (KeggPathway pathway:keggPathwayList){
+            KeggPathway keggPathway;
+            if (KEGG_PATHWAY_MAP.containsKey(pathway.getKeggId())){
+                keggPathway=KEGG_PATHWAY_MAP.get(pathway.getKeggId());
+            }else {
+                keggPathway=keggPathwayRepository.save(pathway);
+                cnKeggPathwayRepository.save(keggPathway);
+                KEGG_PATHWAY_MAP.put(pathway.getKeggId(),keggPathway);
+            }
+            resultList.add(keggPathway);
         }
+        return resultList;
     }
 }

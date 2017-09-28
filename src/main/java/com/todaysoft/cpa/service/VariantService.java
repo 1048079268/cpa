@@ -3,17 +3,16 @@ package com.todaysoft.cpa.service;
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.todaysoft.cpa.domain.cacer.Cancer;
-import com.todaysoft.cpa.domain.cacer.CancerRepository;
-import com.todaysoft.cpa.domain.gene.GeneRepository;
-import com.todaysoft.cpa.domain.gene.entity.Gene;
-import com.todaysoft.cpa.domain.variants.VariantExternalIdRepository;
-import com.todaysoft.cpa.domain.variants.VariantRepository;
-import com.todaysoft.cpa.domain.variants.VariantTumorTypeDoidRepository;
-import com.todaysoft.cpa.domain.variants.VariantTumorTypeRepository;
-import com.todaysoft.cpa.domain.variants.entity.Variant;
-import com.todaysoft.cpa.domain.variants.entity.VariantTumorType;
-import com.todaysoft.cpa.domain.variants.entity.VariantTumorTypeDoid;
+import com.todaysoft.cpa.domain.entity.Cancer;
+import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
+import com.todaysoft.cpa.domain.en.gene.GeneRepository;
+import com.todaysoft.cpa.domain.entity.Gene;
+import com.todaysoft.cpa.domain.en.variants.VariantRepository;
+import com.todaysoft.cpa.domain.en.variants.VariantTumorTypeDoidRepository;
+import com.todaysoft.cpa.domain.en.variants.VariantTumorTypeRepository;
+import com.todaysoft.cpa.domain.entity.Variant;
+import com.todaysoft.cpa.domain.entity.VariantTumorType;
+import com.todaysoft.cpa.domain.entity.VariantTumorTypeDoid;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.param.ContentParam;
@@ -39,7 +38,7 @@ import java.util.Set;
  * @date: 2017/8/31 9:58
  */
 @Service
-public class VariantService implements BaseService{
+public class VariantService extends BaseService{
     private static Logger logger= LoggerFactory.getLogger(VariantService.class);
     @Autowired
     private CPAProperties cpaProperties;

@@ -1,9 +1,8 @@
 package com.todaysoft.cpa.service;
 
-import com.todaysoft.cpa.domain.drug.MeshCategoryRepository;
-import com.todaysoft.cpa.domain.drug.entity.KeggPathway;
-import com.todaysoft.cpa.domain.drug.entity.MeshCategory;
-import com.todaysoft.cpa.utils.DataException;
+import com.todaysoft.cpa.domain.cn.drug.CnMeshCategoryRepository;
+import com.todaysoft.cpa.domain.en.drug.MeshCategoryRepository;
+import com.todaysoft.cpa.domain.entity.MeshCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -13,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -28,6 +26,8 @@ public class MeshCategoryService {
     private static Map<String,MeshCategory> MESH_CATEGORY_MAP=new HashMap<>();
     @Autowired
     private MeshCategoryRepository meshCategoryRepository;
+    @Autowired
+    private CnMeshCategoryRepository cnMeshCategoryRepository;
 
     public void init(){
         meshCategoryRepository.findByCPA().stream().forEach(meshCategory->{
@@ -41,6 +41,7 @@ public class MeshCategoryService {
         try {
             if (!MESH_CATEGORY_MAP.containsKey(meshCategory.getMeshId())){
                 MeshCategory category=meshCategoryRepository.save(meshCategory);
+                cnMeshCategoryRepository.save(category);
                 if (category==null){
                     System.out.println("MeshCategoryService:-->"+meshCategory.getMeshId());
                 }
@@ -63,6 +64,7 @@ public class MeshCategoryService {
                     category=MESH_CATEGORY_MAP.get(meshCategory.getMeshId());
                 }else {
                     category=meshCategoryRepository.save(meshCategory);
+                    cnMeshCategoryRepository.save(category);
                     MESH_CATEGORY_MAP.put(meshCategory.getMeshId(),category);
                 }
                 resultList.add(category);

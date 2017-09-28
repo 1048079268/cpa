@@ -2,12 +2,12 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONObject;
-import com.todaysoft.cpa.domain.cacer.Cancer;
-import com.todaysoft.cpa.domain.cacer.CancerRepository;
-import com.todaysoft.cpa.domain.variants.VariantMutationStatisticRepository;
-import com.todaysoft.cpa.domain.variants.VariantRepository;
-import com.todaysoft.cpa.domain.variants.entity.Variant;
-import com.todaysoft.cpa.domain.variants.entity.VariantMutationStatistic;
+import com.todaysoft.cpa.domain.entity.Cancer;
+import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
+import com.todaysoft.cpa.domain.en.variants.VariantMutationStatisticRepository;
+import com.todaysoft.cpa.domain.en.variants.VariantRepository;
+import com.todaysoft.cpa.domain.entity.Variant;
+import com.todaysoft.cpa.domain.entity.VariantMutationStatistic;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.utils.DataException;
@@ -15,16 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * @desc:
  * @author: 鱼唇的人类
  * @date: 2017/9/1 14:24
  */
 @Service
-public class MutationStatisticService implements BaseService{
+public class MutationStatisticService extends BaseService{
     @Autowired
     private VariantMutationStatisticRepository variantMutationStatisticRepository;
     @Autowired

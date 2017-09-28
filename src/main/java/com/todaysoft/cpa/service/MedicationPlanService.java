@@ -2,12 +2,10 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.todaysoft.cpa.domain.cacer.Cancer;
-import com.todaysoft.cpa.domain.cacer.CancerRepository;
-import com.todaysoft.cpa.domain.drug.DrugRepository;
-import com.todaysoft.cpa.domain.drug.entity.Drug;
-import com.todaysoft.cpa.domain.medicationPlan.*;
-import com.todaysoft.cpa.domain.medicationPlan.entity.*;
+import com.todaysoft.cpa.domain.en.medicationPlan.*;
+import com.todaysoft.cpa.domain.entity.*;
+import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
+import com.todaysoft.cpa.domain.en.drug.DrugRepository;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.utils.DataException;
@@ -28,7 +26,7 @@ import java.util.Set;
  * @date: 2017/9/12 10:09
  */
 @Service
-public class MedicationPlanService implements BaseService{
+public class MedicationPlanService extends BaseService{
     @Autowired
     private MedicationPlanRepository medicationPlanRepository;
     @Autowired

@@ -1,10 +1,8 @@
 package com.todaysoft.cpa.service;
 
-import com.todaysoft.cpa.domain.drug.SideEffectRepository;
-import com.todaysoft.cpa.domain.drug.entity.Drug;
-import com.todaysoft.cpa.domain.drug.entity.MeshCategory;
-import com.todaysoft.cpa.domain.drug.entity.SideEffect;
-import com.todaysoft.cpa.utils.DataException;
+import com.todaysoft.cpa.domain.cn.drug.CnSideEffectRepository;
+import com.todaysoft.cpa.domain.en.drug.SideEffectRepository;
+import com.todaysoft.cpa.domain.entity.SideEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -14,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -29,6 +26,8 @@ public class SideEffectService{
     private static final Map<String,SideEffect> SIDE_EFFECT_MAP=new HashMap<>();
     @Autowired
     private SideEffectRepository sideEffectRepository;
+    @Autowired
+    private CnSideEffectRepository cnSideEffectRepository;
     public void init() {
         sideEffectRepository.findByCreatedWay(2).stream().forEach(sideEffect -> {
             SIDE_EFFECT_MAP.put(sideEffect.getSideEffectName(),sideEffect);
@@ -41,6 +40,7 @@ public class SideEffectService{
         try {
             if (!SIDE_EFFECT_MAP.containsKey(sideEffect.getSideEffectName())){
                 SideEffect effect=sideEffectRepository.save(sideEffect);
+                cnSideEffectRepository.save(effect);
                 if (effect==null){
                     System.out.println("SideEffectService:-->"+effect.getSideEffectName());
                 }
@@ -63,6 +63,7 @@ public class SideEffectService{
                         effect=SIDE_EFFECT_MAP.get(key);
                     }else {
                         effect=sideEffectRepository.save(sideEffect);
+                        cnSideEffectRepository.save(effect);
                         SIDE_EFFECT_MAP.put(key,effect);
                     }
                     resultList.add(effect);

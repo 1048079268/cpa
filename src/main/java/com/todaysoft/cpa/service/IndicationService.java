@@ -1,11 +1,8 @@
 package com.todaysoft.cpa.service;
 
-import com.todaysoft.cpa.domain.drug.DrugInteractionRepository;
-import com.todaysoft.cpa.domain.drug.IndicationRepository;
-import com.todaysoft.cpa.domain.drug.entity.Drug;
-import com.todaysoft.cpa.domain.drug.entity.Indication;
-import com.todaysoft.cpa.domain.drug.entity.KeggPathway;
-import com.todaysoft.cpa.utils.DataException;
+import com.todaysoft.cpa.domain.cn.drug.CnIndicationRepository;
+import com.todaysoft.cpa.domain.en.drug.IndicationRepository;
+import com.todaysoft.cpa.domain.entity.Indication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -15,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -30,6 +26,8 @@ public class IndicationService{
     private static Map<String,Indication> INDICATION_MAP=new HashMap();
     @Autowired
     private IndicationRepository indicationRepository;
+    @Autowired
+    private CnIndicationRepository cnIndicationRepository;
 
     public void init() {
         indicationRepository.findByCreatedWay(2).stream().forEach(indication -> {
@@ -45,6 +43,7 @@ public class IndicationService{
             String key=indication.getMeddraConceptName();
             if (!INDICATION_MAP.containsKey(key)){
                 Indication indic=indicationRepository.save(indication);
+                cnIndicationRepository.save(indic);
                 if (indic==null){
                     System.out.println("IndicationService:-->"+indication.getMeddraConceptName());
                 }
@@ -66,6 +65,7 @@ public class IndicationService{
                     String key=indication.getMeddraConceptName();
                     if (!INDICATION_MAP.containsKey(key)){
                         result=indicationRepository.save(indication);
+                        cnIndicationRepository.save(result);
                         INDICATION_MAP.put(key,result);
                     }else {
                         result=INDICATION_MAP.get(key);

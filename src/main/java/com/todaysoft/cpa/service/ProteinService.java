@@ -2,13 +2,13 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.todaysoft.cpa.domain.gene.GeneRepository;
-import com.todaysoft.cpa.domain.gene.entity.Gene;
+import com.todaysoft.cpa.domain.en.gene.GeneRepository;
+import com.todaysoft.cpa.domain.entity.Gene;
 import com.todaysoft.cpa.param.CPAProperties;
-import com.todaysoft.cpa.domain.proteins.ProteinRepository;
-import com.todaysoft.cpa.domain.proteins.ProteinSynonymRepository;
-import com.todaysoft.cpa.domain.proteins.entity.Protein;
-import com.todaysoft.cpa.domain.proteins.entity.ProteinSynonym;
+import com.todaysoft.cpa.domain.en.proteins.ProteinRepository;
+import com.todaysoft.cpa.domain.en.proteins.ProteinSynonymRepository;
+import com.todaysoft.cpa.domain.entity.Protein;
+import com.todaysoft.cpa.domain.entity.ProteinSynonym;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.PkGenerator;
@@ -29,7 +29,7 @@ import java.util.Set;
  * @date: 2017/8/14 14:34
  */
 @Service
-public class ProteinService implements BaseService {
+public class ProteinService extends BaseService {
     private static Logger logger= LoggerFactory.getLogger(ProteinService.class);
     @Autowired
     private ProteinRepository proteinRepository;
