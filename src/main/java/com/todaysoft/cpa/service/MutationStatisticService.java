@@ -2,6 +2,7 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.domain.cn.variants.CnVariantMutationStatisticRepository;
 import com.todaysoft.cpa.domain.entity.Cancer;
 import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
 import com.todaysoft.cpa.domain.en.variants.VariantMutationStatisticRepository;
@@ -24,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class MutationStatisticService extends BaseService{
     @Autowired
     private VariantMutationStatisticRepository variantMutationStatisticRepository;
+    @Autowired
+    private CnVariantMutationStatisticRepository cnVariantMutationStatisticRepository;
     @Autowired
     private CPAProperties cpaProperties;
     @Autowired
@@ -53,6 +56,7 @@ public class MutationStatisticService extends BaseService{
                 statistic.setCancerKey(cancer.getCancerKey());
                 statistic.setVariantKey(dependenceKey);
                 variantMutationStatisticRepository.save(statistic);
+                cnVariantMutationStatisticRepository.save(statistic);
                 return true;
         }else {
             throw new DataException("找不到相应的疾病：-->comsic:"+statistic.getMutationId()+",doid:"+statistic.getDoid());

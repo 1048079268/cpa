@@ -2,6 +2,8 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.domain.cn.proteins.CnProteinRepository;
+import com.todaysoft.cpa.domain.cn.proteins.CnProteinSynonymRepository;
 import com.todaysoft.cpa.domain.en.gene.GeneRepository;
 import com.todaysoft.cpa.domain.entity.Gene;
 import com.todaysoft.cpa.param.CPAProperties;
@@ -32,6 +34,10 @@ import java.util.Set;
 public class ProteinService extends BaseService {
     private static Logger logger= LoggerFactory.getLogger(ProteinService.class);
     @Autowired
+    private CnProteinRepository cnProteinRepository;
+    @Autowired
+    private CnProteinSynonymRepository cnProteinSynonymRepository;
+    @Autowired
     private ProteinRepository proteinRepository;
     @Autowired
     private ProteinSynonymRepository proteinSynonymRepository;
@@ -59,21 +65,24 @@ public class ProteinService extends BaseService {
         protein.setGeneKey(dependenceKey);
         protein.setCreateWay(2);
         protein=proteinRepository.save(protein);
-        if (protein!=null){
-            //3.别名
-            JSONArray synonyms=object.getJSONArray("synonyms");
-            if (synonyms!=null&&synonyms.size()>0){
-                List<ProteinSynonym> synonymList=new ArrayList<>(synonyms.size());
-                for (int i=0;i<synonyms.size();i++){
-                    ProteinSynonym synonym=new ProteinSynonym();
-                    synonym.setProteinSynonymKey(PkGenerator.generator(ProteinSynonym.class));
-                    synonym.setProteinId(protein.getProteinId());
-                    synonym.setProteinKey(protein.getProteinKey());
-                    synonym.setSynonym(synonyms.getString(i));
-                    synonymList.add(synonym);
-                }
-                proteinSynonymRepository.save(synonymList);
+        protein=cnProteinRepository.save(protein);
+        if (protein==null){
+            throw new DataException("保存主表失败->id="+object.getString("id"));
+        }
+        //3.别名
+        JSONArray synonyms=object.getJSONArray("synonyms");
+        if (synonyms!=null&&synonyms.size()>0){
+            List<ProteinSynonym> synonymList=new ArrayList<>(synonyms.size());
+            for (int i=0;i<synonyms.size();i++){
+                ProteinSynonym synonym=new ProteinSynonym();
+                synonym.setProteinSynonymKey(PkGenerator.generator(ProteinSynonym.class));
+                synonym.setProteinId(protein.getProteinId());
+                synonym.setProteinKey(protein.getProteinKey());
+                synonym.setSynonym(synonyms.getString(i));
+                synonymList.add(synonym);
             }
+            proteinSynonymRepository.save(synonymList);
+            cnProteinSynonymRepository.save(synonymList);
         }
         return true;
     }

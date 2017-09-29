@@ -29,18 +29,13 @@ public class CancerService {
 
     @Transactional
     public Cancer save(Cancer cancer){
-        lock.lock();
-        try {
-            Cancer cer;
-            if (CANCER_MAP.containsKey(cancer.getDoid())){
-                cer=CANCER_MAP.get(cancer.getDoid());
-            }else {
-                cer=cancerRepository.save(cancer);
-                CANCER_MAP.put(cancer.getDoid(),cancer);
-            }
-            return cer;
-        }finally {
-            lock.unlock();
+        Cancer cer;
+        if (CANCER_MAP.containsKey(cancer.getDoid())){
+            cer=CANCER_MAP.get(cancer.getDoid());
+        }else {
+            cer=cancerRepository.save(cancer);
+            CANCER_MAP.put(cancer.getDoid(),cancer);
         }
+        return cer;
     }
 }

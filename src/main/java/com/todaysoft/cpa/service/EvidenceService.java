@@ -2,6 +2,9 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.domain.cn.evidence.CnEvidenceDrugRepository;
+import com.todaysoft.cpa.domain.cn.evidence.CnEvidenceReferenceRepository;
+import com.todaysoft.cpa.domain.cn.evidence.CnEvidenceRepository;
 import com.todaysoft.cpa.domain.entity.Cancer;
 import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
 import com.todaysoft.cpa.domain.en.drug.DrugRepository;
@@ -43,6 +46,12 @@ public class EvidenceService extends BaseService {
     @Autowired
     private EvidenceReferenceRepository evidenceReferenceRepository;
     @Autowired
+    private CnEvidenceRepository cnEvidenceRepository;
+    @Autowired
+    private CnEvidenceDrugRepository cnEvidenceDrugRepository;
+    @Autowired
+    private CnEvidenceReferenceRepository cnEvidenceReferenceRepository;
+    @Autowired
     private CancerRepository cancerRepository;
     @Autowired
     private DrugRepository drugRepository;
@@ -80,35 +89,39 @@ public class EvidenceService extends BaseService {
             evidence.setDoidName(cancer.getCancerName());
         }
         evidence=evidenceRepository.save(evidence);
-        if (evidence!=null){
-            //参考文献
-            JSONObject reference=object.getJSONObject("reference");
-            if (reference!=null){
-                EvidenceReference evidenceReference=reference.toJavaObject(EvidenceReference.class);
-                evidenceReference.setEvidenceId(evidence.getEvidenceId());
-                evidenceReference.setEvidenceKey(evidence.getEvidenceKey());
-                evidenceReference.setEvidenceReferenceKey(PkGenerator.generator(EvidenceReference.class));
-                evidenceReferenceRepository.save(evidenceReference);
-            }
-            //药物
-            JSONArray drugIds=object.getJSONArray("drugIds");
-            if (drugIds!=null&&drugIds.size()>0){
-                List<EvidenceDrug> drugList=new ArrayList<>();
-                for (int i=0;i<drugIds.size();i++){
-                    Integer drugId=drugIds.getInteger(i);
-                    Drug drug=drugRepository.findByDrugId(drugId);
-                    if (drug==null){
-                        throw new DataException("未找到相应的药物，info->drugId="+drugId);
-                    }
-                    EvidenceDrug evidenceDrug=new EvidenceDrug();
-                    evidenceDrug.setDrugId(drug.getDrugId());
-                    evidenceDrug.setDrugKey(drug.getDrugKey());
-                    evidenceDrug.setEvidenceId(evidence.getEvidenceId());
-                    evidenceDrug.setEvidenceKey(evidence.getEvidenceKey());
-                    drugList.add(evidenceDrug);
+        evidence=cnEvidenceRepository.save(evidence);
+        if (evidence==null){
+            throw new DataException("保存主表失败->id="+object.getString("id"));
+        }
+        //参考文献
+        JSONObject reference=object.getJSONObject("reference");
+        if (reference!=null){
+            EvidenceReference evidenceReference=reference.toJavaObject(EvidenceReference.class);
+            evidenceReference.setEvidenceId(evidence.getEvidenceId());
+            evidenceReference.setEvidenceKey(evidence.getEvidenceKey());
+            evidenceReference.setEvidenceReferenceKey(PkGenerator.generator(EvidenceReference.class));
+            evidenceReferenceRepository.save(evidenceReference);
+            cnEvidenceReferenceRepository.save(evidenceReference);
+        }
+        //药物
+        JSONArray drugIds=object.getJSONArray("drugIds");
+        if (drugIds!=null&&drugIds.size()>0){
+            List<EvidenceDrug> drugList=new ArrayList<>();
+            for (int i=0;i<drugIds.size();i++){
+                Integer drugId=drugIds.getInteger(i);
+                Drug drug=drugRepository.findByDrugId(drugId);
+                if (drug==null){
+                    throw new DataException("未找到相应的药物，info->drugId="+drugId);
                 }
-                evidenceDrugRepository.save(drugList);
+                EvidenceDrug evidenceDrug=new EvidenceDrug();
+                evidenceDrug.setDrugId(drug.getDrugId());
+                evidenceDrug.setDrugKey(drug.getDrugKey());
+                evidenceDrug.setEvidenceId(evidence.getEvidenceId());
+                evidenceDrug.setEvidenceKey(evidence.getEvidenceKey());
+                drugList.add(evidenceDrug);
             }
+            evidenceDrugRepository.save(drugList);
+            cnEvidenceDrugRepository.save(drugList);
         }
         return true;
     }

@@ -3,6 +3,9 @@ package com.todaysoft.cpa.service;
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.domain.cn.variants.CnVariantRepository;
+import com.todaysoft.cpa.domain.cn.variants.CnVariantTumorTypeDoidRepository;
+import com.todaysoft.cpa.domain.cn.variants.CnVariantTumorTypeRepository;
 import com.todaysoft.cpa.domain.entity.Cancer;
 import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
 import com.todaysoft.cpa.domain.en.gene.GeneRepository;
@@ -43,6 +46,12 @@ public class VariantService extends BaseService{
     @Autowired
     private CPAProperties cpaProperties;
     @Autowired
+    private CnVariantTumorTypeRepository cnVariantTumorTypeRepository;
+    @Autowired
+    private CnVariantRepository cnVariantRepository;
+    @Autowired
+    private CnVariantTumorTypeDoidRepository cnVariantTumorTypeDoidRepository;
+    @Autowired
     private VariantTumorTypeRepository variantTumorTypeRepository;
     @Autowired
     private VariantRepository variantRepository;
@@ -50,8 +59,6 @@ public class VariantService extends BaseService{
     private VariantTumorTypeDoidRepository variantTumorTypeDoidRepository;
     @Autowired
     private MutationStatisticService mutationStatisticService;
-    @Autowired
-    private CancerService cancerService;
     @Autowired
     private CancerRepository cancerRepository;
     @Autowired
@@ -79,50 +86,54 @@ public class VariantService extends BaseService{
         variant.setCheckState(1);
         variant.setCreatedAt(System.currentTimeMillis());
         variant=variantRepository.save(variant);
-        if (variant!=null){
-            JSONArray tumorTypes=object.getJSONArray("tumorTypes");
-            List<VariantTumorTypeDoid> doidList=new ArrayList<>();
-            if (tumorTypes!=null&&tumorTypes.size()>0) {
-                for (int i=0;i<tumorTypes.size();i++){
-                    JSONObject tumorType=tumorTypes.getJSONObject(i);
-                    if (tumorType!=null){
-                        VariantTumorType variantTumorType=tumorType.toJavaObject(VariantTumorType.class);
-                        variantTumorType.setTypeKey(PkGenerator.generator(VariantTumorType.class));
-                        variantTumorType.setVariantId(variant.getVariantId());
-                        variantTumorType.setVariantKey(variant.getVariantKey());
-                        variantTumorType=variantTumorTypeRepository.save(variantTumorType);
-                        JSONObject doid=tumorType.getJSONObject("doid");
-                        if (variantTumorType!=null&&doid!=null){
-                            String cancerDoid=doid.getString("id");
-                            Cancer cancer = cancerRepository.findByDoid(cancerDoid);
-                            if (cancer==null){
-                                throw new DataException("未找到相应疾病，info->doid="+cancerDoid);
-                            }
-                            VariantTumorTypeDoid tumorTypeDoid=new VariantTumorTypeDoid();
-                            tumorTypeDoid.setName(cancer.getCancerName());
-                            tumorTypeDoid.setDoid(Integer.valueOf(cancer.getDoid()));
-                            tumorTypeDoid.setTypeKey(variantTumorType.getTypeKey());
-                            tumorTypeDoid.setVariantId(variant.getVariantId());
-                            tumorTypeDoid.setCancerKey(cancer.getCancerKey());
-                            doidList.add(tumorTypeDoid);
+        variant=cnVariantRepository.save(variant);
+        if (variant==null){
+            throw new DataException("保存主表失败->id="+object.getString("id"));
+        }
+        JSONArray tumorTypes=object.getJSONArray("tumorTypes");
+        List<VariantTumorTypeDoid> doidList=new ArrayList<>();
+        if (tumorTypes!=null&&tumorTypes.size()>0) {
+            for (int i=0;i<tumorTypes.size();i++){
+                JSONObject tumorType=tumorTypes.getJSONObject(i);
+                if (tumorType!=null){
+                    VariantTumorType variantTumorType=tumorType.toJavaObject(VariantTumorType.class);
+                    variantTumorType.setTypeKey(PkGenerator.generator(VariantTumorType.class));
+                    variantTumorType.setVariantId(variant.getVariantId());
+                    variantTumorType.setVariantKey(variant.getVariantKey());
+                    variantTumorType=variantTumorTypeRepository.save(variantTumorType);
+                    variantTumorType=cnVariantTumorTypeRepository.save(variantTumorType);
+                    JSONObject doid=tumorType.getJSONObject("doid");
+                    if (variantTumorType!=null&&doid!=null){
+                        String cancerDoid=doid.getString("id");
+                        Cancer cancer = cancerRepository.findByDoid(cancerDoid);
+                        if (cancer==null){
+                            throw new DataException("未找到相应疾病，info->doid="+cancerDoid);
                         }
+                        VariantTumorTypeDoid tumorTypeDoid=new VariantTumorTypeDoid();
+                        tumorTypeDoid.setName(cancer.getCancerName());
+                        tumorTypeDoid.setDoid(Integer.valueOf(cancer.getDoid()));
+                        tumorTypeDoid.setTypeKey(variantTumorType.getTypeKey());
+                        tumorTypeDoid.setVariantId(variant.getVariantId());
+                        tumorTypeDoid.setCancerKey(cancer.getCancerKey());
+                        doidList.add(tumorTypeDoid);
                     }
                 }
             }
-            variantTumorTypeDoidRepository.save(doidList);
-            if (!StringUtils.isEmpty(variant.getCosmicId())){
-                logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的突变疾病样本量");
-                Page msPage=new Page(CPA.MUTATION_STATISTICS.contentUrl);
-                msPage.putParam("cosmicId",variant.getCosmicId());
-                ContentParam msParam=new ContentParam(CPA.MUTATION_STATISTICS,mutationStatisticService,true,variant.getVariantKey());
-                MainService.childrenTreadPool.execute(new MutationStatisticThread(msPage,msParam));
-            }
-            //插入与该id关联的证据
-            logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的证据");
-            Page evidencePage=new Page(CPA.VARIANT.contentUrl+"/"+variant.getVariantId()+"/"+CPA.EVIDENCE.name+"s");
-            ContentParam evidenceParam=new ContentParam(CPA.EVIDENCE,evidenceService,true,variant.getVariantKey());
-            MainService.childrenTreadPool.execute(new IdThread(evidencePage,evidenceParam));
         }
+        variantTumorTypeDoidRepository.save(doidList);
+        cnVariantTumorTypeDoidRepository.save(doidList);
+        if (!StringUtils.isEmpty(variant.getCosmicId())){
+            logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的突变疾病样本量");
+            Page msPage=new Page(CPA.MUTATION_STATISTICS.contentUrl);
+            msPage.putParam("cosmicId",variant.getCosmicId());
+            ContentParam msParam=new ContentParam(CPA.MUTATION_STATISTICS,mutationStatisticService,true,variant.getVariantKey());
+            MainService.childrenTreadPool.execute(new MutationStatisticThread(msPage,msParam));
+        }
+        //插入与该id关联的证据
+        logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的证据");
+        Page evidencePage=new Page(CPA.VARIANT.contentUrl+"/"+variant.getVariantId()+"/"+CPA.EVIDENCE.name+"s");
+        ContentParam evidenceParam=new ContentParam(CPA.EVIDENCE,evidenceService,true,variant.getVariantKey());
+        MainService.childrenTreadPool.execute(new IdThread(evidencePage,evidenceParam));
         return true;
     }
 

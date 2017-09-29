@@ -118,6 +118,9 @@ public class DrugService extends BaseService {
         drug.setCreateWay(2);
         drug=drugRepository.save(drug);
         drug=cnDrugRepository.save(drug);
+        if (drug==null){
+            throw new DataException("保存主表失败->id="+object.getString("id"));
+        }
         //remove 2.判断插入是否成功
         //3.药物别名
         JSONArray synonyms=object.getJSONArray("synonyms");
