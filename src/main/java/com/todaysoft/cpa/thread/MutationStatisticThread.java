@@ -36,6 +36,7 @@ public class MutationStatisticThread implements Runnable {
     private int  retryTimes=3;
     private int saveRetryTimes=3;
     private int insertCount=0;
+    volatile boolean isRun=true;
 
     public MutationStatisticThread(Page page, ContentParam contentParam,ContentService contentService) {
         this.contentService=contentService;
@@ -49,7 +50,7 @@ public class MutationStatisticThread implements Runnable {
     public void run() {
         try {
             logger.info("【"+cpa.name()+"】开始获取突变疾病样本量");
-            while (true){//抓取直到没有数据
+            while (isRun){//抓取直到没有数据
                 try {
                     savePage=page;//保存这次查询的参数，以便错误后恢复环境
                     Connection.Response response = Jsoup.connect(page.getUrl())
@@ -118,8 +119,16 @@ public class MutationStatisticThread implements Runnable {
                     logger.info("【"+cpa.name()+"】完成一次突变疾病样本量抓取,开始执行分页偏移:"+insertCount);
                     page.offset();//执行偏移操作
                     retryTimes=3;
-                    Thread.sleep(100);
-                } catch (Exception e) {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e){
+                    if (contentParam==null){
+                        logger.info("【"+cpa.name()+"】结束...");
+                    }else{
+                        contentParam.getCpa().dbId.remove(contentParam.getId());
+                        logger.error("【"+cpa.name()+"】意外结束，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
+                    }
+                    isRun=false;
+                }catch (Exception e) {
                     //发生异常后恢复线程并进行重试3次
                     if (retryTimes>0){
                         logger.warn("【"+cpa.name()+"】发生异常，恢复环境...开始重试,第"+(4-retryTimes)+"次--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit());
