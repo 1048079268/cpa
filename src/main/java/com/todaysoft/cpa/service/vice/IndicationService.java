@@ -1,4 +1,4 @@
-package com.todaysoft.cpa.service;
+package com.todaysoft.cpa.service.vice;
 
 import com.todaysoft.cpa.domain.cn.drug.CnIndicationRepository;
 import com.todaysoft.cpa.domain.en.drug.IndicationRepository;

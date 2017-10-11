@@ -1,4 +1,4 @@
-package com.todaysoft.cpa.service;
+package com.todaysoft.cpa.service.main;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -9,6 +9,11 @@ import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrailRepository;
 import com.todaysoft.cpa.domain.en.drug.*;
 import com.todaysoft.cpa.domain.entity.*;
 import com.todaysoft.cpa.param.*;
+import com.todaysoft.cpa.service.*;
+import com.todaysoft.cpa.service.vice.IndicationService;
+import com.todaysoft.cpa.service.vice.KeggPathwaysService;
+import com.todaysoft.cpa.service.vice.MeshCategoryService;
+import com.todaysoft.cpa.service.vice.SideEffectService;
 import com.todaysoft.cpa.thread.IdThread;
 import com.todaysoft.cpa.utils.*;
 import org.jsoup.helper.DescendableLinkedList;

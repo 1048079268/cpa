@@ -54,7 +54,7 @@ public class ExceptionThread implements Runnable {
                     Map<String, JsonDataType> map = AcquireJsonStructure.getJsonKeyMap(null, checkBody);
                     CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
                 }catch (StructureChangeException e){
-                    contentService.sendStructureChangeInfo(e.getMessage());
+                    contentService.sendStructureChangeInfo(e.getMessage(),contentParam);
                     logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
                     return;
                 }
@@ -80,7 +80,7 @@ public class ExceptionThread implements Runnable {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 if (contentParam==null){
-                    logger.info("【exception】结束...");
+                    logger.warn("【exception】结束...");
                 }else{
                     contentParam.getCpa().dbId.remove(contentParam.getId());
                     logger.error("【exception】意外结束，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
@@ -88,7 +88,7 @@ public class ExceptionThread implements Runnable {
                 }
             } catch (Exception e) {
                 if (contentParam==null){
-                    logger.info("【exception】异常结束，未获取到队列内容，等待父线程重启");
+                    logger.warn("【exception】异常结束，未获取到队列内容，等待父线程重启");
                 }else{
                     contentParam.getCpa().dbId.remove(contentParam.getId());
                     logger.error("【exception】抓取异常，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());

@@ -49,14 +49,14 @@ public class ContentManagerThread extends Thread {
     public void checkAndRestart(){
         for (int i=0;i<contentThreads.size();i++){
             if (!contentThreads.get(i).isAlive()){
-                logger.info("【contentManager】检查到结束的线程，开始重启...");
+                logger.warn("【contentManager】检查到结束的线程，开始重启...");
                 contentThreads.set(i,new Thread(new ContentThread(contentService)));
                 contentThreads.get(i).start();
                 logger.info("【contentManager】重启完成，state:"+contentThreads.get(i).getState());
             }
         }
         if (!exceptionThread.isAlive()){
-            logger.info("【contentManager】检查到结束的线程，开始重启...");
+            logger.warn("【contentManager】检查到结束的线程，开始重启...");
             exceptionThread=new Thread(new ExceptionThread(contentService));
             exceptionThread.start();
             logger.info("【contentManager】重启完成，state:"+exceptionThread.getState());

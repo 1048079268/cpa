@@ -1,4 +1,4 @@
-package com.todaysoft.cpa.service;
+package com.todaysoft.cpa.service.main;
 
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONObject;
@@ -12,6 +12,7 @@ import com.todaysoft.cpa.domain.entity.Variant;
 import com.todaysoft.cpa.domain.entity.VariantMutationStatistic;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
+import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ import java.io.FileNotFoundException;
  * @date: 2017/9/1 14:24
  */
 @Service
-public class MutationStatisticService extends BaseService{
+public class MutationStatisticService extends BaseService {
     @Autowired
     private VariantMutationStatisticRepository variantMutationStatisticRepository;
     @Autowired

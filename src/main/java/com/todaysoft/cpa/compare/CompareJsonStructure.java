@@ -37,12 +37,13 @@ public class CompareJsonStructure {
             JsonDataType tempType = temp.get(data.getKey());
             JsonDataType dataType=data.getValue();
             if (tempType==null){
-                notMatch.append("\n\r新增[ "+data.getKey()+" ],类型为"+data.getValue());
+                notMatch.append("\n\r新增[ "+data.getKey()+" ],类型为"+data.getValue()+";");
             }else {
                 temp.remove(data.getKey());
-                if (!dataType.equals(JsonDataType.NULL)){
+                //如果模板为NULL或者待对比JSON为NULL则不进行类型变更比对
+                if (!dataType.equals(JsonDataType.NULL)&&!tempType.equals(JsonDataType.NULL)){
                     if (!dataType.equals(tempType)){
-                        notMatch.append("\n\r变更[ "+data.getKey()+" ]:"+tempType+"->"+dataType);
+                        notMatch.append("\n\r变更[ "+data.getKey()+" ]:"+tempType+"->"+dataType+";");
                     }
                 }
             }
@@ -51,7 +52,7 @@ public class CompareJsonStructure {
         //4.如果对比完成后模板JSON中还有剩下的键值，则这些键值是待对比JSON中没有的，即移除的
         temp.entrySet().stream().forEach(data->{
             if (!data.getValue().equals(JsonDataType.NULL)){
-                notMatch.append("\n\r移除[ "+data.getKey()+" ],类型为"+data.getValue());
+                notMatch.append("\n\r移除[ "+data.getKey()+" ],类型为"+data.getValue()+";");
             }
         });
         //5.如果notMatch不为空，则抛出结构改变异常，交给具体业务处理

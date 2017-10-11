@@ -1,4 +1,4 @@
-package com.todaysoft.cpa.service;
+package com.todaysoft.cpa.service.main;
 
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
@@ -21,6 +21,9 @@ import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Page;
+import com.todaysoft.cpa.service.BaseService;
+import com.todaysoft.cpa.service.ContentService;
+import com.todaysoft.cpa.service.MainService;
 import com.todaysoft.cpa.thread.IdThread;
 import com.todaysoft.cpa.thread.MutationStatisticThread;
 import com.todaysoft.cpa.utils.DataException;
@@ -43,7 +46,7 @@ import java.util.Set;
  * @date: 2017/8/31 9:58
  */
 @Service
-public class VariantService extends BaseService{
+public class VariantService extends BaseService {
     private static Logger logger= LoggerFactory.getLogger(VariantService.class);
     @Autowired
     private CPAProperties cpaProperties;

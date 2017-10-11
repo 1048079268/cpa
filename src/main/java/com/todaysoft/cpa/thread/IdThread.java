@@ -94,7 +94,7 @@ public class IdThread implements Runnable {
                 } catch (Exception e) {
                     //发生异常后恢复线程并进行重试3次
                     if (retryTimes>0){
-                        logger.info("【"+cpa.name()+"】发生异常，恢复环境...开始重试,第"+(4-retryTimes)+"次--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit());
+                        logger.warn("【"+cpa.name()+"】发生异常，恢复环境...开始重试,第"+(4-retryTimes)+"次--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit());
                         page=savePage;//还原偏移参数
                         retryTimes--;
                     }else {
@@ -102,7 +102,7 @@ public class IdThread implements Runnable {
                         logger.error("【"+cpa.name()+"】"+ ExceptionInfo.getErrorInfo(e));
                         page.offset();
                         retryTimes=3;
-                        logger.info("【"+cpa.name()+"】【error:重试无效】开始执行下一次偏移");
+                        logger.warn("【"+cpa.name()+"】【error:重试无效】开始执行下一次偏移");
                     }
                     continue;
                 }

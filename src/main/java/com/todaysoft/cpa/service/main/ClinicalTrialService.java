@@ -1,4 +1,4 @@
-package com.todaysoft.cpa.service;
+package com.todaysoft.cpa.service.main;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -22,6 +22,7 @@ import com.todaysoft.cpa.domain.entity.DrugClinicalTrial;
 import com.todaysoft.cpa.domain.entity.DrugClinicalTrialPK;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
+import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.JsonUtil;
 import com.todaysoft.cpa.utils.PkGenerator;
@@ -41,7 +42,7 @@ import java.util.Set;
  * @date: 2017/9/4 14:08
  */
 @Service
-public class ClinicalTrialService extends BaseService{
+public class ClinicalTrialService extends BaseService {
     @Autowired
     private CPAProperties cpaProperties;
     @Autowired

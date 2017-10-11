@@ -61,7 +61,7 @@ public class DrugThread implements Runnable {
                             Map<String, JsonDataType> map = AcquireJsonStructure.getJsonKeyMap(null, checkBody);
                             CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
                         }catch (StructureChangeException e){
-                            contentService.sendStructureChangeInfo(e.getMessage());
+                            contentService.sendStructureChangeInfo(e.getMessage(),contentParam);
                             logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
                             return;
                         }
@@ -81,7 +81,6 @@ public class DrugThread implements Runnable {
                         Thread.sleep(1000);
                         break;
                     }catch (InterruptedException e){
-                        logger.info("被打断");
                         throw new InterruptedException(e.getMessage());
                     } catch (Exception ex){
                         if (retryTime>0){

@@ -24,6 +24,8 @@ import java.util.*;
 @Component
 public class SendError {
     private static Logger logger= LoggerFactory.getLogger(SendError.class);
+    @Value("${spring.mail.username}")
+    private String sendFrom;
     @Value("${exception.mail.username}")
     private String sendTo;
     @Value("${logging.path}")
@@ -43,9 +45,9 @@ public class SendError {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true,"utf-8");
-            helper.setFrom(sendTo);
+            helper.setFrom(sendFrom);
             helper.setTo(sendTo);
-            helper.setSubject("CPA 错误日志-"+ DateUtil.yesterday());
+            helper.setSubject("【CPA 错误日志】-"+ DateUtil.yesterday());
             helper.setText("CPA错误日志，详情请查看附件！谢谢！");
             File dir=new File(errorPath);
             if (!dir.exists()){

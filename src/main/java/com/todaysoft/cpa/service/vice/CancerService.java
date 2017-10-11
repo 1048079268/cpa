@@ -1,4 +1,4 @@
-package com.todaysoft.cpa.service;
+package com.todaysoft.cpa.service.vice;
 
 import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
 import com.todaysoft.cpa.domain.entity.Cancer;

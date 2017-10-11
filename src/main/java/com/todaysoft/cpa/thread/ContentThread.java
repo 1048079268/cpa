@@ -55,7 +55,7 @@ public class ContentThread implements Runnable{
                     Map<String, JsonDataType> map = AcquireJsonStructure.getJsonKeyMap(null, checkBody);
                     CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
                 }catch (StructureChangeException e){
-                    contentService.sendStructureChangeInfo(e.getMessage());
+                    contentService.sendStructureChangeInfo(e.getMessage(),contentParam);
                     logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
                     return;
                 }
@@ -74,16 +74,16 @@ public class ContentThread implements Runnable{
                 }
             } catch (InterruptedException e) {
                 if (contentParam==null){
-                    logger.info("【content】结束...");
+                    logger.warn("【content】结束...");
                 }else{
-                    logger.info("【content】意外结束，写入异常重试队列，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
+                    logger.warn("【content】意外结束，写入异常重试队列，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
                     writeFailureQueue(contentParam);
                 }
             } catch (Exception e) {
                 if (contentParam==null){
-                    logger.info("【content】异常结束，未获取到队列内容，交由父线程处理");
+                    logger.warn("【content】异常结束，未获取到队列内容，交由父线程处理");
                 }else{
-                    logger.info("【content】抓取异常，写入异常重试队列，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
+                    logger.warn("【content】抓取异常，写入异常重试队列，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
                     writeFailureQueue(contentParam);
                 }
             }

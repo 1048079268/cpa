@@ -82,9 +82,10 @@
           "dosageForm": "String",
           "dosageStrength": "String",
           "externalIds": {
-            "dpd_id": "String",
-            "ndc_id": "String",
-            "ndc_product_code": "String"
+            "dpd_id": null,
+            "ndc_id": null,
+            "ndc_product_code": null,
+            "cfda_id": null
           },
           "generic": true,
           "labeller": "String",

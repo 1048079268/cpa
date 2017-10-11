@@ -2,6 +2,8 @@ package com.todaysoft.cpa.service;
 
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.param.*;
+import com.todaysoft.cpa.service.main.*;
+import com.todaysoft.cpa.service.vice.*;
 import com.todaysoft.cpa.thread.ContentManagerThread;
 import com.todaysoft.cpa.thread.DrugThread;
 import com.todaysoft.cpa.thread.IdThread;
@@ -56,7 +58,7 @@ public class MainService {
     @Autowired
     private ContentService contentService;
 
-    protected static ExecutorService childrenTreadPool;
+    public static ExecutorService childrenTreadPool;
 
     /**
      * @desc: 初始化数据
@@ -116,7 +118,6 @@ public class MainService {
                     mainManager.stopAll();
                     mainPool.shutdownNow();
                     childrenTreadPool.shutdownNow();
-                    logger.warn("关闭线程");
                     return;
                 }
                 //因为被依赖，所以要检测内容线程是否执行完成
@@ -125,14 +126,13 @@ public class MainService {
                     logger.info("【manager】一级线程执行完成");
                     break;
                 }
-                Thread.sleep(20000);
                 //监控内容抓取线程，如果挂掉则重启
                 if (!drugContentThread.isAlive()){
                     drugContentThread=new Thread(new DrugThread(contentService));
                     drugContentThread.start();
                 }
                 mainManager.checkAndRestart();
-
+                Thread.sleep(10000);
             }
             //二级id抓取线程池（依赖于一级线程）
             ExecutorService secondPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());

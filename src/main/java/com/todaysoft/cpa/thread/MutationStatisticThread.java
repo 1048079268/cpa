@@ -70,7 +70,7 @@ public class MutationStatisticThread implements Runnable {
                         Map<String, JsonDataType> map = AcquireJsonStructure.getJsonKeyMap(null, checkBody);
                         CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
                     }catch (StructureChangeException e){
-                        contentService.sendStructureChangeInfo(e.getMessage());
+                        contentService.sendStructureChangeInfo(e.getMessage(),contentParam);
                         logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
                         return;
                     }
@@ -122,13 +122,13 @@ public class MutationStatisticThread implements Runnable {
                 } catch (Exception e) {
                     //发生异常后恢复线程并进行重试3次
                     if (retryTimes>0){
-                        logger.info("【"+cpa.name()+"】发生异常，恢复环境...开始重试,第"+(4-retryTimes)+"次--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit());
+                        logger.warn("【"+cpa.name()+"】发生异常，恢复环境...开始重试,第"+(4-retryTimes)+"次--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit());
                         page=savePage;
                         retryTimes--;
                     }else {
                         logger.error("【"+cpa.name()+"】【error:重试无效】--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit());
                         logger.error("【"+cpa.name()+"】"+ ExceptionInfo.getErrorInfo(e));
-                        logger.info("【"+cpa.name()+"】【error:重试无效】开始执行下一次偏移");
+                        logger.warn("【"+cpa.name()+"】【error:重试无效】开始执行下一次偏移");
                         page.offset();//执行偏移操作
                         retryTimes=3;
                     }

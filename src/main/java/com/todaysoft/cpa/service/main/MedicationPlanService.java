@@ -1,4 +1,4 @@
-package com.todaysoft.cpa.service;
+package com.todaysoft.cpa.service.main;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -10,6 +10,7 @@ import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
 import com.todaysoft.cpa.domain.en.drug.DrugRepository;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
+import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.JsonUtil;
 import com.todaysoft.cpa.utils.PkGenerator;
@@ -29,7 +30,7 @@ import java.util.Set;
  * @date: 2017/9/12 10:09
  */
 @Service
-public class MedicationPlanService extends BaseService{
+public class MedicationPlanService extends BaseService {
     @Autowired
     private CnMedicationPlanRepository cnMedicationPlanRepository;
     @Autowired

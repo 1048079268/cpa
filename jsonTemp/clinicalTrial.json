@@ -2,6 +2,7 @@
   "data": {
     "clinicalTrial": {
       "id": "String",
+      "title": "String",
       "status": "String",
       "phase": "String",
       "type": "String",
