@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.thread;
 
+import com.todaysoft.cpa.service.ContentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,13 +16,15 @@ public class ContentManagerThread extends Thread {
     private static Logger logger= LoggerFactory.getLogger(ContentManagerThread.class);
     private List<Thread> contentThreads;
     private Thread exceptionThread;
+    private ContentService contentService;
 
-    public ContentManagerThread(int maxContentThreadNum) {
+    public ContentManagerThread(int maxContentThreadNum,ContentService contentService) {
+        this.contentService=contentService;
         contentThreads=new ArrayList<>(maxContentThreadNum);
         for (int i=0;i<maxContentThreadNum;i++){
-            contentThreads.add(new Thread(new ContentThread()));
+            contentThreads.add(new Thread(new ContentThread(contentService)));
         }
-        exceptionThread=new Thread(new ExceptionThread());
+        exceptionThread=new Thread(new ExceptionThread(contentService));
     }
 
     @Override
@@ -47,14 +50,14 @@ public class ContentManagerThread extends Thread {
         for (int i=0;i<contentThreads.size();i++){
             if (!contentThreads.get(i).isAlive()){
                 logger.info("【contentManager】检查到结束的线程，开始重启...");
-                contentThreads.set(i,new Thread(new ContentThread()));
+                contentThreads.set(i,new Thread(new ContentThread(contentService)));
                 contentThreads.get(i).start();
                 logger.info("【contentManager】重启完成，state:"+contentThreads.get(i).getState());
             }
         }
         if (!exceptionThread.isAlive()){
             logger.info("【contentManager】检查到结束的线程，开始重启...");
-            exceptionThread=new Thread(new ExceptionThread());
+            exceptionThread=new Thread(new ExceptionThread(contentService));
             exceptionThread.start();
             logger.info("【contentManager】重启完成，state:"+exceptionThread.getState());
         }

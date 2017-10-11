@@ -1,0 +1,39 @@
+{
+  "data": {
+    "clinicalTrial": {
+      "id": "String",
+      "status": "String",
+      "phase": "String",
+      "type": "String",
+      "startDate": "String",
+      "countries": [
+        "String"
+      ],
+      "outcomes": [
+        {
+          "category": "String",
+          "classification": "String",
+          "title": "String",
+          "resultGroup": "String",
+          "units": "String",
+          "paramType": "String",
+          "paramValue": "String",
+          "dispType": "String",
+          "dispValue": "String",
+          "dispMin": "String",
+          "dispMax": "String"
+        }
+      ],
+      "diseases": [
+        {
+          "doid": 0,
+          "name": "String"
+        }
+      ],
+      "drugs": [
+        0
+      ],
+      "url": "String"
+    }
+  }
+}

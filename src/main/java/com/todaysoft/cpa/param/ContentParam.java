@@ -3,7 +3,7 @@ package com.todaysoft.cpa.param;
 import com.todaysoft.cpa.service.BaseService;
 
 /**
- * @desc:
+ * @desc: 抓取内容时所需的参数
  * @author: 鱼唇的人类
  * @date: 2017/8/15 10:24
  */

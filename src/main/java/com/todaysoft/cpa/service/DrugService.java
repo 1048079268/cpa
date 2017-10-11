@@ -2,6 +2,7 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.compare.AcquireJsonStructure;
 import com.todaysoft.cpa.domain.cn.clinicalTrail.CnClinicalTrailRepository;
 import com.todaysoft.cpa.domain.cn.drug.*;
 import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrailRepository;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 
 /**
@@ -399,10 +401,6 @@ public class DrugService extends BaseService {
         }
         //15.TODO（该字段全部为空，看不到结构，暂时不做） 药物食物不良反应
         // JSONArray foodInteractions=object.getJSONArray("foodInteractions");
-
-        /**
-         * TODO 为了开发阶段测试效率屏蔽此处
-         */
         logger.info("【" + CPA.DRUG.name() + "】开始插入关联的临床实验->id="+drug.getDrugId());
         Page page=new Page(cpaProperties.getClinicalTrialUrl());
         page.putParam("drugId", String.valueOf(drug.getDrugId()));
@@ -417,9 +415,10 @@ public class DrugService extends BaseService {
     }
 
     @Override
-    public void initDB() {
+    public void initDB() throws FileNotFoundException {
         CPA.DRUG.name=cpaProperties.getDrugName();
         CPA.DRUG.contentUrl=cpaProperties.getDrugUrl();
+        CPA.DRUG.tempStructureMap= AcquireJsonStructure.getJsonKeyMap(cpaProperties.getDrugTempPath());
         Set<Integer> ids=drugRepository.findIdByCPA();
         Iterator<Integer> iterator=ids.iterator();
         while (iterator.hasNext()){

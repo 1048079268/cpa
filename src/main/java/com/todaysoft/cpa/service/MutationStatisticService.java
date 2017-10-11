@@ -2,6 +2,7 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.compare.AcquireJsonStructure;
 import com.todaysoft.cpa.domain.cn.variants.CnVariantMutationStatisticRepository;
 import com.todaysoft.cpa.domain.entity.Cancer;
 import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
@@ -15,6 +16,8 @@ import com.todaysoft.cpa.utils.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.FileNotFoundException;
 
 /**
  * @desc:
@@ -64,9 +67,10 @@ public class MutationStatisticService extends BaseService{
     }
 
     @Override
-    public void initDB() {
+    public void initDB() throws FileNotFoundException {
         CPA.MUTATION_STATISTICS.name=cpaProperties.getMutationStatisticsName();
         CPA.MUTATION_STATISTICS.contentUrl=cpaProperties.getMutationStatisticsUrl();
+        CPA.MUTATION_STATISTICS.tempStructureMap= AcquireJsonStructure.getJsonKeyMap(cpaProperties.getMutationStatisticsTempPath());
         variantMutationStatisticRepository.findAll().stream().forEach(variantMutationStatistic -> {
             String id=variantMutationStatistic.getDoid()+"-"+variantMutationStatistic.getMutationId();
             CPA.MUTATION_STATISTICS.dbId.add(id);

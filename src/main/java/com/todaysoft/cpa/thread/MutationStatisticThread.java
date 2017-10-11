@@ -3,16 +3,23 @@ package com.todaysoft.cpa.thread;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.compare.AcquireJsonStructure;
+import com.todaysoft.cpa.compare.CompareJsonStructure;
+import com.todaysoft.cpa.compare.JsonDataType;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Page;
 import com.todaysoft.cpa.param.GlobalVar;
+import com.todaysoft.cpa.service.ContentService;
 import com.todaysoft.cpa.utils.ExceptionInfo;
+import com.todaysoft.cpa.utils.StructureChangeException;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 /**
  * @desc:
@@ -23,13 +30,15 @@ public class MutationStatisticThread implements Runnable {
     private static Logger logger= LoggerFactory.getLogger(MutationStatisticThread.class);
     private Page page;
     private ContentParam contentParam;
+    private ContentService contentService;
     private CPA cpa;
     private Page savePage;
     private int  retryTimes=3;
     private int saveRetryTimes=3;
     private int insertCount=0;
 
-    public MutationStatisticThread(Page page, ContentParam contentParam) {
+    public MutationStatisticThread(Page page, ContentParam contentParam,ContentService contentService) {
+        this.contentService=contentService;
         this.page = page;
         this.savePage=this.page;
         this.contentParam = contentParam;
@@ -55,6 +64,16 @@ public class MutationStatisticThread implements Runnable {
                             .maxBodySize(0)//设置最大响应长度为0 ，否则太长的返回数据不会完整显示
                             .execute();
                     String jsonStr=response.body();
+                    //结构变化检测
+                    try {
+                        JSONObject checkBody=JSON.parseObject(jsonStr);
+                        Map<String, JsonDataType> map = AcquireJsonStructure.getJsonKeyMap(null, checkBody);
+                        CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
+                    }catch (StructureChangeException e){
+                        contentService.sendStructureChangeInfo(e.getMessage());
+                        logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
+                        return;
+                    }
                     if (jsonStr!=null&&jsonStr.length()>0){
                         JSONObject jsonObject= JSON.parseObject(jsonStr);
                         JSONArray array=jsonObject.getJSONObject("data").getJSONArray(cpa.name);
@@ -99,7 +118,7 @@ public class MutationStatisticThread implements Runnable {
                     logger.info("【"+cpa.name()+"】完成一次突变疾病样本量抓取,开始执行分页偏移:"+insertCount);
                     page.offset();//执行偏移操作
                     retryTimes=3;
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                 } catch (Exception e) {
                     //发生异常后恢复线程并进行重试3次
                     if (retryTimes>0){

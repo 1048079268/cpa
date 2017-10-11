@@ -3,6 +3,7 @@ package com.todaysoft.cpa.service;
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.compare.AcquireJsonStructure;
 import com.todaysoft.cpa.domain.cn.variants.CnVariantRepository;
 import com.todaysoft.cpa.domain.cn.variants.CnVariantTumorTypeDoidRepository;
 import com.todaysoft.cpa.domain.cn.variants.CnVariantTumorTypeRepository;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -65,6 +67,8 @@ public class VariantService extends BaseService{
     private  EvidenceService evidenceService;
     @Autowired
     private GeneRepository geneRepository;
+    @Autowired
+    private ContentService contentService;
 
     @Override
     public boolean save(JSONObject object) {
@@ -127,7 +131,7 @@ public class VariantService extends BaseService{
             Page msPage=new Page(CPA.MUTATION_STATISTICS.contentUrl);
             msPage.putParam("cosmicId",variant.getCosmicId());
             ContentParam msParam=new ContentParam(CPA.MUTATION_STATISTICS,mutationStatisticService,true,variant.getVariantKey());
-            MainService.childrenTreadPool.execute(new MutationStatisticThread(msPage,msParam));
+            MainService.childrenTreadPool.execute(new MutationStatisticThread(msPage,msParam,contentService));
         }
         //插入与该id关联的证据
         logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的证据");
@@ -138,9 +142,10 @@ public class VariantService extends BaseService{
     }
 
     @Override
-    public void initDB() {
+    public void initDB() throws FileNotFoundException {
         CPA.VARIANT.name=cpaProperties.getVariantName();
         CPA.VARIANT.contentUrl=cpaProperties.getVariantUrl();
+        CPA.VARIANT.tempStructureMap= AcquireJsonStructure.getJsonKeyMap(cpaProperties.getVariantTempPath());
         Set<Integer> ids=variantRepository.findIdByCPA();
         Iterator<Integer> iterator=ids.iterator();
         while (iterator.hasNext()){

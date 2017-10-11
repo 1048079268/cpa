@@ -2,15 +2,22 @@ package com.todaysoft.cpa.thread;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.compare.AcquireJsonStructure;
+import com.todaysoft.cpa.compare.CompareJsonStructure;
+import com.todaysoft.cpa.compare.JsonDataType;
 import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.service.BaseService;
+import com.todaysoft.cpa.service.ContentService;
 import com.todaysoft.cpa.utils.ExceptionInfo;
+import com.todaysoft.cpa.utils.StructureChangeException;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 /**
  * @desc:
@@ -20,9 +27,16 @@ import org.slf4j.LoggerFactory;
 public class DrugThread implements Runnable {
     private static Logger logger= LoggerFactory.getLogger(DrugThread.class);
     private int retryTimes=1;
+    private ContentService contentService;
+    volatile boolean isRun=true;
+
+    public DrugThread(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
     @Override
     public void run() {
-        while (true){
+        while (isRun){
             ContentParam contentParam=null;
             BaseService baseService =null;
             int retryTime=retryTimes;
@@ -41,6 +55,16 @@ public class DrugThread implements Runnable {
                                 .timeout(120000)// 设置连接超时时间
                                 .execute();
                         String jsonStr = response.body();
+                        //结构变化检测
+                        try {
+                            JSONObject checkBody=JSON.parseObject(jsonStr);
+                            Map<String, JsonDataType> map = AcquireJsonStructure.getJsonKeyMap(null, checkBody);
+                            CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
+                        }catch (StructureChangeException e){
+                            contentService.sendStructureChangeInfo(e.getMessage());
+                            logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
+                            return;
+                        }
                         if (jsonStr != null && jsonStr.length() > 0) {
                             JSONObject jsonObject = JSON.parseObject(jsonStr).getJSONObject("data").getJSONObject(contentParam.getCpa().name);
                             if (jsonObject == null || jsonObject.toJSONString().length() <= 0) {
@@ -54,8 +78,12 @@ public class DrugThread implements Runnable {
                             }
                             logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                         }
+                        Thread.sleep(1000);
                         break;
-                    }catch (Exception ex){
+                    }catch (InterruptedException e){
+                        logger.info("被打断");
+                        throw new InterruptedException(e.getMessage());
+                    } catch (Exception ex){
                         if (retryTime>0){
                             retryTime--;
                             logger.info("【drug】失败，开始重试,info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
@@ -75,6 +103,7 @@ public class DrugThread implements Runnable {
                     contentParam.getCpa().dbId.remove(contentParam.getId());
                     logger.error("【drug】意外结束，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
                 }
+                isRun=false;
             }
         }
     }

@@ -2,15 +2,22 @@ package com.todaysoft.cpa.thread;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.compare.AcquireJsonStructure;
+import com.todaysoft.cpa.compare.CompareJsonStructure;
+import com.todaysoft.cpa.compare.JsonDataType;
 import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.service.BaseService;
+import com.todaysoft.cpa.service.ContentService;
 import com.todaysoft.cpa.utils.ExceptionInfo;
+import com.todaysoft.cpa.utils.StructureChangeException;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 /**
  * @desc:
@@ -19,7 +26,11 @@ import org.slf4j.LoggerFactory;
  */
 public class ExceptionThread implements Runnable {
     private static Logger logger= LoggerFactory.getLogger(ExceptionThread.class);
+    private ContentService contentService;
 
+    public ExceptionThread(ContentService contentService) {
+        this.contentService = contentService;
+    }
     @Override
     public void run() {
         while (true){
@@ -37,6 +48,16 @@ public class ExceptionThread implements Runnable {
                         .timeout(120000)// 设置连接超时时间
                         .execute();
                 String jsonStr = response.body();
+                //结构变化检测
+                try {
+                    JSONObject checkBody=JSON.parseObject(jsonStr);
+                    Map<String, JsonDataType> map = AcquireJsonStructure.getJsonKeyMap(null, checkBody);
+                    CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
+                }catch (StructureChangeException e){
+                    contentService.sendStructureChangeInfo(e.getMessage());
+                    logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
+                    return;
+                }
                 if (jsonStr != null && jsonStr.length() > 0) {
                     JSONObject jsonObject = JSON.parseObject(jsonStr).getJSONObject("data").getJSONObject(contentParam.getCpa().name);
                     if (jsonObject == null || jsonObject.toJSONString().length() <= 0) {

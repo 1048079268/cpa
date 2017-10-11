@@ -2,6 +2,7 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.compare.AcquireJsonStructure;
 import com.todaysoft.cpa.domain.cn.gene.*;
 import com.todaysoft.cpa.domain.en.gene.*;
 import com.todaysoft.cpa.domain.entity.*;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -146,9 +148,10 @@ public class GeneService extends BaseService {
     }
 
     @Override
-    public void initDB () {
+    public void initDB () throws FileNotFoundException {
         CPA.GENE.name=cpaProperties.getGeneName();
         CPA.GENE.contentUrl=cpaProperties.getGeneUrl();
+        CPA.GENE.tempStructureMap= AcquireJsonStructure.getJsonKeyMap(cpaProperties.getGeneTempPath());
         Set<Integer> ids=geneRepository.findIdByCPA();
         Iterator<Integer> iterator=ids.iterator();
         while (iterator.hasNext()){

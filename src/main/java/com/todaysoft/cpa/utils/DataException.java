@@ -7,6 +7,7 @@ package com.todaysoft.cpa.utils;
  */
 public class DataException extends RuntimeException {
     public DataException() {
+        super();
     }
 
     public DataException(String message) {

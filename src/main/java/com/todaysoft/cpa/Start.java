@@ -8,6 +8,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.io.FileNotFoundException;
+
 /**
  * @desc: 启动运行
  * @author: 鱼唇的人类
@@ -20,7 +22,7 @@ public class Start implements CommandLineRunner {
     @Autowired
     private MainService mainService;
     @Override
-    public void run(String... strings) throws Exception {
+    public void run(String... strings) throws FileNotFoundException, InterruptedException {
         mainService.init();
         mainService.manager();
         logger.info("<<<<<<<<<启动完成>>>>>>>>>");

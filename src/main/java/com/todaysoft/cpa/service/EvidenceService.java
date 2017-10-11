@@ -2,6 +2,7 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.compare.AcquireJsonStructure;
 import com.todaysoft.cpa.domain.cn.evidence.CnEvidenceDrugRepository;
 import com.todaysoft.cpa.domain.cn.evidence.CnEvidenceReferenceRepository;
 import com.todaysoft.cpa.domain.cn.evidence.CnEvidenceRepository;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -127,9 +129,10 @@ public class EvidenceService extends BaseService {
     }
 
     @Override
-    public void initDB() {
+    public void initDB() throws FileNotFoundException {
         CPA.EVIDENCE.name=cpaProperties.getEvidenceName();
         CPA.EVIDENCE.contentUrl=cpaProperties.getEvidenceUrl();
+        CPA.EVIDENCE.tempStructureMap= AcquireJsonStructure.getJsonKeyMap(cpaProperties.getEvidenceTempPath());
         Set<Integer> ids=evidenceRepository.findIdByCPA();
         Iterator<Integer> iterator=ids.iterator();
         while (iterator.hasNext()){

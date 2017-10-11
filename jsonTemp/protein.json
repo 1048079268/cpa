@@ -1,0 +1,18 @@
+{
+  "data": {
+    "protein": {
+      "id": "String",
+      "geneId": 0,
+      "entryName": "String",
+      "proteinName": "String",
+      "mass": 0,
+      "length": 0,
+      "functionDescription": "String",
+      "tissueSpecificity": "String",
+      "tissueSpecificityEvidenceId": 0,
+      "synonyms": [
+        "String"
+      ]
+    }
+  }
+}

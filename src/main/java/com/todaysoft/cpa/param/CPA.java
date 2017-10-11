@@ -1,11 +1,11 @@
 package com.todaysoft.cpa.param;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import com.todaysoft.cpa.compare.JsonDataType;
+
+import java.util.*;
 
 /**
- * @desc:
+ * @desc: 每个接口各自的信息
  * @author: 鱼唇的人类
  * @date: 2017/8/15 10:25
  */
@@ -14,9 +14,11 @@ public enum CPA {
     public Set<String> dbId;
     public String contentUrl;
     public String name;
+    public Map<String,JsonDataType> tempStructureMap;
     CPA(){
         dbId= Collections.synchronizedSet(new HashSet<>());
         contentUrl=null;
         name=null;
+        tempStructureMap=new HashMap<>();
     }
 }

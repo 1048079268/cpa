@@ -2,6 +2,7 @@ package com.todaysoft.cpa.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.compare.AcquireJsonStructure;
 import com.todaysoft.cpa.domain.cn.medicationPlan.*;
 import com.todaysoft.cpa.domain.en.medicationPlan.*;
 import com.todaysoft.cpa.domain.entity.*;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -143,7 +145,7 @@ public class MedicationPlanService extends BaseService{
             for (int i=0;i<instructions.size();i++){
                 PlanInstruction planInstruction=instructions.getObject(i,PlanInstruction.class);
                 planInstruction.setMedicationPlanId(medicationPlan.getMedicinePlanId());
-                planInstruction.setPlanInstructionKey(medicationPlan.getMedicationPlanKey());
+                planInstruction.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
                 planInstruction.setPlanInstructionKey(PkGenerator.generator(PlanInstruction.class));
                 String drugIds= JsonUtil.jsonArrayToString(instructions.getJSONObject(i).getJSONArray("drugIds"),",");
                 planInstruction.setDrugIds(drugIds);
@@ -187,9 +189,10 @@ public class MedicationPlanService extends BaseService{
     }
 
     @Override
-    public void initDB() {
+    public void initDB() throws FileNotFoundException {
         CPA.REGIMEN.name=cpaProperties.getRegimenName();
         CPA.REGIMEN.contentUrl=cpaProperties.getRegimenUrl();
+        CPA.REGIMEN.tempStructureMap= AcquireJsonStructure.getJsonKeyMap(cpaProperties.getRegimenTempPath());
         Set<Integer> ids=medicationPlanRepository.findIdByCPA();
         Iterator<Integer> iterator=ids.iterator();
         while (iterator.hasNext()){

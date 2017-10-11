@@ -1,0 +1,37 @@
+{
+  "data": {
+    "gene": {
+      "id": 0,
+      "geneType": "String",
+      "geneSymbol": "String",
+      "geneFullName": "String",
+      "aliases": [
+        "String"
+      ],
+      "externalIds": [
+        {
+          "source": "String",
+          "id": "String"
+        }
+      ],
+      "locations": [
+        {
+          "refAssembly": "String",
+          "chromosome": "String",
+          "start": "String",
+          "stop": "String",
+          "size": 0,
+          "orientation": "String",
+          "exonCount": 0
+        }
+      ],
+      "entrezGeneSummary": "String",
+      "cytogeneticBand": "String",
+      "otherNames": [
+        "String"
+      ],
+      "hasCosmicMutations": true,
+      "cancerGene": "String"
+    }
+  }
+}
