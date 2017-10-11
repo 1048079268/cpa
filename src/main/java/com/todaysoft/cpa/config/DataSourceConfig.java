@@ -43,7 +43,7 @@ public class DataSourceConfig {
     @Bean(name = "userTransaction")
     public UserTransaction userTransaction() throws Throwable {
         UserTransactionImp userTransactionImp = new UserTransactionImp();
-        userTransactionImp.setTransactionTimeout(10000);
+        userTransactionImp.setTransactionTimeout(20000);
         return userTransactionImp;
     }
 

@@ -14,7 +14,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * @desc:
+ * @desc: 接口抓取错误的分析类，测试使用
  * @author: 鱼唇的人类
  * @date: 2017/8/11 10:54
  */
