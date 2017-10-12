@@ -25,6 +25,12 @@ public class DateUtil {
         return dateString;
     }
 
+    public static String formatDate2(Date date){
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        String dateString=df.format(date);
+        return dateString;
+    }
+
     /**
      * @desc: 得到昨天的日期字符串
      * @author: 鱼唇的人类

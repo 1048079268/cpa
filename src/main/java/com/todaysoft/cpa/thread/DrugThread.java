@@ -26,7 +26,7 @@ import java.util.Map;
  */
 public class DrugThread implements Runnable {
     private static Logger logger= LoggerFactory.getLogger(DrugThread.class);
-    private int retryTimes=1;
+    private int retryTimes=2;
     private ContentService contentService;
     volatile boolean isRun=true;
 

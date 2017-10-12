@@ -100,9 +100,18 @@ public class MainService {
         //内容线程启动
         ContentManagerThread mainManager=new ContentManagerThread(cpaProperties.getMaxContentThreadNum(),contentService);
         mainManager.start();
-        while (true){
-            //子业务抓取id线程池(抓取id线程数量的控制主要是在子业务线程上)
-            childrenTreadPool=Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
+        //子业务抓取id线程池(抓取id线程数量的控制主要是在子业务线程上)
+        childrenTreadPool=Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
+        //TODO 单项测试
+        boolean test=false;
+        if (test){
+            Thread drugContentThread=new Thread(new DrugThread(contentService));
+            drugContentThread.start();
+            ContentParam param=new ContentParam(CPA.DRUG,drugService);
+            param.setId("3276");
+            GlobalVar.getDrugQueue().put(param);
+        }
+        while (!test){
             //一线id抓取线程池（主）
             ExecutorService mainPool = Executors.newFixedThreadPool(2);
             //启动一级线程（暂时不去除线程池，以便以后扩展）

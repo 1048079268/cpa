@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.config;
 
+import com.atomikos.icatch.jta.TransactionManagerImp;
 import com.atomikos.icatch.jta.UserTransactionImp;
 import com.atomikos.icatch.jta.UserTransactionManager;
 import org.springframework.context.annotation.Bean;
@@ -43,7 +44,7 @@ public class DataSourceConfig {
     @Bean(name = "userTransaction")
     public UserTransaction userTransaction() throws Throwable {
         UserTransactionImp userTransactionImp = new UserTransactionImp();
-        userTransactionImp.setTransactionTimeout(20000);
+        userTransactionImp.setTransactionTimeout(900000);
         return userTransactionImp;
     }
 
