@@ -35,10 +35,12 @@ public class ContentService {
     private String sendFrom;
     @Autowired
     private JavaMailSender mailSender;
+    //TODO 开发阶段用来控制发送邮件且不影响程序运行，正式运行使用 GlobalVar.SEND_STRUCTURE_EMAIL
+    private final static AtomicBoolean TEST_SEND_STRUCTURE_EMAIL=new AtomicBoolean(true);
 
     public synchronized void sendStructureChangeInfo(String changeInfo, ContentParam param){
-        if (GlobalVar.SEND_STRUCTURE_EMAIL.get()){
-            GlobalVar.SEND_STRUCTURE_EMAIL.set(false);
+        if (TEST_SEND_STRUCTURE_EMAIL.get()){
+            TEST_SEND_STRUCTURE_EMAIL.set(false);
             StringBuffer content=new StringBuffer();
             content.append("<h3>【CPA JSON结构改变】</h3><h4>比对项：");
             content.append(param.getCpa().name+",id="+param.getId());
