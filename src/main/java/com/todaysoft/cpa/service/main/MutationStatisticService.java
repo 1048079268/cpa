@@ -63,7 +63,7 @@ public class MutationStatisticService extends BaseService {
                 cnVariantMutationStatisticRepository.save(statistic);
                 return true;
         }else {
-            throw new DataException("找不到相应的疾病：-->comsic:"+statistic.getMutationId()+",doid:"+statistic.getDoid());
+            throw new DataException("未找到相应的疾病：-->comsic:"+statistic.getMutationId()+",doid:"+statistic.getDoid());
         }
     }
 

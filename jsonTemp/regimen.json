@@ -9,7 +9,7 @@
       "regimenName": "String",
       "studies": [
         {
-          "pmid": 0,
+          "pmid": null,
           "study": "String",
           "efficacy": null,
           "evidence": "String",

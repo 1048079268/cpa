@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @date: 2017/8/15 11:38
  */
 public class GlobalVar {
-    //是否可以发送JSON结构改变的异常信息的邮件
+    //是否可以发送JSON结构改变的异常信息的邮件,也是判断是否关闭线程的标识
     public final static AtomicBoolean SEND_STRUCTURE_EMAIL=new AtomicBoolean(true);
     private static LinkedBlockingQueue<ContentParam> CONTENT_QUEUE;
     private static LinkedBlockingQueue<ContentParam> DRUG_QUEUE;

@@ -105,11 +105,11 @@ public class MainService {
         //TODO 单项测试
         boolean test=false;
         if (test){
-            Thread drugContentThread=new Thread(new DrugThread(contentService));
-            drugContentThread.start();
-            ContentParam param=new ContentParam(CPA.DRUG,drugService);
-            param.setId("3276");
-            GlobalVar.getDrugQueue().put(param);
+//            Thread drugContentThread=new Thread(new DrugThread(contentService));
+//            drugContentThread.start();
+            ContentParam param=new ContentParam(CPA.REGIMEN,medicationPlanService);
+            param.setId("1759");
+            GlobalVar.getContentQueue().put(param);
         }
         while (!test){
             //一线id抓取线程池（主）
@@ -135,12 +135,14 @@ public class MainService {
                     logger.info("【manager】一级线程执行完成");
                     break;
                 }
-                //监控内容抓取线程，如果挂掉则重启
-                if (!drugContentThread.isAlive()){
-                    drugContentThread=new Thread(new DrugThread(contentService));
-                    drugContentThread.start();
+                if (GlobalVar.SEND_STRUCTURE_EMAIL.get()){
+                    //监控内容抓取线程，如果挂掉则重启
+                    if (!drugContentThread.isAlive()){
+                        drugContentThread=new Thread(new DrugThread(contentService));
+                        drugContentThread.start();
+                    }
+                    mainManager.checkAndRestart();
                 }
-                mainManager.checkAndRestart();
                 Thread.sleep(10000);
             }
             //二级id抓取线程池（依赖于一级线程）
@@ -162,9 +164,11 @@ public class MainService {
                     logger.info("【manager】二级线程执行完成");
                     break;
                 }
+                if (GlobalVar.SEND_STRUCTURE_EMAIL.get()){
+                    //监控内容抓取线程
+                    mainManager.checkAndRestart();
+                }
                 Thread.sleep(10000);
-                //监控内容抓取线程
-                mainManager.checkAndRestart();
             }
             //三级线程池
             ExecutorService thirdPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
@@ -184,9 +188,11 @@ public class MainService {
                     logger.info("【manager】三级线程执行完成");
                     break;
                 }
+                if (GlobalVar.SEND_STRUCTURE_EMAIL.get()){
+                    //监控内容抓取线程
+                    mainManager.checkAndRestart();
+                }
                 Thread.sleep(10000);
-                //监控内容抓取线程
-                mainManager.checkAndRestart();
             }
             //三级线程池
             ExecutorService fourthPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
@@ -206,9 +212,11 @@ public class MainService {
                     logger.info("【manager】四级线程执行完成");
                     break;
                 }
+                if (GlobalVar.SEND_STRUCTURE_EMAIL.get()){
+                    //监控内容抓取线程
+                    mainManager.checkAndRestart();
+                }
                 Thread.sleep(10000);
-                //监控内容抓取线程
-                mainManager.checkAndRestart();
             }
             logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()/60000+"】分钟...");
             Thread.sleep(cpaProperties.getHeartbeat());
