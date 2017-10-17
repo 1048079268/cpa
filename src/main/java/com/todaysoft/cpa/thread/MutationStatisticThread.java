@@ -85,10 +85,15 @@ public class MutationStatisticThread implements Runnable {
                                 String mutationId=idObject.getString("mutationId");
                                 String id=doid+"-"+mutationId;
                                 if (cpa.dbId.add(id)){
-                                    boolean reSave=false;
+                                    boolean reSave;
                                     do {
                                         try {
-                                            boolean success=contentParam.getBaseService().saveByDependence(array.getJSONObject(i),contentParam.getDependenceKey());
+                                            boolean success;
+                                            if (contentParam.isHasDependence()){
+                                                success=contentParam.getBaseService().saveByDependence(jsonObject,contentParam.getDependenceKey());
+                                            }else {
+                                                success=contentParam.getBaseService().save(jsonObject);
+                                            }
                                             if (success){
                                                 insertCount++;
                                                 logger.info("【"+cpa.name()+"】插入数据库成功:"+id);
