@@ -50,9 +50,11 @@ public class MutationStatisticThread implements Runnable {
     public void run() {
         try {
             logger.info("【"+cpa.name()+"】开始获取突变疾病样本量");
-            while (isRun){//抓取直到没有数据
+            //抓取直到没有数据
+            while (isRun){
                 try {
-                    savePage=page;//保存这次查询的参数，以便错误后恢复环境
+                    //保存这次查询的参数，以便错误后恢复环境
+                    savePage=page;
                     Connection.Response response = Jsoup.connect(page.getUrl())
                             .userAgent("'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'") // 设置 User-Agent
                             .data("limit", String.valueOf(page.getLimit()))
@@ -61,8 +63,10 @@ public class MutationStatisticThread implements Runnable {
                             .header("Authorization", GlobalVar.getAUTHORIZATION())
                             .header("Accept", "application/test")
                             .ignoreContentType(true)
-                            .timeout(12000)// 设置连接超时时间
-                            .maxBodySize(0)//设置最大响应长度为0 ，否则太长的返回数据不会完整显示
+                            // 设置连接超时时间
+                            .timeout(12000)
+                            //设置最大响应长度为0 ，否则太长的返回数据不会完整显示
+                            .maxBodySize(0)
                             .execute();
                     String jsonStr=response.body();
                     //结构变化检测

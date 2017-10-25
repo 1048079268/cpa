@@ -35,7 +35,9 @@ public class ContentService {
     private String sendFrom;
     @Autowired
     private JavaMailSender mailSender;
-    //TODO 开发阶段用来控制发送邮件且不影响程序运行，正式运行使用 GlobalVar.SEND_STRUCTURE_EMAIL
+    /**
+     * TODO 开发阶段用来控制发送邮件且不影响程序运行，正式运行使用 GlobalVar.SEND_STRUCTURE_EMAIL
+     */
     private final static AtomicBoolean TEST_SEND_STRUCTURE_EMAIL=new AtomicBoolean(true);
 
     public synchronized void sendStructureChangeInfo(String changeInfo, ContentParam param){

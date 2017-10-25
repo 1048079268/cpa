@@ -16,7 +16,7 @@ import java.io.FileNotFoundException;
  * @date: 2017/8/9 9:10
  */
 @Component
-@Order(1) //启动的顺序
+@Order(1)
 public class Start implements CommandLineRunner {
     private static Logger logger= LoggerFactory.getLogger(Start.class);
     @Autowired

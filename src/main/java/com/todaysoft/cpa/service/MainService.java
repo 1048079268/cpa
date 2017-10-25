@@ -224,7 +224,10 @@ public class MainService {
         }
     }
 
-    //药物（一级线程）
+    /**
+     * 药物（一级线程）
+     * @return
+     */
     public Runnable drug(){
         Page page=new Page(cpaProperties.getDrugUrl());
         ContentParam param=new ContentParam(CPA.DRUG,drugService);

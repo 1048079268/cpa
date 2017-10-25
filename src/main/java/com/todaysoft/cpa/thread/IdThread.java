@@ -86,10 +86,16 @@ public class IdThread implements Runnable {
                     logger.info("【"+cpa.name()+"】完成一次id抓取,开始执行分页偏移，page["+metaOffset+"/"+metaTotal+"],数据量："+insertCount);
                     page.offset();//执行偏移操作
                     retryTimes=3;
-//                    //TODO 测试使用(药物全部抓取)
-//                    if (insertCount>=20&&!cpa.equals(CPA.DRUG)) {
-//                        break;
-//                    }
+                    //TODO 测试使用(药物全部抓取)
+                    if (contentParam.isHasDependence()){
+                        if (insertCount>=10){
+                            break;
+                        }
+                    }else {
+                        if (insertCount>=100) {
+                            break;
+                        }
+                    }
                     Thread.sleep(200);
                 } catch (Exception e) {
                     //发生异常后恢复线程并进行重试3次
