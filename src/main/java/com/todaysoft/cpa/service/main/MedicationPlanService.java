@@ -68,7 +68,7 @@ public class MedicationPlanService extends BaseService {
 
     @Override
     @Transactional
-    public boolean save(JSONObject object) throws InterruptedException {
+    public boolean save(JSONObject object,JSONObject cn) throws InterruptedException {
         MedicationPlan medicationPlan=object.toJavaObject(MedicationPlan.class);
         medicationPlan.setMedicationPlanKey(PkGenerator.generator(MedicationPlan.class));
         medicationPlan.setCheckState(1);
@@ -185,7 +185,7 @@ public class MedicationPlanService extends BaseService {
     }
 
     @Override
-    public boolean saveByDependence(JSONObject object, String dependenceKey) {
+    public boolean saveByDependence(JSONObject object,JSONObject cn, String dependenceKey) {
         return false;
     }
 

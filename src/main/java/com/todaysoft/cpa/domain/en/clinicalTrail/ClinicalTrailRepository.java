@@ -15,5 +15,6 @@ public interface ClinicalTrailRepository extends JpaRepository<ClinicalTrial,Str
     @Query("select c.clinicalTrialId from ClinicalTrial c where c.createdWay=2")
     Set<String> findIdByCPA();
 
+    @Query("select c from ClinicalTrial c where c.clinicalTrialId=?1 and c.createdWay=2")
     ClinicalTrial findByClinicalTrialId(String clinicalTrialId);
 }

@@ -74,18 +74,18 @@ public class VariantService extends BaseService {
     private ContentService contentService;
 
     @Override
-    public boolean save(JSONObject object) {
+    public boolean save(JSONObject object,JSONObject cn) {
         Variant variant = JSONObject.toJavaObject(object, Variant.class);
         Gene gene=geneRepository.findByGeneIdAndCreateWay(variant.getGeneId(),2);
         if(gene==null){
             throw new DataException("未找到相应的基因，info->geneId="+variant.getGeneId());
         }
-        return saveByDependence(object,gene.getGeneKey());
+        return saveByDependence(object,cn,gene.getGeneKey());
     }
 
     @Override
     @Transactional
-    public boolean saveByDependence(JSONObject object, String dependenceKey) {
+    public boolean saveByDependence(JSONObject object,JSONObject cn, String dependenceKey) {
         Variant variant = JSONObject.toJavaObject(object, Variant.class);
         variant.setVariantKey(PkGenerator.generator(Variant.class));
         variant.setGeneKey(dependenceKey);

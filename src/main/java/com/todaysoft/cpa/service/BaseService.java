@@ -12,19 +12,21 @@ import java.io.FileNotFoundException;
 public abstract class BaseService {
     /**
      * 保存数据
-     * @param object
+     * @param en
+     * @param cn
      * @return
      * @throws InterruptedException
      */
-    public abstract boolean save(JSONObject object) throws InterruptedException;
+    public abstract boolean save(JSONObject en,JSONObject cn) throws InterruptedException;
 
     /**
      * 保存基于依赖的数据
-     * @param object
+     * @param en
+     * @param cn
      * @param dependenceKey
      * @return
      */
-    public abstract boolean saveByDependence(JSONObject object, String dependenceKey);
+    public abstract boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey) throws InterruptedException;
 
     /**
      * 初始化程序

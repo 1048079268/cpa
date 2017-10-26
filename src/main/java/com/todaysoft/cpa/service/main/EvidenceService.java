@@ -22,6 +22,8 @@ import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.DataException;
+import com.todaysoft.cpa.utils.JsonArrayConverter;
+import com.todaysoft.cpa.utils.JsonObjectConverter;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -62,70 +64,81 @@ public class EvidenceService extends BaseService {
     private VariantRepository variantRepository;
 
     @Override
-    public boolean save(JSONObject object) throws InterruptedException {
+    public boolean save(JSONObject object,JSONObject cn) throws InterruptedException {
         Evidence evidence=object.toJavaObject(Evidence.class);
         Variant variant=variantRepository.findByVariantIdAndCreatedWay(evidence.getVariantId(),2);
         if (variant==null){
             throw new DataException("未找到相应的突变，info->variantId="+evidence.getVariantId());
         }
-        return saveByDependence(object,variant.getVariantKey());
+        return saveByDependence(object,cn,variant.getVariantKey());
     }
 
     @Override
     @Transactional
-    public boolean saveByDependence(JSONObject object, String dependenceKey) {
-        Evidence evidence=object.toJavaObject(Evidence.class);
-        evidence.setVariantKey(dependenceKey);
-        evidence.setEvidenceKey(PkGenerator.generator(Evidence.class));
-        evidence.setCheckState(1);
-        evidence.setCreatedAt(System.currentTimeMillis());
-        evidence.setCreatedWay(2);
-        JSONObject doidObj=object.getJSONObject("doid");
-        if (doidObj!=null){
-            String doid=doidObj.getString("id");
-            Cancer cancer=cancerRepository.findByDoid(doid);
-            if (cancer==null){
-                throw new DataException("未找到相应的疾病，info->doid="+doid);
+    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey) throws InterruptedException {
+        String evidenceKey=PkGenerator.generator(Evidence.class);
+        JsonObjectConverter<Evidence> evidenceConverter=(json)->{
+            Evidence evidence=json.toJavaObject(Evidence.class);
+            evidence.setVariantKey(dependenceKey);
+            evidence.setEvidenceKey(evidenceKey);
+            evidence.setCheckState(1);
+            evidence.setCreatedAt(System.currentTimeMillis());
+            evidence.setCreatedWay(2);
+            JSONObject doidObj=json.getJSONObject("doid");
+            if (doidObj!=null){
+                String doid=doidObj.getString("id");
+                Cancer cancer=cancerRepository.findByDoid(doid);
+                if (cancer==null){
+                    throw new DataException("未找到相应的疾病，info->doid="+doid);
+                }
+                evidence.setCancerKey(cancer.getCancerKey());
+                evidence.setDoid(Integer.valueOf(cancer.getDoid()));
+                evidence.setDoidName(cancer.getCancerName());
             }
-            evidence.setCancerKey(cancer.getCancerKey());
-            evidence.setDoid(Integer.valueOf(cancer.getDoid()));
-            evidence.setDoidName(cancer.getCancerName());
-        }
-        evidence=evidenceRepository.save(evidence);
-        evidence=cnEvidenceRepository.save(evidence);
+            return evidence;
+        };
+        Evidence evidence=evidenceRepository.save(evidenceConverter.convert(en));
+        cnEvidenceRepository.save(evidenceConverter.convert(cn));
         if (evidence==null){
-            throw new DataException("保存主表失败->id="+object.getString("id"));
+            throw new DataException("保存主表失败->id="+en.getString("id"));
         }
         //参考文献
-        JSONObject reference=object.getJSONObject("reference");
-        if (reference!=null){
-            EvidenceReference evidenceReference=reference.toJavaObject(EvidenceReference.class);
-            evidenceReference.setEvidenceId(evidence.getEvidenceId());
-            evidenceReference.setEvidenceKey(evidence.getEvidenceKey());
-            evidenceReference.setEvidenceReferenceKey(PkGenerator.generator(EvidenceReference.class));
-            evidenceReferenceRepository.save(evidenceReference);
-            cnEvidenceReferenceRepository.save(evidenceReference);
-        }
-        //药物
-        JSONArray drugIds=object.getJSONArray("drugIds");
-        if (drugIds!=null&&drugIds.size()>0){
-            List<EvidenceDrug> drugList=new ArrayList<>();
-            for (int i=0;i<drugIds.size();i++){
-                Integer drugId=drugIds.getInteger(i);
-                Drug drug=drugRepository.findByDrugId(drugId);
-                if (drug==null){
-                    throw new DataException("未找到相应的药物，info->drugId="+drugId);
-                }
-                EvidenceDrug evidenceDrug=new EvidenceDrug();
-                evidenceDrug.setDrugId(drug.getDrugId());
-                evidenceDrug.setDrugKey(drug.getDrugKey());
-                evidenceDrug.setEvidenceId(evidence.getEvidenceId());
-                evidenceDrug.setEvidenceKey(evidence.getEvidenceKey());
-                drugList.add(evidenceDrug);
+        JsonObjectConverter<EvidenceReference> referenceConverter=(json)->{
+            JSONObject reference=json.getJSONObject("reference");
+            if (reference!=null){
+                EvidenceReference evidenceReference=reference.toJavaObject(EvidenceReference.class);
+                evidenceReference.setEvidenceId(evidence.getEvidenceId());
+                evidenceReference.setEvidenceKey(evidence.getEvidenceKey());
+                evidenceReference.setEvidenceReferenceKey(PkGenerator.generator(EvidenceReference.class));
+                return evidenceReference;
             }
-            evidenceDrugRepository.save(drugList);
-            cnEvidenceDrugRepository.save(drugList);
-        }
+            return null;
+        };
+        evidenceReferenceRepository.save(referenceConverter.convert(en));
+        cnEvidenceReferenceRepository.save(referenceConverter.convert(cn));
+        //药物
+        JsonArrayConverter<EvidenceDrug> evidenceDrugConverter=(json)->{
+            JSONArray drugIds=json.getJSONArray("drugIds");
+            List<EvidenceDrug> drugList=new ArrayList<>();
+            if (drugIds!=null&&drugIds.size()>0){
+                for (int i=0;i<drugIds.size();i++){
+                    Integer drugId=drugIds.getInteger(i);
+                    Drug drug=drugRepository.findByDrugId(drugId);
+                    if (drug==null){
+                        throw new DataException("未找到相应的药物，info->drugId="+drugId);
+                    }
+                    EvidenceDrug evidenceDrug=new EvidenceDrug();
+                    evidenceDrug.setDrugId(drug.getDrugId());
+                    evidenceDrug.setDrugKey(drug.getDrugKey());
+                    evidenceDrug.setEvidenceId(evidence.getEvidenceId());
+                    evidenceDrug.setEvidenceKey(evidence.getEvidenceKey());
+                    drugList.add(evidenceDrug);
+                }
+            }
+            return drugList;
+        };
+        evidenceDrugRepository.save(evidenceDrugConverter.convert(en));
+        cnEvidenceDrugRepository.save(evidenceDrugConverter.convert(cn));
         return true;
     }
 

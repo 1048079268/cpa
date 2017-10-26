@@ -39,18 +39,18 @@ public class MutationStatisticService extends BaseService {
     private VariantRepository variantRepository;
 
     @Override
-    public boolean save(JSONObject object) {
+    public boolean save(JSONObject object,JSONObject cn) {
         VariantMutationStatistic statistic=object.toJavaObject(VariantMutationStatistic.class);
         Variant variant=variantRepository.findByCosmicIdAndCreatedWay(statistic.getMutationId(),2);
         if (variant==null){
             throw new DataException("未找到相应的突变，info->cosmicId="+statistic.getMutationId());
         }
-        return saveByDependence(object,variant.getVariantKey());
+        return saveByDependence(object,cn,variant.getVariantKey());
     }
 
     @Override
     @Transactional
-    public boolean saveByDependence(JSONObject object, String dependenceKey) {
+    public boolean saveByDependence(JSONObject object,JSONObject cn, String dependenceKey) {
         VariantMutationStatistic statistic=object.toJavaObject(VariantMutationStatistic.class);
         if (statistic.getDoid()==null){
             return false;

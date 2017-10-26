@@ -107,9 +107,13 @@ public class MainService {
         if (test){
 //            Thread drugContentThread=new Thread(new DrugThread(contentService));
 //            drugContentThread.start();
-            ContentParam param=new ContentParam(CPA.REGIMEN,medicationPlanService);
-            param.setId("1759");
-            GlobalVar.getContentQueue().put(param);
+//            ContentParam param=new ContentParam(CPA.REGIMEN,medicationPlanService);
+//            param.setId("1759");
+//            GlobalVar.getContentQueue().put(param);
+            Page msPage=new Page(CPA.MUTATION_STATISTICS.contentUrl);
+            msPage.putParam("cosmicId","COSM1458320");
+            ContentParam msParam=new ContentParam(CPA.MUTATION_STATISTICS,mutationStatisticService);
+            MainService.childrenTreadPool.execute(new MutationStatisticThread(msPage,msParam,contentService));
         }
         while (!test){
             //一线id抓取线程池（主）

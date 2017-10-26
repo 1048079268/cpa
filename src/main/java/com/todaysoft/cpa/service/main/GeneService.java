@@ -14,6 +14,8 @@ import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.service.MainService;
 import com.todaysoft.cpa.thread.IdThread;
 import com.todaysoft.cpa.utils.DataException;
+import com.todaysoft.cpa.utils.JsonArrayConverter;
+import com.todaysoft.cpa.utils.JsonObjectConverter;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,75 +64,95 @@ public class GeneService extends BaseService {
     private CPAProperties cpaProperties;
 
     @Override
-    public boolean save(JSONObject object) {
+    public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
         //1.基因
-        Gene gene = object.toJavaObject(Gene.class);
-        gene.setGeneKey(PkGenerator.generator(Gene.class));
-        gene.setCreateAt(System.currentTimeMillis());
-        gene.setCreateWay(2);
-        gene = geneRepository.save(gene);
-        gene=cnGeneRepository.save(gene);
+        String geneKey=PkGenerator.generator(Gene.class);
+        JsonObjectConverter<Gene> geneConverter=(json)->{
+            Gene gene = json.toJavaObject(Gene.class);
+            gene.setGeneKey(geneKey);
+            gene.setCreateAt(System.currentTimeMillis());
+            gene.setCreateWay(2);
+            return gene;
+        };
+        Gene gene = geneRepository.save(geneConverter.convert(en));
+        cnGeneRepository.save(geneConverter.convert(cn));
         if (gene==null){
-            throw new DataException("保存主表失败->id="+object.getString("id"));
+            throw new DataException("保存主表失败->id="+en.getString("id"));
         }
         //2.基因别名
-        JSONArray aliases = object.getJSONArray("aliases");
-        if (aliases != null && aliases.size() > 0) {
-            List<GeneAlias> aliasList = new ArrayList<>(aliases.size());
-            for (int i = 0; i < aliases.size(); i++) {
-                GeneAlias alias = new GeneAlias();
-                alias.setGeneAliasKey(PkGenerator.generator(GeneAlias.class));
-                alias.setGeneId(gene.getGeneId());
-                alias.setGeneKey(gene.getGeneKey());
-                alias.setGeneAlias(aliases.getString(i));
-                aliasList.add(alias);
+        String aliasesKey=PkGenerator.generator(GeneAlias.class);
+        JsonArrayConverter<GeneAlias> aliasConverter=(json)->{
+            JSONArray aliases = json.getJSONArray("aliases");
+            List<GeneAlias> aliasList = new ArrayList<>();
+            if (aliases != null && aliases.size() > 0) {
+                for (int i = 0; i < aliases.size(); i++) {
+                    GeneAlias alias = new GeneAlias();
+                    alias.setGeneAliasKey(PkGenerator.md5(aliasesKey+i));
+                    alias.setGeneId(gene.getGeneId());
+                    alias.setGeneKey(gene.getGeneKey());
+                    alias.setGeneAlias(aliases.getString(i));
+                    aliasList.add(alias);
+                }
             }
-            geneAliasRepository.save(aliasList);
-            cnGeneAliasRepository.save(aliasList);
-        }
+            return aliasList;
+        };
+        geneAliasRepository.save(aliasConverter.convert(en));
+        cnGeneAliasRepository.save(aliasConverter.convert(cn));
         //3.基因外部id
-        JSONArray externalIds = object.getJSONArray("externalIds");
-        if (externalIds != null && externalIds.size() > 0) {
-            List<GeneExternalId> externalIdsList = new ArrayList<>(externalIds.size());
-            for (int i = 0; i < externalIds.size(); i++) {
-                GeneExternalId externalId = externalIds.getObject(i, GeneExternalId.class);
-                externalId.setGeneExternalIdKey(PkGenerator.generator(GeneExternalId.class));
-                externalId.setGeneId(gene.getGeneId());
-                externalId.setGeneKey(gene.getGeneKey());
-                externalIdsList.add(externalId);
+        String externalIdKey=PkGenerator.generator(GeneExternalId.class);
+        JsonArrayConverter<GeneExternalId> externalIdConverter=(json)->{
+            JSONArray externalIds = json.getJSONArray("externalIds");
+            List<GeneExternalId> externalIdsList = new ArrayList<>();
+            if (externalIds != null && externalIds.size() > 0) {
+                for (int i = 0; i < externalIds.size(); i++) {
+                    GeneExternalId externalId = externalIds.getObject(i, GeneExternalId.class);
+                    externalId.setGeneExternalIdKey(PkGenerator.md5(externalIdKey+i));
+                    externalId.setGeneId(gene.getGeneId());
+                    externalId.setGeneKey(gene.getGeneKey());
+                    externalIdsList.add(externalId);
+                }
             }
-            geneExternalIdRepository.save(externalIdsList);
-            cnGeneExternalIdRepository.save(externalIdsList);
-        }
+            return externalIdsList;
+        };
+        geneExternalIdRepository.save(externalIdConverter.convert(en));
+        cnGeneExternalIdRepository.save(externalIdConverter.convert(cn));
         //4.基因位置
-        JSONArray locations = object.getJSONArray("locations");
-        if (locations != null && locations.size() > 0) {
-            List<GeneLocation> locationList = new ArrayList<>(locations.size());
-            for (int i = 0; i < locations.size(); i++) {
-                GeneLocation location = locations.getObject(i, GeneLocation.class);
-                location.setGeneLocationKey(PkGenerator.generator(GeneLocation.class));
-                location.setGeneKey(gene.getGeneKey());
-                location.setGeneId(gene.getGeneId());
-                locationList.add(location);
+        String locationKey=PkGenerator.generator(GeneLocation.class);
+        JsonArrayConverter<GeneLocation> locationConverter=(json)->{
+            JSONArray locations = json.getJSONArray("locations");
+            List<GeneLocation> locationList = new ArrayList<>();
+            if (locations != null && locations.size() > 0) {
+                for (int i = 0; i < locations.size(); i++) {
+                    GeneLocation location = locations.getObject(i, GeneLocation.class);
+                    location.setGeneLocationKey(PkGenerator.md5(locationKey+i));
+                    location.setGeneKey(gene.getGeneKey());
+                    location.setGeneId(gene.getGeneId());
+                    locationList.add(location);
+                }
             }
-            geneLocationRepository.save(locationList);
-            cnGeneLocationRepository.save(locationList);
-        }
+            return locationList;
+        };
+        geneLocationRepository.save(locationConverter.convert(en));
+        cnGeneLocationRepository.save(locationConverter.convert(cn));
         //5.基因其他名字
-        JSONArray otherNames = object.getJSONArray("otherNames");
-        if (otherNames != null && otherNames.size() > 0) {
-            List<GeneOtherName> otherNameList = new ArrayList<>(otherNames.size());
-            for (int i = 0; i < otherNames.size(); i++) {
-                GeneOtherName otherName = new GeneOtherName();
-                otherName.setGeneOtherNameKey(PkGenerator.generator(GeneOtherName.class));
-                otherName.setGeneId(gene.getGeneId());
-                otherName.setGeneKey(gene.getGeneKey());
-                otherName.setOtherName(otherNames.getString(i));
-                otherNameList.add(otherName);
+        String otherNameKey=PkGenerator.generator(GeneOtherName.class);
+        JsonArrayConverter<GeneOtherName> otherNameConverter=(json)->{
+            JSONArray otherNames = json.getJSONArray("otherNames");
+            List<GeneOtherName> otherNameList = new ArrayList<>();
+            if (otherNames != null && otherNames.size() > 0) {
+                for (int i = 0; i < otherNames.size(); i++) {
+                    GeneOtherName otherName = new GeneOtherName();
+                    otherName.setGeneOtherNameKey(PkGenerator.md5(otherNameKey+i));
+                    otherName.setGeneId(gene.getGeneId());
+                    otherName.setGeneKey(gene.getGeneKey());
+                    otherName.setOtherName(otherNames.getString(i));
+                    otherNameList.add(otherName);
+                }
             }
-            geneOtherNameRepository.save(otherNameList);
-            cnGeneOtherNameRepository.save(otherNameList);
-        }
+            return otherNameList;
+        };
+        geneOtherNameRepository.save(otherNameConverter.convert(en));
+        cnGeneOtherNameRepository.save(otherNameConverter.convert(cn));
         //插入与该id关联的蛋白质
         logger.info("【" + CPA.GENE.name() + "】开始插入关联的蛋白质");
         Page proteinPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.PROTEIN.name+"s");
@@ -145,7 +167,7 @@ public class GeneService extends BaseService {
     }
 
     @Override
-    public boolean saveByDependence (JSONObject object, String dependenceKey){
+    public boolean saveByDependence (JSONObject object,JSONObject cn, String dependenceKey){
         return false;
     }
 

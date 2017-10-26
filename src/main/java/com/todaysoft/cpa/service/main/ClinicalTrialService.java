@@ -23,9 +23,7 @@ import com.todaysoft.cpa.domain.entity.DrugClinicalTrialPK;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.service.BaseService;
-import com.todaysoft.cpa.utils.DataException;
-import com.todaysoft.cpa.utils.JsonUtil;
-import com.todaysoft.cpa.utils.PkGenerator;
+import com.todaysoft.cpa.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,42 +66,73 @@ public class ClinicalTrialService extends BaseService {
 
     @Override
     @Transactional
-    public boolean save(JSONObject object){
-        ClinicalTrial clinicalTrial=object.toJavaObject(ClinicalTrial.class);
-        clinicalTrial.setClinicalTrialKey(PkGenerator.generator(ClinicalTrial.class));
-        clinicalTrial.setCheckState(1);
-        clinicalTrial.setCreatedAt(System.currentTimeMillis());
-        clinicalTrial.setCreatedWay(2);
-        clinicalTrial.setCountries(JsonUtil.jsonArrayToString(object.getJSONArray("countries"),","));
-        clinicalTrial=clinicalTrailRepository.save(clinicalTrial);
-        cnClinicalTrailRepository.save(clinicalTrial);
-        saveFixed(clinicalTrial,object);
+    public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
+        String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
+        JsonObjectConverter<ClinicalTrial> converter=(json)->{
+            ClinicalTrial clinicalTrial=json.toJavaObject(ClinicalTrial.class);
+            clinicalTrial.setClinicalTrialKey(clinicalTrialKey);
+            clinicalTrial.setCheckState(1);
+            clinicalTrial.setCreatedAt(System.currentTimeMillis());
+            clinicalTrial.setCreatedWay(2);
+            clinicalTrial.setCountries(JsonUtil.jsonArrayToString(en.getJSONArray("countries"),","));
+            return clinicalTrial;
+        };
+        ClinicalTrial clinicalTrialEn=clinicalTrailRepository.save(converter.convert(en));
+        cnClinicalTrailRepository.save(converter.convert(cn));
+        saveFixed(clinicalTrialEn,en,cn);
+        //临床&药物
+        JsonArrayConverter<DrugClinicalTrial> clinicalTrialConverter=(json)->{
+            List<DrugClinicalTrial> clinicalTrialList=new ArrayList<>();
+            JSONArray drugs = json.getJSONArray("drugs");
+            if (drugs!=null&&drugs.size()>0){
+                for (int i=0;i<drugs.size();i++){
+                    String drugId= drugs.getString(i);
+                    Drug drug = drugRepository.findByDrugId(Integer.valueOf(drugId));
+                    if (drug==null){
+                        throw new DataException("未找到相应药物，info->drugId="+drugId);
+                    }
+                    DrugClinicalTrial drugClinicalTrial=new DrugClinicalTrial();
+                    drugClinicalTrial.setClinicalTrialId(clinicalTrialEn.getClinicalTrialId());
+                    drugClinicalTrial.setClinicalTrialKey(clinicalTrialEn.getClinicalTrialKey());
+                    drugClinicalTrial.setDrugId(drug.getDrugId());
+                    drugClinicalTrial.setDrugKey(drug.getDrugKey());
+                    clinicalTrialList.add(drugClinicalTrial);
+                }
+            }
+            return clinicalTrialList;
+        };
+        drugClinicalTrialRepository.save(clinicalTrialConverter.convert(en));
+        cnDrugClinicalTrialRepository.save(clinicalTrialConverter.convert(cn));
         return true;
     }
 
     @Override
     @Transactional
-    public boolean saveByDependence(JSONObject object, String dependenceKey) {
-        ClinicalTrial clinicalTrial=object.toJavaObject(ClinicalTrial.class);
-        clinicalTrial.setClinicalTrialKey(PkGenerator.generator(ClinicalTrial.class));
-        clinicalTrial.setCheckState(1);
-        clinicalTrial.setCreatedAt(System.currentTimeMillis());
-        clinicalTrial.setCreatedWay(2);
-        clinicalTrial.setCountries(JsonUtil.jsonArrayToString(object.getJSONArray("countries"),","));
-        clinicalTrial=clinicalTrailRepository.save(clinicalTrial);
-        cnClinicalTrailRepository.save(clinicalTrial);
-        saveFixed(clinicalTrial,object);
+    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey) throws InterruptedException {
+        String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
+        JsonObjectConverter<ClinicalTrial> converter=(json)->{
+            ClinicalTrial clinicalTrial=json.toJavaObject(ClinicalTrial.class);
+            clinicalTrial.setClinicalTrialKey(clinicalTrialKey);
+            clinicalTrial.setCheckState(1);
+            clinicalTrial.setCreatedAt(System.currentTimeMillis());
+            clinicalTrial.setCreatedWay(2);
+            clinicalTrial.setCountries(JsonUtil.jsonArrayToString(en.getJSONArray("countries"),","));
+            return clinicalTrial;
+        };
+        ClinicalTrial clinicalTrialEn=clinicalTrailRepository.save(converter.convert(en));
+        cnClinicalTrailRepository.save(converter.convert(cn));
+        saveFixed(clinicalTrialEn,en,cn);
         Drug drug=drugRepository.findOne(dependenceKey);
         if (drug!=null){
             DrugClinicalTrialPK pk=new DrugClinicalTrialPK();
-            pk.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
+            pk.setClinicalTrialKey(clinicalTrialEn.getClinicalTrialKey());
             pk.setDrugKey(drug.getDrugKey());
             if (drugClinicalTrialRepository.findOne(pk)==null){
                 DrugClinicalTrial drugClinicalTrial=new DrugClinicalTrial();
                 drugClinicalTrial.setDrugKey(dependenceKey);
                 drugClinicalTrial.setDrugId(drug.getDrugId());
-                drugClinicalTrial.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
-                drugClinicalTrial.setClinicalTrialId(clinicalTrial.getClinicalTrialId());
+                drugClinicalTrial.setClinicalTrialKey(clinicalTrialEn.getClinicalTrialKey());
+                drugClinicalTrial.setClinicalTrialId(clinicalTrialEn.getClinicalTrialId());
                 drugClinicalTrialRepository.save(drugClinicalTrial);
                 cnDrugClinicalTrialRepository.save(drugClinicalTrial);
             }
@@ -114,44 +143,50 @@ public class ClinicalTrialService extends BaseService {
     /**
      * 保存没有关联的部分数据
      * @param clinicalTrial
-     * @param object
      */
-    private void saveFixed(ClinicalTrial clinicalTrial,JSONObject object){
+    private void saveFixed(ClinicalTrial clinicalTrial,JSONObject en,JSONObject cn) throws InterruptedException {
         //成果
-        JSONArray outcomes=object.getJSONArray("outcomes");
-        List<ClinicalTrialOutcome> outcomeList=new ArrayList<>();
-        if (outcomes!=null&&outcomes.size()>0){
-            for (int i=0;i<outcomes.size();i++){
-                ClinicalTrialOutcome outcome=outcomes.getObject(i,ClinicalTrialOutcome.class);
-                outcome.setClinicalTrailOutcomeKey(PkGenerator.generator(ClinicalTrialOutcome.class));
-                outcome.setClinicalTrailId(clinicalTrial.getClinicalTrialId());
-                outcome.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
-                outcomeList.add(outcome);
-            }
-            clinicalTrialOutcomeRepository.save(outcomeList);
-            cnClinicalTrialOutcomeRepository.save(outcomeList);
-        }
-        //与疾病关联
-        JSONArray diseases=object.getJSONArray("diseases");
-        List<ClinicalTrialCancer> trailCancerList=new ArrayList<>();
-        if (diseases!=null&&diseases.size()>0){
-            for (int i=0;i<diseases.size();i++){
-                String doid=diseases.getJSONObject(i).getString("doid");
-                Cancer cancer = cancerRepository.findByDoid(doid);
-                if (cancer!=null){
-                    ClinicalTrialCancer clinicalTrialCancer =new ClinicalTrialCancer();
-                    clinicalTrialCancer.setCancerKey(cancer.getCancerKey());
-                    clinicalTrialCancer.setClinicalTrailId(clinicalTrial.getClinicalTrialId());
-                    clinicalTrialCancer.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
-                    clinicalTrialCancer.setDoid(Integer.valueOf(cancer.getDoid()));
-                    trailCancerList.add(clinicalTrialCancer);
-                }else {
-                    throw new DataException("未找到相应的疾病，info->doid="+doid);
+        String outcomesKey=PkGenerator.generator(ClinicalTrialOutcome.class);
+        JsonArrayConverter<ClinicalTrialOutcome> outcomeJsonArrayConverter=(json)->{
+            JSONArray outcomes=json.getJSONArray("outcomes");
+            List<ClinicalTrialOutcome> outcomeList=new ArrayList<>();
+            if (outcomes!=null&&outcomes.size()>0){
+                for (int i=0;i<outcomes.size();i++){
+                    ClinicalTrialOutcome outcome=outcomes.getObject(i,ClinicalTrialOutcome.class);
+                    outcome.setClinicalTrailOutcomeKey(PkGenerator.md5(outcomesKey+i));
+                    outcome.setClinicalTrailId(clinicalTrial.getClinicalTrialId());
+                    outcome.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
+                    outcomeList.add(outcome);
                 }
             }
-        }
-        clinicalTrialCancerRepository.save(trailCancerList);
-        cnClinicalTrialCancerRepository.save(trailCancerList);
+            return outcomeList;
+        };
+        clinicalTrialOutcomeRepository.save(outcomeJsonArrayConverter.convert(en));
+        cnClinicalTrialOutcomeRepository.save(outcomeJsonArrayConverter.convert(cn));
+        //与疾病关联
+        JsonArrayConverter<ClinicalTrialCancer> cancerJsonArrayConverter=(json)->{
+            JSONArray diseases=json.getJSONArray("diseases");
+            List<ClinicalTrialCancer> trailCancerList=new ArrayList<>();
+            if (diseases!=null&&diseases.size()>0){
+                for (int i=0;i<diseases.size();i++){
+                    String doid=diseases.getJSONObject(i).getString("doid");
+                    Cancer cancer = cancerRepository.findByDoid(doid);
+                    if (cancer!=null){
+                        ClinicalTrialCancer clinicalTrialCancer =new ClinicalTrialCancer();
+                        clinicalTrialCancer.setCancerKey(cancer.getCancerKey());
+                        clinicalTrialCancer.setClinicalTrailId(clinicalTrial.getClinicalTrialId());
+                        clinicalTrialCancer.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
+                        clinicalTrialCancer.setDoid(Integer.valueOf(cancer.getDoid()));
+                        trailCancerList.add(clinicalTrialCancer);
+                    }else {
+                        throw new DataException("未找到相应的疾病，info->doid="+doid);
+                    }
+                }
+            }
+            return trailCancerList;
+        };
+        clinicalTrialCancerRepository.save(cancerJsonArrayConverter.convert(en));
+        cnClinicalTrialCancerRepository.save(cancerJsonArrayConverter.convert(cn));
     }
 
     @Override

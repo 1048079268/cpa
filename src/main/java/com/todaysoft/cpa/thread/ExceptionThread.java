@@ -10,6 +10,7 @@ import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.service.ContentService;
 import com.todaysoft.cpa.utils.ExceptionInfo;
+import com.todaysoft.cpa.utils.JsoupUtil;
 import com.todaysoft.cpa.utils.StructureChangeException;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -39,18 +40,12 @@ public class ExceptionThread implements Runnable {
             try {
                 contentParam= GlobalVar.getFailureQueue().take();
                 baseService =contentParam.getBaseService();
-                Connection.Response response= Jsoup.connect(contentParam.getCpa().contentUrl + "/" + contentParam.getId())
-                        .userAgent("'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'") // 设置 User-Agent
-                        .header("Authorization", GlobalVar.getAUTHORIZATION())
-                        .header("Accept", "application/test")
-                        .ignoreContentType(true)
-                        .maxBodySize(0)//设置最大响应长度为0 ，否则太长的返回数据不会完整显示
-                        .timeout(120000)// 设置连接超时时间
-                        .execute();
-                String jsonStr = response.body();
+                String url=contentParam.getCpa().contentUrl + "/" + contentParam.getId();
+                String enJson= JsoupUtil.getBody(url,"en");
+                String cnJson= JsoupUtil.getBody(url,"zn");
                 //结构变化检测
                 try {
-                    JSONObject checkBody=JSON.parseObject(jsonStr);
+                    JSONObject checkBody=JSON.parseObject(enJson);
                     Map<String, JsonDataType> map = AcquireJsonStructure.getJsonKeyMap(null, checkBody);
                     CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
                 }catch (StructureChangeException e){
@@ -58,17 +53,26 @@ public class ExceptionThread implements Runnable {
                     logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
                     return;
                 }
-                if (jsonStr != null && jsonStr.length() > 0) {
-                    JSONObject jsonObject = JSON.parseObject(jsonStr).getJSONObject("data").getJSONObject(contentParam.getCpa().name);
-                    if (jsonObject == null || jsonObject.toJSONString().length() <= 0) {
+                if (enJson != null && enJson.length() > 0) {
+                    //处理英文JSON
+                    JSONObject enObj = JSON.parseObject(enJson).getJSONObject("data").getJSONObject(contentParam.getCpa().name);
+                    if (enObj == null || enObj.toJSONString().length() <= 0) {
                         logger.info("【exception】【" + contentParam.getCpa().name() + "】未抓取到内容-->id="+contentParam.getId());
                         continue;
                     }
+                    //处理中文JSON
+                    JSONObject cnObj=null;
+                    if (cnJson!=null&&cnJson.length()>0){
+                        cnObj = JSON.parseObject(cnJson).getJSONObject("data").getJSONObject(contentParam.getCpa().name);
+                    }
+                    if (cnObj==null){
+                        cnObj=enObj;
+                    }
                     try {
                         if (contentParam.isHasDependence()){
-                            baseService.saveByDependence(jsonObject,contentParam.getDependenceKey());
+                            baseService.saveByDependence(enObj,cnObj,contentParam.getDependenceKey());
                         }else {
-                            baseService.save(jsonObject);
+                            baseService.save(enObj,cnObj);
                         }
                         logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                     }catch (Exception e){

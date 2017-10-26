@@ -94,9 +94,9 @@ public class MutationStatisticThread implements Runnable {
                                         try {
                                             boolean success;
                                             if (contentParam.isHasDependence()){
-                                                success=contentParam.getBaseService().saveByDependence(jsonObject,contentParam.getDependenceKey());
+                                                success=contentParam.getBaseService().saveByDependence(idObject,idObject,contentParam.getDependenceKey());
                                             }else {
-                                                success=contentParam.getBaseService().save(jsonObject);
+                                                success=contentParam.getBaseService().save(idObject,idObject);
                                             }
                                             if (success){
                                                 insertCount++;
@@ -128,6 +128,10 @@ public class MutationStatisticThread implements Runnable {
                     logger.info("【"+cpa.name()+"】完成一次突变疾病样本量抓取,开始执行分页偏移:"+insertCount);
                     page.offset();//执行偏移操作
                     retryTimes=3;
+                    //TODO 测试控制插入条数
+                    if (insertCount>100){
+                        break;
+                    }
                     Thread.sleep(1000);
                 } catch (InterruptedException e){
                     if (contentParam==null){

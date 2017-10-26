@@ -31,4 +31,13 @@ public class PkGenerator {
         }
         return generator;
     }
+
+    public static String md5(String text){
+        try {
+            return DigestUtils.md5DigestAsHex(text.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

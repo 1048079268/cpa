@@ -50,18 +50,18 @@ public class ProteinService extends BaseService {
     private GeneRepository geneRepository;
 
     @Override
-    public boolean save(JSONObject object) {
+    public boolean save(JSONObject object,JSONObject cn) {
         Protein protein=object.toJavaObject(Protein.class);
         Gene gene=geneRepository.findByGeneIdAndCreateWay(protein.getGeneId(),2);
         if (gene==null){
             throw new DataException("未找到相应的基因，info->geneId="+protein.getGeneId());
         }
-        return saveByDependence(object,gene.getGeneKey());
+        return saveByDependence(object,cn,gene.getGeneKey());
     }
 
     @Override
     @Transactional
-    public boolean saveByDependence(JSONObject object, String dependenceKey) {
+    public boolean saveByDependence(JSONObject object,JSONObject cn, String dependenceKey) {
         Protein protein=object.toJavaObject(Protein.class);
         protein.setProteinKey(PkGenerator.generator(Protein.class));
         protein.setCreatedAt(System.currentTimeMillis());

@@ -1,5 +1,7 @@
 package com.todaysoft.cpa.domain.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import javax.persistence.*;
 
 /**
@@ -92,5 +94,16 @@ public class VariantMutationStatistic {
         result = 31 * result + (mutationId != null ? mutationId.hashCode() : 0);
         result = 31 * result + (numOfSamples != null ? numOfSamples.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "VariantMutationStatistic{" +
+                "cancerKey='" + cancerKey + '\'' +
+                ", variantKey='" + variantKey + '\'' +
+                ", doid=" + doid +
+                ", mutationId='" + mutationId + '\'' +
+                ", numOfSamples=" + numOfSamples +
+                '}';
     }
 }

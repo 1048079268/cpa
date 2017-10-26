@@ -15,5 +15,6 @@ public interface DrugRepository extends JpaRepository<Drug,String>{
     @Query(value = "select distinct d.drugId from Drug d where 1=1 and d.createWay=2")
     Set<Integer> findIdByCPA();
 
+    @Query("select d from Drug d where d.drugId=?1 and d.createWay=2")
     Drug findByDrugId(Integer drugId);
 }
