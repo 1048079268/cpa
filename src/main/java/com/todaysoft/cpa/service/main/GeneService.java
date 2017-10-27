@@ -13,10 +13,7 @@ import com.todaysoft.cpa.param.Page;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.service.MainService;
 import com.todaysoft.cpa.thread.IdThread;
-import com.todaysoft.cpa.utils.DataException;
-import com.todaysoft.cpa.utils.JsonArrayConverter;
-import com.todaysoft.cpa.utils.JsonObjectConverter;
-import com.todaysoft.cpa.utils.PkGenerator;
+import com.todaysoft.cpa.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,9 +64,16 @@ public class GeneService extends BaseService {
     public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
         //1.基因
         String geneKey=PkGenerator.generator(Gene.class);
+        //查重覆盖
+        Gene checkGene = en.toJavaObject(Gene.class);
+        Gene byName = cnGeneRepository.findByName(checkGene.getGeneSymbol());
+        if (byName!=null){
+            geneKey=byName.getGeneKey();
+        }
+        String finalGeneKey = geneKey;
         JsonObjectConverter<Gene> geneConverter=(json)->{
             Gene gene = json.toJavaObject(Gene.class);
-            gene.setGeneKey(geneKey);
+            gene.setGeneKey(finalGeneKey);
             gene.setCreateAt(System.currentTimeMillis());
             gene.setCreateWay(2);
             return gene;
@@ -81,13 +85,22 @@ public class GeneService extends BaseService {
         }
         //2.基因别名
         String aliasesKey=PkGenerator.generator(GeneAlias.class);
-        JsonArrayConverter<GeneAlias> aliasConverter=(json)->{
+        JsonArrayLangConverter<GeneAlias> aliasConverter=(json,lang)->{
             JSONArray aliases = json.getJSONArray("aliases");
             List<GeneAlias> aliasList = new ArrayList<>();
             if (aliases != null && aliases.size() > 0) {
                 for (int i = 0; i < aliases.size(); i++) {
                     GeneAlias alias = new GeneAlias();
                     alias.setGeneAliasKey(PkGenerator.md5(aliasesKey+i));
+                    GeneAlias geneAlias = cnGeneAliasRepository.findByGeneKeyAndGeneAlias(gene.getGeneKey(), aliases.getString(i));
+                    if (geneAlias!=null){
+                        if (lang==1){
+                            alias.setGeneAliasKey(geneAlias.getGeneAliasKey());
+                        }
+                        if (lang==2){
+                            continue;
+                        }
+                    }
                     alias.setGeneId(gene.getGeneId());
                     alias.setGeneKey(gene.getGeneKey());
                     alias.setGeneAlias(aliases.getString(i));
@@ -96,8 +109,8 @@ public class GeneService extends BaseService {
             }
             return aliasList;
         };
-        geneAliasRepository.save(aliasConverter.convert(en));
-        cnGeneAliasRepository.save(aliasConverter.convert(cn));
+        geneAliasRepository.save(aliasConverter.convert(en,1));
+        cnGeneAliasRepository.save(aliasConverter.convert(cn,2));
         //3.基因外部id
         String externalIdKey=PkGenerator.generator(GeneExternalId.class);
         JsonArrayConverter<GeneExternalId> externalIdConverter=(json)->{

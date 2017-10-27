@@ -68,9 +68,15 @@ public class ClinicalTrialService extends BaseService {
     @Transactional
     public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
         String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
+        ClinicalTrial checkClinicalTrial=cn.toJavaObject(ClinicalTrial.class);
+        ClinicalTrial byTitle = cnClinicalTrailRepository.findByTitle(checkClinicalTrial.getTheTitle());
+        if (byTitle!=null){
+            clinicalTrialKey=byTitle.getClinicalTrialKey();
+        }
+        String finalClinicalTrialKey = clinicalTrialKey;
         JsonObjectConverter<ClinicalTrial> converter=(json)->{
             ClinicalTrial clinicalTrial=json.toJavaObject(ClinicalTrial.class);
-            clinicalTrial.setClinicalTrialKey(clinicalTrialKey);
+            clinicalTrial.setClinicalTrialKey(finalClinicalTrialKey);
             clinicalTrial.setCheckState(1);
             clinicalTrial.setCreatedAt(System.currentTimeMillis());
             clinicalTrial.setCreatedWay(2);
@@ -110,9 +116,15 @@ public class ClinicalTrialService extends BaseService {
     @Transactional
     public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey) throws InterruptedException {
         String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
+        ClinicalTrial checkClinicalTrial=cn.toJavaObject(ClinicalTrial.class);
+        ClinicalTrial byTitle = cnClinicalTrailRepository.findByTitle(checkClinicalTrial.getTheTitle());
+        if (byTitle!=null){
+            clinicalTrialKey=byTitle.getClinicalTrialKey();
+        }
+        String finalClinicalTrialKey = clinicalTrialKey;
         JsonObjectConverter<ClinicalTrial> converter=(json)->{
             ClinicalTrial clinicalTrial=json.toJavaObject(ClinicalTrial.class);
-            clinicalTrial.setClinicalTrialKey(clinicalTrialKey);
+            clinicalTrial.setClinicalTrialKey(finalClinicalTrialKey);
             clinicalTrial.setCheckState(1);
             clinicalTrial.setCreatedAt(System.currentTimeMillis());
             clinicalTrial.setCreatedWay(2);

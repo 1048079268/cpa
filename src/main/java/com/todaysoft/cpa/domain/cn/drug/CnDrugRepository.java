@@ -4,6 +4,7 @@ import com.todaysoft.cpa.domain.entity.Drug;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -16,4 +17,7 @@ public interface CnDrugRepository extends JpaRepository<Drug,String>{
     Set<Integer> findIdByCPA();
 
     Drug findByDrugId(Integer drugId);
+
+    @Query("select d from Drug d where (d.nameEn=?1) and d.createWay=3")
+    Drug findByName(String name);
 }

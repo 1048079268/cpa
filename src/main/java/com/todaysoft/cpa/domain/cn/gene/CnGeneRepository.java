@@ -16,4 +16,7 @@ public interface CnGeneRepository extends JpaRepository<Gene,String>{
     Set<Integer> findIdByCPA();
 
     Gene findByGeneIdAndCreateWay(Integer geneId, Integer createWay);
+
+    @Query("select g from Gene g where g.geneSymbol=?1 and g.createWay=3")
+    Gene findByName(String name);
 }
