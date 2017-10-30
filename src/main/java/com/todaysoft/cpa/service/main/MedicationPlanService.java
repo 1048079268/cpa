@@ -11,9 +11,10 @@ import com.todaysoft.cpa.domain.en.drug.DrugRepository;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.service.BaseService;
-import com.todaysoft.cpa.utils.DataException;
-import com.todaysoft.cpa.utils.JsonUtil;
-import com.todaysoft.cpa.utils.PkGenerator;
+import com.todaysoft.cpa.utils.*;
+import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
+import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
+import com.todaysoft.cpa.utils.JsonConverter.JsonObjectKeyConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,116 +69,159 @@ public class MedicationPlanService extends BaseService {
 
     @Override
     @Transactional
-    public boolean save(JSONObject object,JSONObject cn) throws InterruptedException {
-        MedicationPlan medicationPlan=object.toJavaObject(MedicationPlan.class);
-        medicationPlan.setMedicationPlanKey(PkGenerator.generator(MedicationPlan.class));
-        medicationPlan.setCheckState(1);
-        medicationPlan.setCreatedAt(System.currentTimeMillis());
-        medicationPlan.setCreatedWay(2);
-        medicationPlan=medicationPlanRepository.save(medicationPlan);
-        medicationPlan=cnMedicationPlanRepository.save(medicationPlan);
+    public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
+        String planKey=PkGenerator.generator(MedicationPlan.class);
+        MedicationPlan planEn=en.toJavaObject(MedicationPlan.class);
+        String planNameEn=planEn.getRegimenName();
+        MedicationPlan byName = cnMedicationPlanRepository.findByName(planNameEn);
+        if (byName!=null){
+            planKey=byName.getMedicationPlanKey();
+        }
+        String finalPlanKey = planKey;
+        JsonObjectConverter<MedicationPlan> planConverter=(json)->{
+            MedicationPlan medicationPlan=json.toJavaObject(MedicationPlan.class);
+            medicationPlan.setMedicationPlanKey(finalPlanKey);
+            medicationPlan.setCheckState(1);
+            medicationPlan.setCreatedAt(System.currentTimeMillis());
+            medicationPlan.setCreatedWay(2);
+            return medicationPlan;
+        };
+        MedicationPlan medicationPlan=medicationPlanRepository.save(planConverter.convert(en));
+        MedicationPlan planCn = planConverter.convert(cn);
+        planCn.setProgramNameC(planCn.getRegimenName());
+        planCn.setRegimenName(planNameEn);
+        cnMedicationPlanRepository.save(planCn);
         if (medicationPlan==null){
-            throw new DataException("保存主表失败->id="+object.getString("id"));
+            throw new DataException("保存主表失败->id="+en.getString("id"));
         }
         //相关研究
-        JSONArray studies=object.getJSONArray("studies");
-        if (studies!=null&&studies.size()>0){
+        String planStudyKey=PkGenerator.generator(PlanStudy.class);
+        JsonArrayConverter<PlanStudy> studyConverter=(json)->{
+            JSONArray studies=json.getJSONArray("studies");
             List<PlanStudy> studyList=new ArrayList<>();
-            for (int i=0;i<studies.size();i++){
-                PlanStudy study=studies.getObject(i,PlanStudy.class);
-                study.setMedicationPlanId(medicationPlan.getMedicinePlanId());
-                study.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
-                study.setPlanStudyKey(PkGenerator.generator(PlanStudy.class));
-                studyList.add(study);
-            }
-            planStudyRepository.save(studyList);
-            cnPlanStudyRepository.save(studyList);
-        }
-        //药物
-        JSONArray drugs=object.getJSONArray("drugs");
-        if (drugs!=null&&drugs.size()>0){
-            List<PlanDrug> drugList=new ArrayList<>();
-            for (int i=0;i<drugs.size();i++){
-                String drugId=drugs.getString(i);
-                PlanDrug planDrug=new PlanDrug();
-                Drug drug = drugRepository.findByDrugId(Integer.valueOf(drugId));
-                if (drug!=null){
-                    planDrug.setDrugId(drug.getDrugId());
-                    planDrug.setDrugKey(drug.getDrugKey());
-                    planDrug.setMedicationPlanId(medicationPlan.getMedicinePlanId());
-                    planDrug.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
-                    drugList.add(planDrug);
+            if (studies!=null&&studies.size()>0){
+                for (int i=0;i<studies.size();i++){
+                    PlanStudy study=studies.getObject(i,PlanStudy.class);
+                    study.setMedicationPlanId(medicationPlan.getMedicinePlanId());
+                    study.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
+                    study.setPlanStudyKey(PkGenerator.md5(planStudyKey+i));
+                    studyList.add(study);
                 }
             }
-            planDrugRepository.save(drugList);
-            cnPlanDrugRepository.save(drugList);
-        }
-        //疾病
-        JSONObject doid=object.getJSONObject("doid");
-        if (doid!=null){
-            PlanCancer planCancer=doid.toJavaObject(PlanCancer.class);
-            Cancer cancer=cancerRepository.findByDoid(String.valueOf(planCancer.getDoid()));
-            if (cancer==null){
-                throw new DataException("未找到相应疾病，info->doid="+planCancer.getDoid());
+            return studyList;
+        };
+        planStudyRepository.save(studyConverter.convert(en));
+        cnPlanStudyRepository.save(studyConverter.convert(cn));
+        //药物
+        JsonArrayConverter<PlanDrug> planDrugConverter=(json)->{
+            JSONArray drugs=json.getJSONArray("drugs");
+            List<PlanDrug> drugList=new ArrayList<>();
+            if (drugs!=null&&drugs.size()>0){
+                for (int i=0;i<drugs.size();i++){
+                    String drugId=drugs.getString(i);
+                    PlanDrug planDrug=new PlanDrug();
+                    Drug drug = drugRepository.findByDrugId(Integer.valueOf(drugId));
+                    if (drug!=null){
+                        planDrug.setDrugId(drug.getDrugId());
+                        planDrug.setDrugKey(drug.getDrugKey());
+                        planDrug.setMedicationPlanId(medicationPlan.getMedicinePlanId());
+                        planDrug.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
+                        drugList.add(planDrug);
+                    }
+                }
             }
-            planCancer.setCancerKey(cancer.getCancerKey());
-            planCancer.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
-            planCancer.setMedicinePlanId(medicationPlan.getMedicinePlanId());
-            planCancerRepository.save(planCancer);
-            cnPlanCancerRepository.save(planCancer);
+            return drugList;
+        };
+        planDrugRepository.save(planDrugConverter.convert(en));
+        cnPlanDrugRepository.save(planDrugConverter.convert(cn));
+        //疾病
+        JsonObjectConverter<PlanCancer> planCancerConverter=(json)->{
+            JSONObject doid=json.getJSONObject("doid");
+            if (doid!=null){
+                PlanCancer planCancer=doid.toJavaObject(PlanCancer.class);
+                Cancer cancer=cancerRepository.findByDoid(String.valueOf(planCancer.getDoid()));
+                if (cancer==null){
+                    throw new DataException("未找到相应疾病，info->doid="+planCancer.getDoid());
+                }
+                planCancer.setCancerKey(cancer.getCancerKey());
+                planCancer.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
+                planCancer.setMedicinePlanId(medicationPlan.getMedicinePlanId());
+                return planCancer;
+            }
+            return null;
+        };
+        PlanCancer planCancerEn = planCancerConverter.convert(en);
+        PlanCancer planCancerCn = planCancerConverter.convert(cn);
+        if (planCancerCn!=null&&planCancerEn!=null){
+            planCancerRepository.save(planCancerEn);
+            cnPlanCancerRepository.save(planCancerCn);
         }
         //参考文献
-        JSONArray references=object.getJSONArray("references");
-        if (references!=null&&references.size()>0){
+        String referenceKey=PkGenerator.generator(PlanReference.class);
+        JsonArrayConverter<PlanReference> referenceConverter=(json)->{
+            JSONArray references=json.getJSONArray("references");
             List<PlanReference> referenceList=new ArrayList<>();
-            for (int i=0;i<references.size();i++){
-                PlanReference reference=references.getObject(i,PlanReference.class);
-                reference.setPlanReferenceKey(PkGenerator.generator(PlanReference.class));
-                reference.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
-                reference.setMedicinePlanId(medicationPlan.getMedicinePlanId());
-                referenceList.add(reference);
+            if (references!=null&&references.size()>0){
+                for (int i=0;i<references.size();i++){
+                    PlanReference reference=references.getObject(i,PlanReference.class);
+                    reference.setPlanReferenceKey(PkGenerator.md5(referenceKey+i));
+                    reference.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
+                    reference.setMedicinePlanId(medicationPlan.getMedicinePlanId());
+                    referenceList.add(reference);
+                }
             }
-            planReferenceRepository.save(referenceList);
-            cnPlanReferenceRepository.save(referenceList);
-        }
+            return referenceList;
+        };
+        planReferenceRepository.save(referenceConverter.convert(en));
+        cnPlanReferenceRepository.save(referenceConverter.convert(cn));
         //用法说明
-        JSONArray instructions=object.getJSONArray("instructions");
-        if (instructions!=null&&instructions.size()>0){
-            for (int i=0;i<instructions.size();i++){
-                PlanInstruction planInstruction=instructions.getObject(i,PlanInstruction.class);
+        JSONArray instructionsEn=en.getJSONArray("instructions");
+        JSONArray instructionsCn=cn.getJSONArray("instructions");
+        if (instructionsEn!=null&&instructionsEn.size()>0){
+            //定义PlanInstruction创建
+            JsonObjectKeyConverter<PlanInstruction> instructionConverter=(json, key)->{
+                PlanInstruction planInstruction=json.toJavaObject(PlanInstruction.class);
                 planInstruction.setMedicationPlanId(medicationPlan.getMedicinePlanId());
                 planInstruction.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());
-                planInstruction.setPlanInstructionKey(PkGenerator.generator(PlanInstruction.class));
-                String drugIds= JsonUtil.jsonArrayToString(instructions.getJSONObject(i).getJSONArray("drugIds"),",");
+                planInstruction.setPlanInstructionKey(key);
+                String drugIds= JsonUtil.jsonArrayToString(json.getJSONArray("drugIds"),",");
                 planInstruction.setDrugIds(drugIds);
-                planInstruction=planInstructionRepository.save(planInstruction);
-                planInstruction=cnPlanInstructionRepository.save(planInstruction);
+                return planInstruction;
+            };
+            for (int i=0;i<instructionsEn.size();i++){
+                String instructionKey=PkGenerator.generator(PlanInstruction.class);
+                PlanInstruction planInstruction=planInstructionRepository.save(instructionConverter.convert(instructionsEn.getJSONObject(i),instructionKey));
+                cnPlanInstructionRepository.save(instructionConverter.convert(instructionsCn.getJSONObject(i),instructionKey));
                 if (planInstruction!=null){
                     //用法说明药物列表
-                    JSONArray instructionList=instructions.getJSONObject(i).getJSONArray("instructionList");
-                    if (instructionList!=null&&instructionList.size()>0){
+                    String messageKey=PkGenerator.generator(PlanInstructionMessage.class);
+                    JsonArrayConverter<PlanInstructionMessage> messageConverter=(json)->{
+                        JSONArray instructionList=json.getJSONArray("instructionList");
                         List<PlanInstructionMessage> instructionMessages=new ArrayList<>();
-                        for (int j=0;j<instructionList.size();j++){
-                            JSONObject jo=instructionList.getJSONObject(j);
-                            PlanInstructionMessage message=instructionList.getObject(j,PlanInstructionMessage.class);
-                            message.setInstructionId(planInstruction.getInstructionId());
-                            message.setPlanInstructionKey(planInstruction.getPlanInstructionKey());
-                            message.setPlanInstructionMessageKey(PkGenerator.generator(PlanInstructionMessage.class));
-                            String route=JsonUtil.jsonArrayToString(jo.getJSONArray("route"),",");
-                            String duration=JsonUtil.jsonArrayToString(jo.getJSONArray("duration"),",");
-                            String freq=JsonUtil.jsonArrayToString(jo.getJSONArray("freq"),",");
-                            String dosage=JsonUtil.jsonArrayToString(jo.getJSONArray("dosage"),",");
-                            String childDrugIds=JsonUtil.jsonArrayToString(jo.getJSONArray("drugIds"),",");
-                            message.setTheDosage(dosage);
-                            message.setTheRoute(route);
-                            message.setTheDuration(duration);
-                            message.setTheFrequency(freq);
-                            message.setDrugIds(childDrugIds);
-                            instructionMessages.add(message);
+                        if (instructionList!=null&&instructionList.size()>0){
+                            for (int j=0;j<instructionList.size();j++){
+                                JSONObject jo=instructionList.getJSONObject(j);
+                                PlanInstructionMessage message=instructionList.getObject(j,PlanInstructionMessage.class);
+                                message.setInstructionId(planInstruction.getInstructionId());
+                                message.setPlanInstructionKey(planInstruction.getPlanInstructionKey());
+                                message.setPlanInstructionMessageKey(PkGenerator.md5(messageKey+j));
+                                String route=JsonUtil.jsonArrayToString(jo.getJSONArray("route"),",");
+                                String duration=JsonUtil.jsonArrayToString(jo.getJSONArray("duration"),",");
+                                String freq=JsonUtil.jsonArrayToString(jo.getJSONArray("freq"),",");
+                                String dosage=JsonUtil.jsonArrayToString(jo.getJSONArray("dosage"),",");
+                                String childDrugIds=JsonUtil.jsonArrayToString(jo.getJSONArray("drugIds"),",");
+                                message.setTheDosage(dosage);
+                                message.setTheRoute(route);
+                                message.setTheDuration(duration);
+                                message.setTheFrequency(freq);
+                                message.setDrugIds(childDrugIds);
+                                instructionMessages.add(message);
+                            }
                         }
-                        planInstructionMessageRepository.save(instructionMessages);
-                        cnPlanInstructionMessageRepository.save(instructionMessages);
-                    }
+                        return instructionMessages;
+                    };
+                    planInstructionMessageRepository.save(messageConverter.convert(instructionsEn.getJSONObject(i)));
+                    cnPlanInstructionMessageRepository.save(messageConverter.convert(instructionsCn.getJSONObject(i)));
                 }
             }
         }

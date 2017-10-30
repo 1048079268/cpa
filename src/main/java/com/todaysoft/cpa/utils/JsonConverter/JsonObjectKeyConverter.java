@@ -1,4 +1,4 @@
-package com.todaysoft.cpa.utils;
+package com.todaysoft.cpa.utils.JsonConverter;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -8,6 +8,6 @@ import com.alibaba.fastjson.JSONObject;
  * @date: 2017/10/26 11:07
  */
 @FunctionalInterface
-public interface JsonObjectConverter<T> {
-    T convert(JSONObject object);
+public interface JsonObjectKeyConverter<T> {
+    T convert(JSONObject object,String key);
 }

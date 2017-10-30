@@ -15,6 +15,8 @@ import com.todaysoft.cpa.domain.entity.ProteinSynonym;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.DataException;
+import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
+import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +52,7 @@ public class ProteinService extends BaseService {
     private GeneRepository geneRepository;
 
     @Override
-    public boolean save(JSONObject object,JSONObject cn) {
+    public boolean save(JSONObject object,JSONObject cn) throws InterruptedException {
         Protein protein=object.toJavaObject(Protein.class);
         Gene gene=geneRepository.findByGeneIdAndCreateWay(protein.getGeneId(),2);
         if (gene==null){
@@ -61,32 +63,40 @@ public class ProteinService extends BaseService {
 
     @Override
     @Transactional
-    public boolean saveByDependence(JSONObject object,JSONObject cn, String dependenceKey) {
-        Protein protein=object.toJavaObject(Protein.class);
-        protein.setProteinKey(PkGenerator.generator(Protein.class));
-        protein.setCreatedAt(System.currentTimeMillis());
-        protein.setGeneKey(dependenceKey);
-        protein.setCreateWay(2);
-        protein=proteinRepository.save(protein);
-        protein=cnProteinRepository.save(protein);
+    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey) throws InterruptedException {
+        String proteinKey=PkGenerator.generator(Protein.class);
+        JsonObjectConverter<Protein> proteinConverter=(json)->{
+            Protein protein=json.toJavaObject(Protein.class);
+            protein.setProteinKey(proteinKey);
+            protein.setCreatedAt(System.currentTimeMillis());
+            protein.setGeneKey(dependenceKey);
+            protein.setCreateWay(2);
+            return protein;
+        };
+        Protein protein = proteinRepository.save(proteinConverter.convert(en));
+        cnProteinRepository.save(proteinConverter.convert(cn));
         if (protein==null){
-            throw new DataException("保存主表失败->id="+object.getString("id"));
+            throw new DataException("保存主表失败->id="+en.getString("id"));
         }
         //3.别名
-        JSONArray synonyms=object.getJSONArray("synonyms");
-        if (synonyms!=null&&synonyms.size()>0){
-            List<ProteinSynonym> synonymList=new ArrayList<>(synonyms.size());
-            for (int i=0;i<synonyms.size();i++){
-                ProteinSynonym synonym=new ProteinSynonym();
-                synonym.setProteinSynonymKey(PkGenerator.generator(ProteinSynonym.class));
-                synonym.setProteinId(protein.getProteinId());
-                synonym.setProteinKey(protein.getProteinKey());
-                synonym.setSynonym(synonyms.getString(i));
-                synonymList.add(synonym);
+        String synonymKey=PkGenerator.generator(ProteinSynonym.class);
+        JsonArrayConverter<ProteinSynonym> synonymConverter=(json)->{
+            JSONArray synonyms=json.getJSONArray("synonyms");
+            List<ProteinSynonym> synonymList=new ArrayList<>();
+            if (synonyms!=null&&synonyms.size()>0){
+                for (int i=0;i<synonyms.size();i++){
+                    ProteinSynonym synonym=new ProteinSynonym();
+                    synonym.setProteinSynonymKey(PkGenerator.md5(synonymKey+i));
+                    synonym.setProteinId(protein.getProteinId());
+                    synonym.setProteinKey(protein.getProteinKey());
+                    synonym.setSynonym(synonyms.getString(i));
+                    synonymList.add(synonym);
+                }
             }
-            proteinSynonymRepository.save(synonymList);
-            cnProteinSynonymRepository.save(synonymList);
-        }
+            return synonymList;
+        };
+        proteinSynonymRepository.save(synonymConverter.convert(en));
+        cnProteinSynonymRepository.save(synonymConverter.convert(cn));
         return true;
     }
 

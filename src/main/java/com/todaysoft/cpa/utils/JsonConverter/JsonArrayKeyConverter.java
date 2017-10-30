@@ -1,6 +1,5 @@
-package com.todaysoft.cpa.utils;
+package com.todaysoft.cpa.utils.JsonConverter;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
@@ -11,6 +10,6 @@ import java.util.List;
  * @date: 2017/10/26 11:10
  */
 @FunctionalInterface
-public interface JsonArrayConverter<T> {
-    List<T> convert(JSONObject object) throws InterruptedException;
+public interface JsonArrayKeyConverter<T> {
+    List<T> convert(JSONObject object,String key) throws InterruptedException;
 }

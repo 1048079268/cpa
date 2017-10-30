@@ -1,6 +1,5 @@
 package com.todaysoft.cpa.service.main;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.compare.AcquireJsonStructure;
@@ -17,6 +16,9 @@ import com.todaysoft.cpa.service.vice.MeshCategoryService;
 import com.todaysoft.cpa.service.vice.SideEffectService;
 import com.todaysoft.cpa.thread.IdThread;
 import com.todaysoft.cpa.utils.*;
+import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
+import com.todaysoft.cpa.utils.JsonConverter.JsonArrayLangConverter;
+import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
 import org.jsoup.helper.DescendableLinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +139,6 @@ public class DrugService extends BaseService {
         };
         Drug drugEn=drugConverter.convert(en);
         Drug drugCn=drugConverter.convert(cn);
-        drugEn.setNameChinese(drugCn.getNameEn());
         drugCn.setNameChinese(drugCn.getNameEn());
         drugCn.setNameEn(drugEn.getNameEn());
         Drug drug=drugRepository.save(drugEn);
@@ -149,7 +150,7 @@ public class DrugService extends BaseService {
         //3.药物别名
         String synonymKey=PkGenerator.generator(DrugSynonym.class);
         Map<Integer,String> synonymKeys=new HashMap<>();
-        JsonArrayLangConverter<DrugSynonym> synonymConverter=(json,lang)->{
+        JsonArrayLangConverter<DrugSynonym> synonymConverter=(json, lang)->{
             JSONArray synonyms=json.getJSONArray("synonyms");
             List<DrugSynonym> synonymList=new ArrayList<>();
             if (synonyms!=null&&synonyms.size() > 0){
