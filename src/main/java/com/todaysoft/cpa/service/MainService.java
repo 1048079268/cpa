@@ -202,7 +202,8 @@ public class MainService {
             ExecutorService fourthPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
             //启动三级线程
             fourthPool.execute(evidence());
-            fourthPool.execute(mutationStatistic());
+            //TODO 测试环境屏蔽该项
+//            fourthPool.execute(mutationStatistic());
             logger.info("【manager】四级主线程全部启动完成");
             fourthPool.shutdown();
             while (true) {
