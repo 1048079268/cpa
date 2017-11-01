@@ -33,8 +33,8 @@ public class CountScan {
 
     public Map<String,Long> scan() throws IOException, InterruptedException {
         Map<String, Long> totalMap = new HashMap<>();
-        int count=1;
-        long total=page.getOffset();
+        int count=page.getOffset();
+        long total=0;
         while (true){
             Connection.Response response = Jsoup.connect(cpa.contentUrl)
                     .userAgent("'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'") // 设置 User-Agent
