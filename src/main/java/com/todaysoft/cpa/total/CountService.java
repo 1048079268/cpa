@@ -24,7 +24,7 @@ import java.util.Map;
 public class CountService {
     private static Logger logger= LoggerFactory.getLogger(CountService.class);
     @Async
-    public void countProtein() throws IOException {
+    public void countProtein() throws IOException, InterruptedException {
         CountFunction countFunction=(json,map)->{
             SimpleCount simpleCount=(key,text)->{
                 if (!map.containsKey(key)){
@@ -51,7 +51,7 @@ public class CountService {
     }
 
     @Async
-    public void countMedicationPlan() throws IOException {
+    public void countMedicationPlan() throws IOException, InterruptedException {
         CountFunction countFunction=(json,map)->{
             SimpleCount simpleCount=(key,text)->{
                 if (!map.containsKey(key)){

@@ -22,7 +22,6 @@ import java.util.Map;
  */
 public class CountScan {
     private CPA cpa;
-    private Page page;
     private CountFunction countFunction;
 
     public CountScan(CPA cpa, CountFunction countFunction) {
@@ -30,8 +29,8 @@ public class CountScan {
         this.countFunction = countFunction;
     }
 
-    public Map<String,Long> scan() throws IOException {
-        page=new Page(cpa.contentUrl,100,0);
+    public Map<String,Long> scan() throws IOException, InterruptedException {
+        Page page = new Page(cpa.contentUrl, 100, 0);
         Map<String, Long> totalMap = new HashMap<>();
         int count=1;
         long total=0;
@@ -57,7 +56,10 @@ public class CountScan {
                     for (int i=0;i<array.size();i++){
                         String id=array.getJSONObject(i).getString("id");
                         String url=cpa.contentUrl+"/"+id;
-                        String body = JsoupUtil.getBody(url, "en");
+                        String body = JsoupUtil.getBody(url);
+                        if (StringUtils.isEmpty(body)){
+                            continue;
+                        }
                         JSONObject object=JSONObject.parseObject(body).getJSONObject("data").getJSONObject(cpa.name);
                         totalMap=countFunction.count(object,totalMap);
                         System.out.println("--------"+cpa.name+"["+count+"/"+total+"->id="+id+"]:");
@@ -67,7 +69,6 @@ public class CountScan {
                 }else {
                     break;
                 }
-
             }
             page.offset();
         }
