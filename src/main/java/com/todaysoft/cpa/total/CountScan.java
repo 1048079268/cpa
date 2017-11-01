@@ -23,17 +23,18 @@ import java.util.Map;
 public class CountScan {
     private CPA cpa;
     private CountFunction countFunction;
+    private Page page;
 
-    public CountScan(CPA cpa, CountFunction countFunction) {
+    public CountScan(CPA cpa, CountFunction countFunction,Page page) {
         this.cpa = cpa;
         this.countFunction = countFunction;
+        this.page=page;
     }
 
     public Map<String,Long> scan() throws IOException, InterruptedException {
-        Page page = new Page(cpa.contentUrl, 100, 0);
         Map<String, Long> totalMap = new HashMap<>();
         int count=1;
-        long total=0;
+        long total=page.getOffset();
         while (true){
             Connection.Response response = Jsoup.connect(cpa.contentUrl)
                     .userAgent("'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'") // 设置 User-Agent

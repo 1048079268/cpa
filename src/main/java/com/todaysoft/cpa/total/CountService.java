@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.domain.entity.Protein;
 import com.todaysoft.cpa.param.CPA;
+import com.todaysoft.cpa.param.Page;
 import com.todaysoft.cpa.utils.JsonUtil;
 import com.todaysoft.cpa.utils.WordCountUtil;
 import org.slf4j.Logger;
@@ -43,7 +44,8 @@ public class CountService {
             simpleCount.count("synonyms",synonyms);
             return map;
         };
-        CountScan countScan=new CountScan(CPA.PROTEIN,countFunction);
+        Page page = new Page(CPA.PROTEIN.contentUrl, 100, 0);
+        CountScan countScan=new CountScan(CPA.PROTEIN,countFunction,page);
         Map<String, Long> countMap = countScan.scan();
         logger.info("----Protein----");
         countMap.forEach((key, value) -> logger.info(key + ":" + value));
@@ -75,9 +77,7 @@ public class CountService {
                             JSONObject jsonObject = instructionList.getJSONObject(j);
                             if (jsonObject!=null){
                                 String text = jsonObject.getString("text");
-                                if (!StringUtils.isEmpty(text)){
-                                    simpleCount.count("text",text);
-                                }
+                                simpleCount.count("text",text);
                             }
                         }
                     }
@@ -86,7 +86,8 @@ public class CountService {
             }
             return map;
         };
-        CountScan countScan=new CountScan(CPA.REGIMEN,countFunction);
+        Page page = new Page(CPA.REGIMEN.contentUrl, 100, 0);
+        CountScan countScan=new CountScan(CPA.REGIMEN,countFunction,page);
         Map<String, Long> countMap = countScan.scan();
         logger.info("----MedicationPlan----");
         countMap.forEach((key, value) -> logger.info(key + ":" + value));
@@ -111,11 +112,59 @@ public class CountService {
             simpleCount.count("otherNames",otherNames);
             return map;
         };
-        CountScan countScan=new CountScan(CPA.GENE,countFunction);
+        Page page = new Page(CPA.GENE.contentUrl, 100, 0);
+        CountScan countScan=new CountScan(CPA.GENE,countFunction,page);
         Map<String, Long> countMap = countScan.scan();
         logger.info("----Gene----");
         countMap.forEach((key, value) -> logger.info(key + ":" + value));
         logger.info("----Gene----");
+    }
+
+    @Async
+    public void countDrug() throws IOException, InterruptedException {
+        CountFunction countFunction=(json,map)-> {
+            SimpleCount simpleCount = (key, text) -> {
+                if (!map.containsKey(key)) {
+                    map.put(key, 0L);
+                }
+                if (!StringUtils.isEmpty(text)) {
+                    long count = WordCountUtil.count(text);
+                    map.replace(key, map.get(key) + count);
+                }
+            };
+            String description=json.getString("description");
+            simpleCount.count("description",description);
+            String indication=json.getString("indication");
+            simpleCount.count("indication",indication);
+            String pharmacodynamics=json.getString("pharmacodynamics");
+            simpleCount.count("pharmacodynamics",pharmacodynamics);
+            String mechanismOfAction=json.getString("mechanismOfAction");
+            simpleCount.count("mechanismOfAction",mechanismOfAction);
+            String routeOfElimination=json.getString("routeOfElimination");
+            simpleCount.count("routeOfElimination",routeOfElimination);
+            String clearance=json.getString("clearance");
+            simpleCount.count("clearance",clearance);
+            String absorption=json.getString("absorption");
+            simpleCount.count("absorption",absorption);
+            String toxicity=json.getString("toxicity");
+            simpleCount.count("toxicity",toxicity);
+            String volumeOfDistribution=json.getString("volumeOfDistribution");
+            simpleCount.count("volumeOfDistribution",volumeOfDistribution);
+            JSONArray interactions = json.getJSONArray("interactions");
+            if (interactions!=null&&interactions.size()>0){
+                for (int i=0;i<interactions.size();i++){
+                    String interactionsDescription = interactions.getJSONObject(i).getString("description");
+                    simpleCount.count("interactionsDescription",interactionsDescription);
+                }
+            }
+            return map;
+        };
+        Page page = new Page(CPA.DRUG.contentUrl, 100, 0);
+        CountScan countScan=new CountScan(CPA.DRUG,countFunction,page);
+        Map<String, Long> countMap = countScan.scan();
+        logger.info("----Drug----");
+        countMap.forEach((key, value) -> logger.info(key + ":" + value));
+        logger.info("----Drug----");
     }
 
     @Async
@@ -136,18 +185,15 @@ public class CountService {
             if (outcomes!=null&&outcomes.size()>0){
                 for (int i=0;i<outcomes.size();i++){
                     String classification = outcomes.getJSONObject(i).getString("classification");
-                    if (!StringUtils.isEmpty(classification)){
-                        simpleCount.count("classification",classification);
-                    }
+                    simpleCount.count("classification",classification);
                     String outcomesTitle = outcomes.getJSONObject(i).getString("title");
-                    if (!StringUtils.isEmpty(outcomesTitle)){
-                        simpleCount.count("outcomesTitle",outcomesTitle);
-                    }
+                    simpleCount.count("outcomesTitle",outcomesTitle);
                 }
             }
             return map;
         };
-        CountScan countScan=new CountScan(CPA.CLINICAL_TRIAL,countFunction);
+        Page page = new Page(CPA.CLINICAL_TRIAL.contentUrl, 100, 0);
+        CountScan countScan=new CountScan(CPA.CLINICAL_TRIAL,countFunction,page);
         Map<String, Long> countMap = countScan.scan();
         logger.info("----ClinicalTrial----");
         countMap.forEach((key, value) -> logger.info(key + ":" + value));
