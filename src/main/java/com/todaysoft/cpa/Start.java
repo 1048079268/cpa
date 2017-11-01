@@ -29,8 +29,10 @@ public class Start implements CommandLineRunner {
     public void run(String... strings) throws IOException, InterruptedException {
         mainService.init();
 //        mainService.manager();
-        countService.countProtein();
-        countService.countMedicationPlan();
+//        countService.countProtein();
+//        countService.countMedicationPlan();
+        countService.countClinicalTrial();
+        countService.countGene();
         logger.info("<<<<<<<<<启动完成>>>>>>>>>");
     }
 }

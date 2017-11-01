@@ -62,16 +62,12 @@ public class CountService {
                     map.replace(key,map.get(key)+count);
                 }
             };
-            if (!map.containsKey("text")){
-                map.put("text",0L);
-            }
             String chemotherapyDescription=json.getString("chemotherapyDescription");
             simpleCount.count("chemotherapyDescription",chemotherapyDescription);
             String chemotherapyType=json.getString("chemotherapyType");
             simpleCount.count("chemotherapyType",chemotherapyType);
             JSONArray instructions = json.getJSONArray("instructions");
             if (instructions!=null&&instructions.size()>0){
-                StringBuilder stringBuffer=new StringBuilder();
                 for (int i=0;i<instructions.size();i++){
                     JSONArray instructionList = instructions.getJSONObject(i).getJSONArray("instructionList");
                     if (instructionList!=null&&instructionList.size()>0){
@@ -80,13 +76,13 @@ public class CountService {
                             if (jsonObject!=null){
                                 String text = jsonObject.getString("text");
                                 if (!StringUtils.isEmpty(text)){
-                                    stringBuffer.append(text).append(";");
+                                    simpleCount.count("text",text);
                                 }
                             }
                         }
                     }
                 }
-                simpleCount.count("text",stringBuffer.toString());
+
             }
             return map;
         };
@@ -95,6 +91,67 @@ public class CountService {
         logger.info("----MedicationPlan----");
         countMap.forEach((key, value) -> logger.info(key + ":" + value));
         logger.info("----MedicationPlan----");
+    }
+
+    @Async
+    public void countGene() throws IOException, InterruptedException {
+        CountFunction countFunction=(json,map)-> {
+            SimpleCount simpleCount = (key, text) -> {
+                if (!map.containsKey(key)) {
+                    map.put(key, 0L);
+                }
+                if (!StringUtils.isEmpty(text)) {
+                    long count = WordCountUtil.count(text);
+                    map.replace(key, map.get(key) + count);
+                }
+            };
+            String entrezGeneSummary=json.getString("entrezGeneSummary");
+            simpleCount.count("entrezGeneSummary",entrezGeneSummary);
+            String otherNames=JsonUtil.jsonArrayToString(json.getJSONArray("otherNames"),";");
+            simpleCount.count("otherNames",otherNames);
+            return map;
+        };
+        CountScan countScan=new CountScan(CPA.GENE,countFunction);
+        Map<String, Long> countMap = countScan.scan();
+        logger.info("----Gene----");
+        countMap.forEach((key, value) -> logger.info(key + ":" + value));
+        logger.info("----Gene----");
+    }
+
+    @Async
+    public void countClinicalTrial() throws IOException, InterruptedException {
+        CountFunction countFunction=(json,map)-> {
+            SimpleCount simpleCount = (key, text) -> {
+                if (!map.containsKey(key)) {
+                    map.put(key, 0L);
+                }
+                if (!StringUtils.isEmpty(text)) {
+                    long count = WordCountUtil.count(text);
+                    map.replace(key, map.get(key) + count);
+                }
+            };
+            String title=json.getString("title");
+            simpleCount.count("title",title);
+            JSONArray outcomes = json.getJSONArray("outcomes");
+            if (outcomes!=null&&outcomes.size()>0){
+                for (int i=0;i<outcomes.size();i++){
+                    String classification = outcomes.getJSONObject(i).getString("classification");
+                    if (!StringUtils.isEmpty(classification)){
+                        simpleCount.count("classification",classification);
+                    }
+                    String outcomesTitle = outcomes.getJSONObject(i).getString("title");
+                    if (!StringUtils.isEmpty(outcomesTitle)){
+                        simpleCount.count("outcomesTitle",outcomesTitle);
+                    }
+                }
+            }
+            return map;
+        };
+        CountScan countScan=new CountScan(CPA.CLINICAL_TRIAL,countFunction);
+        Map<String, Long> countMap = countScan.scan();
+        logger.info("----ClinicalTrial----");
+        countMap.forEach((key, value) -> logger.info(key + ":" + value));
+        logger.info("----ClinicalTrial----");
     }
 
     @FunctionalInterface
