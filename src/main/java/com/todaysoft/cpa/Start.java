@@ -31,7 +31,7 @@ public class Start implements CommandLineRunner {
 //        mainService.manager();
 //        countService.countProtein();
 //        countService.countMedicationPlan();
-//        countService.countClinicalTrial();
+        countService.countClinicalTrial();
 //        countService.countGene();
         countService.countDrug();
         logger.info("<<<<<<<<<启动完成>>>>>>>>>");

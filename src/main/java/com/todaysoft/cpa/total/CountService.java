@@ -159,7 +159,7 @@ public class CountService {
             }
             return map;
         };
-        Page page = new Page(CPA.DRUG.contentUrl, 100, 0);
+        Page page = new Page(CPA.DRUG.contentUrl, 20, 0);
         CountScan countScan=new CountScan(CPA.DRUG,countFunction,page);
         Map<String, Long> countMap = countScan.scan();
         logger.info("----Drug----");
@@ -192,7 +192,7 @@ public class CountService {
             }
             return map;
         };
-        Page page = new Page(CPA.CLINICAL_TRIAL.contentUrl, 100, 0);
+        Page page = new Page(CPA.CLINICAL_TRIAL.contentUrl, 20, 44809);
         CountScan countScan=new CountScan(CPA.CLINICAL_TRIAL,countFunction,page);
         Map<String, Long> countMap = countScan.scan();
         logger.info("----ClinicalTrial----");
