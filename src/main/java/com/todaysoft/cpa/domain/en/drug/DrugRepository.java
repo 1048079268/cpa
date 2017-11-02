@@ -17,4 +17,10 @@ public interface DrugRepository extends JpaRepository<Drug,String>{
 
     @Query("select d from Drug d where d.drugId=?1 and d.createWay=2")
     Drug findByDrugId(Integer drugId);
+
+    @Query("select d.drugKey from Drug d where d.createWay=2 and d.oncoDrug=true")
+    Set<String> statisticsKey();
+
+    @Query("select d from Drug d where d.createWay=2 and d.oncoDrug=true")
+    Set<Drug> statistics();
 }

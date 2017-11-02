@@ -26,6 +26,7 @@ public class CountScan {
     private static Logger logger= LoggerFactory.getLogger(CountScan.class);
     private CPA cpa;
     private CountFunction countFunction;
+    private JudgeNeedCount judgeNeedCount;
     //分页的offset参数为扫描起点
     private Page page;
     //分段抓取的终点
@@ -51,6 +52,7 @@ public class CountScan {
                             .userAgent("'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'") // 设置 User-Agent
                             .data("limit", String.valueOf(page.getLimit()))
                             .data("offset", String.valueOf(page.getOffset()))
+                            .data(page.getParam())
                             .header("Authorization", GlobalVar.getAUTHORIZATION())
                             .header("Accept", "application/test")
                             .ignoreContentType(true)
@@ -88,11 +90,13 @@ public class CountScan {
                         if (StringUtils.isEmpty(body)){
                             continue;
                         }
-                        JSONObject object=JSONObject.parseObject(body).getJSONObject("data").getJSONObject(cpa.name);
-                        totalMap=countFunction.count(object,totalMap);
                         count++;
-                        System.out.println("--------"+cpa.name+"["+count+"/"+total+"->id="+id+"]:");
-                        totalMap.forEach((key, value) -> System.out.println(key + ":" + value));
+                        if (judgeNeedCount.judge(array.getJSONObject(i))){
+                            JSONObject object=JSONObject.parseObject(body).getJSONObject("data").getJSONObject(cpa.name);
+                            totalMap=countFunction.count(object,totalMap);
+                            System.out.println("--------"+cpa.name+"["+count+"/"+total+"->id="+id+"]:");
+                            totalMap.forEach((key, value) -> System.out.println(key + ":" + value));
+                        }
                         //分段统计完成时的输出
                         if (count>=destination){
                             logger.info("--------"+cpa.name+"["+count+"/"+total+"->id="+id+"]:");
@@ -115,5 +119,13 @@ public class CountScan {
 
     public void setDestination(long destination) {
         this.destination = destination;
+    }
+
+    public JudgeNeedCount getJudgeNeedCount() {
+        return judgeNeedCount;
+    }
+
+    public void setJudgeNeedCount(JudgeNeedCount judgeNeedCount) {
+        this.judgeNeedCount = judgeNeedCount;
     }
 }

@@ -4,6 +4,7 @@ import com.todaysoft.cpa.domain.entity.ClinicalTrial;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -17,4 +18,8 @@ public interface ClinicalTrailRepository extends JpaRepository<ClinicalTrial,Str
 
     @Query("select c from ClinicalTrial c where c.clinicalTrialId=?1 and c.createdWay=2")
     ClinicalTrial findByClinicalTrialId(String clinicalTrialId);
+
+    @Query("select distinct c from ClinicalTrial c ,DrugClinicalTrial dc ,Drug d " +
+            "where c.clinicalTrialKey=dc.clinicalTrialKey and dc.drugKey=d.drugKey and d.oncoDrug=true")
+    List<ClinicalTrial> statistics();
 }

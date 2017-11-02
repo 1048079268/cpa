@@ -46,6 +46,7 @@ public class CountService {
         };
         Page page = new Page(CPA.PROTEIN.contentUrl, 100, 0);
         CountScan countScan=new CountScan(CPA.PROTEIN,countFunction,page);
+        countScan.setJudgeNeedCount((json)->true);
         Map<String, Long> countMap = countScan.scan();
         logger.info("----Protein----");
         countMap.forEach((key, value) -> logger.info(key + ":" + value));
@@ -88,6 +89,7 @@ public class CountService {
         };
         Page page = new Page(CPA.REGIMEN.contentUrl, 100, 0);
         CountScan countScan=new CountScan(CPA.REGIMEN,countFunction,page);
+        countScan.setJudgeNeedCount((json)->true);
         Map<String, Long> countMap = countScan.scan();
         logger.info("----MedicationPlan----");
         countMap.forEach((key, value) -> logger.info(key + ":" + value));
@@ -114,6 +116,13 @@ public class CountService {
         };
         Page page = new Page(CPA.GENE.contentUrl, 100, 0);
         CountScan countScan=new CountScan(CPA.GENE,countFunction,page);
+        countScan.setJudgeNeedCount((json)->{
+            if (json==null){
+                return false;
+            }
+            String cancerGene=json.getString("cancerGene").trim();
+            return "oncogene/TSG".equals(cancerGene)||"TSG".equals(cancerGene)||"oncogene".equals(cancerGene);
+        });
         Map<String, Long> countMap = countScan.scan();
         logger.info("----Gene----");
         countMap.forEach((key, value) -> logger.info(key + ":" + value));
@@ -161,6 +170,7 @@ public class CountService {
         };
         Page page = new Page(CPA.DRUG.contentUrl, 20, 0);
         CountScan countScan=new CountScan(CPA.DRUG,countFunction,page);
+        countScan.setJudgeNeedCount((json)->true);
         Map<String, Long> countMap = countScan.scan();
         logger.info("----Drug----");
         countMap.forEach((key, value) -> logger.info(key + ":" + value));

@@ -4,6 +4,7 @@ import com.todaysoft.cpa.domain.entity.Gene;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -16,4 +17,11 @@ public interface GeneRepository extends JpaRepository<Gene,String>{
     Set<Integer> findIdByCPA();
 
     Gene findByGeneIdAndCreateWay(Integer geneId,Integer createWay);
+    @Query("select g.entrezGeneSummary from Gene g " +
+            "where g.createWay=2 and (g.cancerGene='oncogene/TSG' or g.cancerGene='TSG' or g.cancerGene='oncogene')")
+    List<String> statistics();
+
+    @Query("select g.geneKey from Gene g " +
+            "where g.createWay=2 and (g.cancerGene='oncogene/TSG' or g.cancerGene='TSG' or g.cancerGene='oncogene')")
+    Set<String> statisticsKey();
 }

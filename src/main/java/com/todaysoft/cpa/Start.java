@@ -1,6 +1,7 @@
 package com.todaysoft.cpa;
 
 import com.todaysoft.cpa.service.MainService;
+import com.todaysoft.cpa.statistics.StatisticsService;
 import com.todaysoft.cpa.total.CountService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,18 +26,25 @@ public class Start implements CommandLineRunner {
     private MainService mainService;
     @Autowired
     private CountService countService;
+    @Autowired
+    private StatisticsService statisticsService;
     @Override
     public void run(String... strings) throws IOException, InterruptedException {
-        mainService.init();
+//        mainService.init();
 //        mainService.manager();
 //        countService.countProtein();
 //        countService.countMedicationPlan();
-        countService.countClinicalTrial(46130,90000);
-        countService.countClinicalTrial(90000,135000);
-        countService.countClinicalTrial(135000,180000);
-        countService.countClinicalTrial(180000,0);
+//        countService.countClinicalTrial(46130,90000);
+//        countService.countClinicalTrial(90000,135000);
+//        countService.countClinicalTrial(135000,180000);
+//        countService.countClinicalTrial(180000,0);
 //        countService.countGene();
 //        countService.countDrug();
+//        statisticsService.statisticsGene();
+//        statisticsService.statisticsDrug();
+//        statisticsService.statisticsProtein();
+//        statisticsService.statisticsRegimen();
+        statisticsService.statisticsClinicalTrail();
         logger.info("<<<<<<<<<启动完成>>>>>>>>>");
     }
 }
