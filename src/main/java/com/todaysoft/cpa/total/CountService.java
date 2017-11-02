@@ -167,8 +167,15 @@ public class CountService {
         logger.info("----Drug----");
     }
 
+    /**
+     * 临床试验由于数据较多，采用分段多线程扫描
+     * @param origin 分段扫描的起点
+     * @param destination 分段扫描的终点，为0表示终点为列表的最后一个
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @Async
-    public void countClinicalTrial() throws IOException, InterruptedException {
+    public void countClinicalTrial(int origin,long destination) throws IOException, InterruptedException {
         CountFunction countFunction=(json,map)-> {
             SimpleCount simpleCount = (key, text) -> {
                 if (!map.containsKey(key)) {
@@ -192,8 +199,10 @@ public class CountService {
             }
             return map;
         };
-        Page page = new Page(CPA.CLINICAL_TRIAL.contentUrl, 20, 44809);
+        Page page = new Page(CPA.CLINICAL_TRIAL.contentUrl, 20, origin);
         CountScan countScan=new CountScan(CPA.CLINICAL_TRIAL,countFunction,page);
+        //设置分段扫描的终点
+        countScan.setDestination(destination);
         Map<String, Long> countMap = countScan.scan();
         logger.info("----ClinicalTrial----");
         countMap.forEach((key, value) -> logger.info(key + ":" + value));
