@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.service.main;
 
+import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.compare.AcquireJsonStructure;
@@ -68,7 +69,7 @@ public class GeneService extends BaseService {
         //1.基因
         String geneKey=PkGenerator.generator(Gene.class);
         //查重覆盖
-        Gene checkGene = en.toJavaObject(Gene.class);
+        Gene checkGene = cn.toJavaObject(Gene.class);
         Gene byName = cnGeneRepository.findByName(checkGene.getGeneSymbol());
         if (byName!=null){
             geneKey=byName.getGeneKey();
@@ -82,7 +83,25 @@ public class GeneService extends BaseService {
             return gene;
         };
         Gene gene = geneRepository.save(geneConverter.convert(en));
-        cnGeneRepository.save(geneConverter.convert(cn));
+        Gene geneCn = geneConverter.convert(cn);
+        if (byName!=null){
+            if (!StringUtils.isEmpty(byName.getGeneType())){
+                geneCn.setGeneType(byName.getGeneType());
+            }
+            if (!StringUtils.isEmpty(byName.getEntrezGeneSummary())){
+                geneCn.setEntrezGeneSummary(byName.getEntrezGeneSummary());
+            }
+            if (!StringUtils.isEmpty(byName.getCytogeneticBand())){
+                geneCn.setCytogeneticBand(byName.getCytogeneticBand());
+            }
+            if (byName.getHasCosmicMutations()!=null){
+                geneCn.setHasCosmicMutations(byName.getHasCosmicMutations());
+            }
+            if (!StringUtils.isEmpty(byName.getCancerGene())){
+                geneCn.setCancerGene(byName.getCancerGene());
+            }
+        }
+        cnGeneRepository.save(geneCn);
         if (gene==null){
             throw new DataException("保存主表失败->id="+en.getString("id"));
         }

@@ -44,7 +44,8 @@ public class Start implements CommandLineRunner {
 //        statisticsService.statisticsDrug();
 //        statisticsService.statisticsProtein();
 //        statisticsService.statisticsRegimen();
-        statisticsService.statisticsClinicalTrail();
+//        statisticsService.statisticsClinicalTrail();
+        statisticsService.init();
         logger.info("<<<<<<<<<启动完成>>>>>>>>>");
     }
 }

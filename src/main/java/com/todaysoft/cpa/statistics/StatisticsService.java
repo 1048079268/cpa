@@ -1,6 +1,7 @@
 package com.todaysoft.cpa.statistics;
 
 import com.alibaba.druid.util.StringUtils;
+import com.csvreader.CsvReader;
 import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrailRepository;
 import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrialOutcomeRepository;
 import com.todaysoft.cpa.domain.en.drug.DrugInteractionRepository;
@@ -11,11 +12,19 @@ import com.todaysoft.cpa.domain.en.medicationPlan.MedicationPlanRepository;
 import com.todaysoft.cpa.domain.en.medicationPlan.PlanInstructionMessageRepository;
 import com.todaysoft.cpa.domain.en.proteins.ProteinRepository;
 import com.todaysoft.cpa.domain.en.proteins.ProteinSynonymRepository;
+import com.todaysoft.cpa.domain.entity.ClinicalTrial;
+import com.todaysoft.cpa.domain.entity.Drug;
+import com.todaysoft.cpa.domain.entity.Gene;
 import com.todaysoft.cpa.utils.WordCountUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @desc:
@@ -28,6 +37,47 @@ public class StatisticsService {
     private GeneRepository geneRepository;
     @Autowired
     private GeneOtherNameRepository geneOtherNameRepository;
+
+    private List<Drug> statisticsDrugList;
+    private List<Gene> statisticsGeneList;
+    private List<ClinicalTrial> statisticsClinicalTrialList;
+
+    public void init() throws IOException {
+        statisticsDrugList=new ArrayList<>();
+        CsvReader csvReader=new CsvReader("statistics/oncodrug.csv");
+        csvReader.readHeaders();
+        while (csvReader.readRecord()){
+            Drug drug=new Drug();
+            drug.setNameEn(csvReader.get("name"));
+            drug.setOncoDrug(Boolean.valueOf(csvReader.get("oncodrug")));
+            statisticsDrugList.add(drug);
+        }
+        System.out.println("drug:"+statisticsDrugList.size());
+        statisticsGeneList=new ArrayList<>();
+        CsvReader csvReader1=new CsvReader("statistics/cancer+related+genes.csv");
+        csvReader1.readHeaders();
+        while (csvReader1.readRecord()){
+            Gene gene=new Gene();
+            gene.setGeneSymbol(csvReader1.get("gene_symbol"));
+            gene.setGeneFullName(csvReader1.get("gene_full_name"));
+            gene.setCancerGene(csvReader1.get("oncogene"));
+            statisticsGeneList.add(gene);
+        }
+        System.out.println("gene:"+statisticsGeneList.size());
+        statisticsClinicalTrialList=new ArrayList<>();
+        CsvReader csvReader2=new CsvReader("statistics/cancer_related_trials.csv");
+        csvReader2.readHeaders();
+        while (csvReader2.readRecord()){
+            ClinicalTrial clinicalTrial=new ClinicalTrial();
+            clinicalTrial.setClinicalTrialId(csvReader2.get("nct_id"));
+            statisticsClinicalTrialList.add(clinicalTrial);
+        }
+        System.out.println("clinicalTrial:"+statisticsClinicalTrialList.size());
+    }
+
+    public void statistics(){
+
+    }
 
     public void statisticsGene(){
         final long[] entrezGeneSummary = {0L};

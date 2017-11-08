@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.service.main;
 
+import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.compare.AcquireJsonStructure;
@@ -82,11 +83,37 @@ public class ClinicalTrialService extends BaseService {
             clinicalTrial.setCheckState(1);
             clinicalTrial.setCreatedAt(System.currentTimeMillis());
             clinicalTrial.setCreatedWay(2);
+            clinicalTrial.setCreatedByName("CPA");
             clinicalTrial.setCountries(JsonUtil.jsonArrayToString(en.getJSONArray("countries"),","));
             return clinicalTrial;
         };
         ClinicalTrial clinicalTrialEn=clinicalTrailRepository.save(converter.convert(en));
-        cnClinicalTrailRepository.save(converter.convert(cn));
+        ClinicalTrial clinicalTrialCn = converter.convert(cn);
+        //老库覆盖CPA中文库
+        if (byTitle!=null){
+            if (!StringUtils.isEmpty(byTitle.getTheTitle())){
+                clinicalTrialCn.setTheTitle(byTitle.getTheTitle());
+            }
+            if (!StringUtils.isEmpty(byTitle.getTheStatus())){
+                clinicalTrialCn.setTheStatus(byTitle.getTheStatus());
+            }
+            if (!StringUtils.isEmpty(byTitle.getThePhase())){
+                clinicalTrialCn.setThePhase(byTitle.getThePhase());
+            }
+            if (!StringUtils.isEmpty(byTitle.getTheType())){
+                clinicalTrialCn.setTheType(byTitle.getTheType());
+            }
+            if (!StringUtils.isEmpty(byTitle.getStartDate())){
+                clinicalTrialCn.setStartDate(byTitle.getStartDate());
+            }
+            if (!StringUtils.isEmpty(byTitle.getCountries())){
+                clinicalTrialCn.setCountries(byTitle.getCountries());
+            }
+            if (!StringUtils.isEmpty(byTitle.getTheUrl())){
+                clinicalTrialCn.setTheUrl(byTitle.getTheUrl());
+            }
+        }
+        cnClinicalTrailRepository.save(clinicalTrialCn);
         saveFixed(clinicalTrialEn,en,cn);
         //临床&药物
         JsonArrayConverter<DrugClinicalTrial> clinicalTrialConverter=(json)->{
@@ -130,11 +157,37 @@ public class ClinicalTrialService extends BaseService {
             clinicalTrial.setCheckState(1);
             clinicalTrial.setCreatedAt(System.currentTimeMillis());
             clinicalTrial.setCreatedWay(2);
+            clinicalTrial.setCreatedByName("CPA");
             clinicalTrial.setCountries(JsonUtil.jsonArrayToString(en.getJSONArray("countries"),","));
             return clinicalTrial;
         };
         ClinicalTrial clinicalTrialEn=clinicalTrailRepository.save(converter.convert(en));
-        cnClinicalTrailRepository.save(converter.convert(cn));
+        ClinicalTrial clinicalTrialCn = converter.convert(cn);
+        //老库覆盖CPA中文库
+        if (byTitle!=null){
+            if (!StringUtils.isEmpty(byTitle.getTheTitle())){
+                clinicalTrialCn.setTheTitle(byTitle.getTheTitle());
+            }
+            if (!StringUtils.isEmpty(byTitle.getTheStatus())){
+                clinicalTrialCn.setTheStatus(byTitle.getTheStatus());
+            }
+            if (!StringUtils.isEmpty(byTitle.getThePhase())){
+                clinicalTrialCn.setThePhase(byTitle.getThePhase());
+            }
+            if (!StringUtils.isEmpty(byTitle.getTheType())){
+                clinicalTrialCn.setTheType(byTitle.getTheType());
+            }
+            if (!StringUtils.isEmpty(byTitle.getStartDate())){
+                clinicalTrialCn.setStartDate(byTitle.getStartDate());
+            }
+            if (!StringUtils.isEmpty(byTitle.getCountries())){
+                clinicalTrialCn.setCountries(byTitle.getCountries());
+            }
+            if (!StringUtils.isEmpty(byTitle.getTheUrl())){
+                clinicalTrialCn.setTheUrl(byTitle.getTheUrl());
+            }
+        }
+        cnClinicalTrailRepository.save(clinicalTrialCn);
         saveFixed(clinicalTrialEn,en,cn);
         Drug drug=drugRepository.findOne(dependenceKey);
         if (drug!=null){

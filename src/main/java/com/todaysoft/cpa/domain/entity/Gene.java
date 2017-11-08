@@ -32,6 +32,17 @@ public class Gene {
     private String cancerGene;
     private Long createAt;
     private Integer createWay;
+    private String createdByName="CPA";
+
+    @Basic
+    @Column(name = "created_by_name", nullable = true, length = 20)
+    public String getCreatedByName() {
+        return createdByName;
+    }
+
+    public void setCreatedByName(String createdByName) {
+        this.createdByName = createdByName;
+    }
 
     @Id
     @Column(name = "gene_key", nullable = false, length = 64)

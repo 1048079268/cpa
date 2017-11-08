@@ -32,13 +32,14 @@ public class Variant {
     private Long createdAt;
     private Integer createdWay;
     private String createdByKey;
-    private String createdByName;
+    private String createdByName="CPA";
     private Integer checkState;
     private String checkReport;
     private String checkedByKey;
     private String checkedByName;
     private String translateByKey;
     private String translateByName;
+
 
     @Id
     @Column(name = "variant_key", nullable = false, length = 64)

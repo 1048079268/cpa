@@ -18,6 +18,6 @@ public interface CnDrugRepository extends JpaRepository<Drug,String>{
 
     Drug findByDrugId(Integer drugId);
 
-    @Query("select d from Drug d where (d.nameEn=?1) and d.createWay=3")
+    @Query("select d from Drug d where (d.nameChinese=?1 or d.nameEn=?1) and d.createWay=3")
     Drug findByName(String name);
 }

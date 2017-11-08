@@ -15,6 +15,6 @@ public interface CnMedicationPlanRepository extends JpaRepository<MedicationPlan
     @Query("select m.medicinePlanId from MedicationPlan m where m.createdWay=2")
     Set<Integer> findIdByCPA();
 
-    @Query("select m from MedicationPlan m where m.regimenName=?1 and m.createdWay=3")
+    @Query("select m from MedicationPlan m where(m.regimenName=?1 and m.programNameC=?1)  and m.createdWay=3")
     MedicationPlan findByName(String name);
 }

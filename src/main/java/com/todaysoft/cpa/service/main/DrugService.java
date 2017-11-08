@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.service.main;
 
+import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.compare.AcquireJsonStructure;
@@ -115,11 +116,12 @@ public class DrugService extends BaseService {
     public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
         //1.解析药物基本信息
         String drugKey=PkGenerator.generator(Drug.class);
-        Drug checkDrugEn=en.toJavaObject(Drug.class);
-        String enName=checkDrugEn.getNameEn();
-        checkDrugEn = cnDrugRepository.findByName(enName);
-        if (checkDrugEn!=null){
-            drugKey=checkDrugEn.getDrugKey();
+        Drug checkDrugCn=cn.toJavaObject(Drug.class);
+        String cnName=checkDrugCn.getNameEn();
+        checkDrugCn = cnDrugRepository.findByName(cnName);
+        if (checkDrugCn!=null){
+            logger.info("【" + CPA.DRUG.name() + "】与老库重复->id="+checkDrugCn.getDrugId());
+            drugKey=checkDrugCn.getDrugKey();
         }
         String finalDrugKey = drugKey;
         JsonObjectConverter<Drug> drugConverter=(json)->{
@@ -135,6 +137,7 @@ public class DrugService extends BaseService {
             drug.setCreatedAt(createTime);
             drug.setCheckState(1);
             drug.setCreateWay(2);
+            drug.setCreatedByName("CPA");
             return drug;
         };
         Drug drugEn=drugConverter.convert(en);
@@ -142,6 +145,59 @@ public class DrugService extends BaseService {
         drugCn.setNameChinese(drugCn.getNameEn());
         drugCn.setNameEn(drugEn.getNameEn());
         Drug drug=drugRepository.save(drugEn);
+        if (checkDrugCn!=null){
+            if (!StringUtils.isEmpty(checkDrugCn.getNameEn())){
+                drugCn.setNameEn(checkDrugCn.getNameEn());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getNameChinese())){
+                drugCn.setNameChinese(checkDrugCn.getNameChinese());
+            }
+            if (checkDrugCn.getOncoDrug()!=null){
+                drugCn.setOncoDrug(checkDrugCn.getOncoDrug());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getDescription())){
+                drugCn.setDescription(checkDrugCn.getDescription());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getChemicalFormula())){
+                drugCn.setChemicalFormula(checkDrugCn.getChemicalFormula());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getMolecularWeight())){
+                drugCn.setMolecularWeight(checkDrugCn.getMolecularWeight());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getMechanismOfAction())){
+                drugCn.setMechanismOfAction(checkDrugCn.getMechanismOfAction());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getToxicity())){
+                drugCn.setToxicity(checkDrugCn.getToxicity());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getStructuredIndicationDesc())){
+                drugCn.setStructuredIndicationDesc(checkDrugCn.getStructuredIndicationDesc());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getAbsorption())){
+                drugCn.setAbsorption(checkDrugCn.getAbsorption());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getVolumeOfDistribution())){
+                drugCn.setVolumeOfDistribution(checkDrugCn.getVolumeOfDistribution());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getProteinBinding())){
+                drugCn.setProteinBinding(checkDrugCn.getProteinBinding());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getHalfLife())){
+                drugCn.setHalfLife(checkDrugCn.getHalfLife());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getClearance())){
+                drugCn.setClearance(checkDrugCn.getClearance());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getPharmacodynamics())){
+                drugCn.setPharmacodynamics(checkDrugCn.getPharmacodynamics());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getPrimaryExternalId())){
+                drugCn.setPrimaryExternalId(checkDrugCn.getPrimaryExternalId());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getPrimaryExternalSource())){
+                drugCn.setPrimaryExternalSource(checkDrugCn.getPrimaryExternalSource());
+            }
+        }
         cnDrugRepository.save(drugCn);
         if (drug==null){
             throw new DataException("保存主表失败->id="+en.getString("id"));
@@ -180,6 +236,7 @@ public class DrugService extends BaseService {
             }
             return synonymList;
         };
+        //顺序不能变，必须先处理中文再处理英文
         cnDrugSynonymRepository.save(synonymConverter.convert(cn,2));
         drugSynonymRepository.save(synonymConverter.convert(en,1));
         //4.药物外部id
@@ -255,6 +312,7 @@ public class DrugService extends BaseService {
                     pathway.setCreateAt(System.currentTimeMillis());
                     pathway.setCreateWay(2);
                     pathway.setCheckState(1);
+                    pathway.setCreatedByName("CPA");
                     pathway.setPathwayKey(PkGenerator.md5(keggPathwayKey+i));
                     pathway.setKeggId(keggId.trim());
                     pathway.setPathwayName(keggPathways.getJSONObject(i).getString("name"));
@@ -277,6 +335,7 @@ public class DrugService extends BaseService {
             }
             return pathwayList;
         };
+        //顺序不能变，先英文再中文
         drugKeggPathwayRepository.save(pathwayConverter.convert(en));
         cnDrugKeggPathwayRepository.save(pathwayConverter.convert(cn));
         //8.药物结构化适应症
@@ -339,7 +398,7 @@ public class DrugService extends BaseService {
         };
         drugClinicalTrialRepository.save(clinicalTrialConverter.convert(en));
         cnDrugClinicalTrialRepository.save(clinicalTrialConverter.convert(cn));
-        //10.药物不良反应
+        //10.药物不良反应 TODO ERROR 需要先查询中文库查重后才与中文库对比
         String sideEffectKey=PkGenerator.generator(SideEffect.class);
         JsonArrayConverter<DrugAdverseReaction> adverseReactionConverter=(json)->{
             JSONArray adverseReactions=json.getJSONArray("adverseReactions");
@@ -399,7 +458,7 @@ public class DrugService extends BaseService {
         };
         drugInteractionRepository.save(interactionConverter.convert(en));
         cnDrugInteractionRepository.save(interactionConverter.convert(cn));
-        //12.药品
+        //12.药品 TODO 无法做对比，单一字段可以重复
         JSONArray productsEn=en.getJSONArray("products");
         JSONArray productsCn=en.getJSONArray("products");
         if (productsEn!=null&&productsEn.size()>0){
@@ -444,7 +503,7 @@ public class DrugService extends BaseService {
                 }
             }
         }
-        //13.药物分类
+        //13.药物分类 TODO ERROR 需要先查询中文库查重后才与中文库对比
         String meshCategoryKey=PkGenerator.generator(MeshCategory.class);
         JsonArrayConverter<DrugCategory> categoryConverter=(json)->{
             JSONArray categories=json.getJSONArray("categories");

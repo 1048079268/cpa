@@ -56,7 +56,6 @@ public class MeshCategoryService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<MeshCategory> saveList(List<MeshCategory> meshCategoryList) throws InterruptedException {
         try {
-//            lock.lockInterruptibly();
             List<MeshCategory> resultList=new ArrayList<>();
             for (MeshCategory meshCategory:meshCategoryList){
                 MeshCategory category;
@@ -71,7 +70,6 @@ public class MeshCategoryService {
             }
             return resultList;
         }finally {
-//            lock.unlock();
         }
     }
 }

@@ -20,6 +20,17 @@ public class KeggPathway implements Serializable {
     private Long createAt;
     private Integer createWay;
     private Integer checkState;
+    private String createdByName="CPA";
+
+    @Basic
+    @Column(name = "created_by_name", nullable = true, length = 20)
+    public String getCreatedByName() {
+        return createdByName;
+    }
+
+    public void setCreatedByName(String createdByName) {
+        this.createdByName = createdByName;
+    }
 
 
     @Id

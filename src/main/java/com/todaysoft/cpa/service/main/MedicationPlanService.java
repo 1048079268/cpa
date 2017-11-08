@@ -71,9 +71,9 @@ public class MedicationPlanService extends BaseService {
     @Transactional
     public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
         String planKey=PkGenerator.generator(MedicationPlan.class);
-        MedicationPlan planEn=en.toJavaObject(MedicationPlan.class);
-        String planNameEn=planEn.getRegimenName();
-        MedicationPlan byName = cnMedicationPlanRepository.findByName(planNameEn);
+        MedicationPlan planCheck=cn.toJavaObject(MedicationPlan.class);
+        String planNameCheck=planCheck.getRegimenName();
+        MedicationPlan byName = cnMedicationPlanRepository.findByName(planNameCheck);
         if (byName!=null){
             planKey=byName.getMedicationPlanKey();
         }
@@ -87,13 +87,13 @@ public class MedicationPlanService extends BaseService {
             return medicationPlan;
         };
         MedicationPlan medicationPlan=medicationPlanRepository.save(planConverter.convert(en));
-        MedicationPlan planCn = planConverter.convert(cn);
-        planCn.setProgramNameC(planCn.getRegimenName());
-        planCn.setRegimenName(planNameEn);
-        cnMedicationPlanRepository.save(planCn);
         if (medicationPlan==null){
             throw new DataException("保存主表失败->id="+en.getString("id"));
         }
+        MedicationPlan planCn = planConverter.convert(cn);
+        planCn.setProgramNameC(planCn.getRegimenName());
+        planCn.setRegimenName(medicationPlan.getRegimenName());
+        cnMedicationPlanRepository.save(planCn);
         //相关研究
         String planStudyKey=PkGenerator.generator(PlanStudy.class);
         JsonArrayConverter<PlanStudy> studyConverter=(json)->{
