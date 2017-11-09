@@ -1,6 +1,7 @@
 package com.todaysoft.cpa.utils;
 
 import com.todaysoft.cpa.param.GlobalVar;
+import com.todaysoft.cpa.statistics.CountScan;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ public class JsoupUtil {
 
     /**
      * 专用于CountScan类
-     * @see com.todaysoft.cpa.total.CountScan
+     * @see CountScan
      * @param url
      * @return
      * @throws InterruptedException

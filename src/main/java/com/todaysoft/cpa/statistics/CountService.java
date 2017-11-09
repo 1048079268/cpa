@@ -1,9 +1,8 @@
-package com.todaysoft.cpa.total;
+package com.todaysoft.cpa.statistics;
 
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.todaysoft.cpa.domain.entity.Protein;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.Page;
 import com.todaysoft.cpa.utils.JsonUtil;
@@ -220,7 +219,7 @@ public class CountService {
     }
 
     @FunctionalInterface
-    private interface SimpleCount{
+    public interface SimpleCount{
         void count(String key,String text);
     }
 }

@@ -20,10 +20,12 @@ import com.todaysoft.cpa.utils.*;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayLangConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
+import com.todaysoft.cpa.utils.JsonConverter.JsonObjectKeyConverter;
 import org.jsoup.helper.DescendableLinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -300,44 +302,76 @@ public class DrugService extends BaseService {
         drugInternationalBrandRepository.save(brandConverter.convert(en));
         cnDrugInternationalBrandRepository.save(brandConverter.convert(cn));
         //7.药物通路
-        String keggPathwayKey=PkGenerator.generator(KeggPathway.class);
-        JsonArrayConverter<DrugKeggPathway> pathwayConverter=(json)->{
-            List<DrugKeggPathway> pathwayList=new ArrayList<>();
-            JSONArray keggPathways=json.getJSONArray("keggPathways");
-            if (keggPathways!=null&&keggPathways.size()>0){
-                List<KeggPathway> keggPathwayList=new ArrayList<>();
-                for (int i=0;i<keggPathways.size();i++){
-                    String keggId=keggPathways.getJSONObject(i).getString("id");
-                    KeggPathway pathway = new KeggPathway();
-                    pathway.setCreateAt(System.currentTimeMillis());
-                    pathway.setCreateWay(2);
-                    pathway.setCheckState(1);
-                    pathway.setCreatedByName("CPA");
-                    pathway.setPathwayKey(PkGenerator.md5(keggPathwayKey+i));
-                    pathway.setKeggId(keggId.trim());
-                    pathway.setPathwayName(keggPathways.getJSONObject(i).getString("name"));
-                    keggPathwayList.add(pathway);
-                }
-                keggPathwayList=keggPathwaysService.saveList(keggPathwayList);
-                if (keggPathwayList!=null&&keggPathwayList.size()>0){
-                    for (KeggPathway pathway:keggPathwayList){
-                        if (pathway!=null){
-                            DrugKeggPathway drugKeggPathway=new DrugKeggPathway();
-                            drugKeggPathway.setPathwayKey(pathway.getPathwayKey());
-                            drugKeggPathway.setDrugKey(drug.getDrugKey());
-                            drugKeggPathway.setKeggId(pathway.getKeggId());
-                            drugKeggPathway.setDrugId(drug.getDrugId());
-                            drugKeggPathway.setPathwayName(pathway.getPathwayName());
-                            pathwayList.add(drugKeggPathway);
-                        }
-                    }
+        JSONArray keggPathwaysEn=en.getJSONArray("keggPathways");
+        JSONArray keggPathwaysCn=cn.getJSONArray("keggPathways");
+        if (keggPathwaysEn!=null&&keggPathwaysEn.size()>0){
+            JsonObjectConverter<KeggPathway> pathwayConverter=(json)->{
+                KeggPathway pathway = new KeggPathway();
+                pathway.setCreateAt(System.currentTimeMillis());
+                pathway.setCreateWay(2);
+                pathway.setCheckState(1);
+                pathway.setCreatedByName("CPA");
+                pathway.setKeggId(json.getString("id").trim());
+                pathway.setPathwayName(json.getString("name"));
+                return pathway;
+            };
+            for (int i = 0; i < keggPathwaysEn.size(); i++) {
+                String nameCn = keggPathwaysCn.getJSONObject(i).getString("name");
+                KeggPathway keggPathwayEn = pathwayConverter.convert(keggPathwaysEn.getJSONObject(i));
+                KeggPathway keggPathwayCn = pathwayConverter.convert(keggPathwaysCn.getJSONObject(i));
+                KeggPathway keggPathway = keggPathwaysService.save(keggPathwayCn, keggPathwayEn);
+                if(keggPathway!=null){
+                    DrugKeggPathway drugKeggPathway=new DrugKeggPathway();
+                    drugKeggPathway.setPathwayKey(keggPathway.getPathwayKey());
+                    drugKeggPathway.setDrugKey(drug.getDrugKey());
+                    drugKeggPathway.setKeggId(keggPathway.getKeggId());
+                    drugKeggPathway.setDrugId(drug.getDrugId());
+                    drugKeggPathway.setPathwayName(keggPathway.getPathwayName());
+                    drugKeggPathwayRepository.save(drugKeggPathway);
+                    drugKeggPathway.setPathwayName(nameCn);
+                    cnDrugKeggPathwayRepository.save(drugKeggPathway);
                 }
             }
-            return pathwayList;
-        };
-        //顺序不能变，先英文再中文
-        drugKeggPathwayRepository.save(pathwayConverter.convert(en));
-        cnDrugKeggPathwayRepository.save(pathwayConverter.convert(cn));
+        }
+//        String keggPathwayKey=PkGenerator.generator(KeggPathway.class);
+//        JsonArrayConverter<DrugKeggPathway> pathwayConverter=(json)->{
+//            List<DrugKeggPathway> pathwayList=new ArrayList<>();
+//            JSONArray keggPathways=json.getJSONArray("keggPathways");
+//            if (keggPathways!=null&&keggPathways.size()>0){
+//                List<KeggPathway> keggPathwayList=new ArrayList<>();
+//                for (int i=0;i<keggPathways.size();i++){
+//                    String keggId=keggPathways.getJSONObject(i).getString("id");
+//                    KeggPathway pathway = new KeggPathway();
+//                    pathway.setCreateAt(System.currentTimeMillis());
+//                    pathway.setCreateWay(2);
+//                    pathway.setCheckState(1);
+//                    pathway.setCreatedByName("CPA");
+//                    pathway.setPathwayKey(PkGenerator.md5(keggPathwayKey+i));
+//                    pathway.setKeggId(keggId.trim());
+//                    pathway.setPathwayName(keggPathways.getJSONObject(i).getString("name"));
+//                    keggPathwayList.add(pathway);
+//                }
+//                keggPathwayList=keggPathwaysService.saveList(keggPathwayList);
+//                if (keggPathwayList!=null&&keggPathwayList.size()>0){
+//                    for (KeggPathway pathway:keggPathwayList){
+//                        if (pathway!=null){
+//                            DrugKeggPathway drugKeggPathway=new DrugKeggPathway();
+//                            drugKeggPathway.setPathwayKey(pathway.getPathwayKey());
+//                            drugKeggPathway.setDrugKey(drug.getDrugKey());
+//                            drugKeggPathway.setKeggId(pathway.getKeggId());
+//                            drugKeggPathway.setDrugId(drug.getDrugId());
+//                            drugKeggPathway.setPathwayName(pathway.getPathwayName());
+//                            pathwayList.add(drugKeggPathway);
+//                        }
+//                    }
+//                }
+//            }
+//            return pathwayList;
+//        };
+//        //顺序不能变，先英文再中文
+//        drugKeggPathwayRepository.save(pathwayConverter.convert(en));
+//        cnDrugKeggPathwayRepository.save(pathwayConverter.convert(cn));
+
         //8.药物结构化适应症
         String indicationKey=PkGenerator.generator(Indication.class);
         JsonArrayConverter<DrugStructuredIndication> indicationConverter=(json)->{
@@ -463,24 +497,24 @@ public class DrugService extends BaseService {
         JSONArray productsCn=en.getJSONArray("products");
         if (productsEn!=null&&productsEn.size()>0){
             List<DrugProduct> productList=new ArrayList<>();
+            JsonObjectKeyConverter<DrugProduct> productConverter=(json,key)->{
+                DrugProduct product=json.toJavaObject(DrugProduct.class);
+                product.setProductKey(key);
+                product.setDrugKey(drug.getDrugKey());
+                product.setDrugId(drug.getDrugId());
+                String marketingEnd=json.getString("marketingEnd");
+                String marketingStart=json.getString("marketingStart");
+                product.setMarketingEnd(DateUtil.stringToTimestamp(marketingEnd));
+                product.setMarketingStart(DateUtil.stringToTimestamp(marketingStart));
+                product.setCreatedAt(System.currentTimeMillis());
+                product.setCheckState(1);
+                product.setCreateWay(2);
+                return product;
+            };
             for (int i=0;i<productsEn.size();i++){
                 String productKey=PkGenerator.generator(DrugProduct.class);
-                JsonObjectConverter<DrugProduct> productConverter=(json)->{
-                    DrugProduct product=json.toJavaObject(DrugProduct.class);
-                    product.setProductKey(productKey);
-                    product.setDrugKey(drug.getDrugKey());
-                    product.setDrugId(drug.getDrugId());
-                    String marketingEnd=json.getString("marketingEnd");
-                    String marketingStart=json.getString("marketingStart");
-                    product.setMarketingEnd(DateUtil.stringToTimestamp(marketingEnd));
-                    product.setMarketingStart(DateUtil.stringToTimestamp(marketingStart));
-                    product.setCreatedAt(System.currentTimeMillis());
-                    product.setCheckState(1);
-                    product.setCreateWay(2);
-                    return product;
-                };
-                DrugProduct product=drugProductRepository.save(productConverter.convert(productsEn.getJSONObject(i)));
-                cnDrugProductRepository.save(productConverter.convert(productsCn.getJSONObject(i)));
+                DrugProduct product=drugProductRepository.save(productConverter.convert(productsEn.getJSONObject(i),productKey));
+                cnDrugProductRepository.save(productConverter.convert(productsCn.getJSONObject(i),productKey));
                 //12.1 药品外部id
                 String etnIdKey=PkGenerator.generator(DrugProductEtnId.class);
                 JsonObjectConverter<DrugProductEtnId> etnIdConverter=(json)->{
@@ -572,6 +606,7 @@ public class DrugService extends BaseService {
     }
 
     @Override
+    @Async
     public void initDB() throws FileNotFoundException {
         CPA.DRUG.name=cpaProperties.getDrugName();
         CPA.DRUG.contentUrl=cpaProperties.getDrugUrl();

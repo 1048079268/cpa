@@ -28,6 +28,7 @@ import com.todaysoft.cpa.utils.*;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -257,14 +258,12 @@ public class ClinicalTrialService extends BaseService {
     }
 
     @Override
+    @Async
     public void initDB() throws FileNotFoundException {
         CPA.CLINICAL_TRIAL.name=cpaProperties.getClinicalTrialName();
         CPA.CLINICAL_TRIAL.contentUrl=cpaProperties.getClinicalTrialUrl();
         CPA.CLINICAL_TRIAL.tempStructureMap=AcquireJsonStructure.getJsonKeyMap(cpaProperties.getClinicalTrialTempPath());
         Set<String> ids=clinicalTrailRepository.findIdByCPA();
-        Iterator<String> iterator=ids.iterator();
-        while (iterator.hasNext()){
-            CPA.CLINICAL_TRIAL.dbId.add(iterator.next());
-        }
+        CPA.CLINICAL_TRIAL.dbId.addAll(ids);
     }
 }

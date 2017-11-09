@@ -3,7 +3,9 @@ package com.todaysoft.cpa.service.vice;
 import com.todaysoft.cpa.domain.cn.drug.CnKeggPathwayRepository;
 import com.todaysoft.cpa.domain.en.drug.KeggPathwayRepository;
 import com.todaysoft.cpa.domain.entity.KeggPathway;
+import com.todaysoft.cpa.utils.PkGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ public class KeggPathwaysService{
     @Autowired
     private CnKeggPathwayRepository cnKeggPathwayRepository;
 
+    @Async
     public void init(){
         cnKeggPathwayRepository.findByCreateWay(3).forEach(keggPathway -> {
             String key=keggPathway.getPathwayName().replaceAll("[\\u4e00-\\u9fa5]","").toLowerCase().trim();
@@ -35,24 +38,6 @@ public class KeggPathwaysService{
         keggPathwayRepository.findByCPA().stream().forEach(keggPathway -> {
             KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),keggPathway);
         });
-    }
-
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public KeggPathway save(KeggPathway keggPathway){
-        lock.lock();
-        try {
-            if (!KEGG_PATHWAY_MAP.containsKey(keggPathway.getKeggId())){
-                KeggPathway pathway=keggPathwayRepository.save(keggPathway);
-                cnKeggPathwayRepository.save(keggPathway);
-                if (pathway==null){
-                    System.out.println("KeggPathwaysService:-->"+keggPathway.getKeggId());
-                }
-                KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),pathway);
-            }
-            return KEGG_PATHWAY_MAP.get(keggPathway.getKeggId());
-        } finally {
-            lock.unlock();
-        }
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -84,5 +69,41 @@ public class KeggPathwaysService{
             resultList.add(keggPathway);
         }
         return resultList;
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public KeggPathway save(KeggPathway cnKeggPathway,KeggPathway enKeggPathway){
+        String key= PkGenerator.generator(KeggPathway.class);
+        cnKeggPathway.setPathwayKey(key);
+        enKeggPathway.setPathwayKey(key);
+        //此处使用en的做比较是因为老库的数据也是英文的
+        String compareName=enKeggPathway.getPathwayName().toLowerCase().trim();
+        //中文老库已有该记录
+        if (pathwayMap.containsKey(compareName)) {
+            //中文的状态与英文状态一致
+            KeggPathway pathway = pathwayMap.get(compareName);
+            pathway.setCreateWay(cnKeggPathway.getCreateWay());
+            pathway.setCheckState(cnKeggPathway.getCheckState());
+            pathway.setCreateAt(cnKeggPathway.getCreateAt());
+            pathway.setKeggId(cnKeggPathway.getKeggId());
+            cnKeggPathwayRepository.save(pathway);
+            //英文主键与中文库主键一致
+            enKeggPathway.setPathwayKey(pathway.getPathwayKey());
+            enKeggPathway=keggPathwayRepository.save(enKeggPathway);
+            pathwayMap.remove(compareName);
+            KEGG_PATHWAY_MAP.put(enKeggPathway.getKeggId(),enKeggPathway);
+            return enKeggPathway;
+        } else {
+            //老库没有记录的话查询keggId有没有重的
+            if (KEGG_PATHWAY_MAP.containsKey(enKeggPathway.getKeggId())){
+                return KEGG_PATHWAY_MAP.get(enKeggPathway.getKeggId());
+            }else {
+                KeggPathway keggPathway = keggPathwayRepository.save(enKeggPathway);
+                cnKeggPathwayRepository.save(cnKeggPathway);
+                KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),keggPathway);
+                //返回英文库数据
+                return keggPathway;
+            }
+        }
     }
 }

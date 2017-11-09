@@ -4,6 +4,7 @@ import com.todaysoft.cpa.domain.cn.drug.CnSideEffectRepository;
 import com.todaysoft.cpa.domain.en.drug.SideEffectRepository;
 import com.todaysoft.cpa.domain.entity.SideEffect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ public class SideEffectService{
     private SideEffectRepository sideEffectRepository;
     @Autowired
     private CnSideEffectRepository cnSideEffectRepository;
+    @Async
     public void init() {
         sideEffectRepository.findByCreatedWay(2).stream().forEach(sideEffect -> {
             SIDE_EFFECT_MAP.put(sideEffect.getSideEffectName(),sideEffect);
@@ -35,42 +37,20 @@ public class SideEffectService{
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public SideEffect save(SideEffect sideEffect){
-        lock.lock();
-        try {
-            if (!SIDE_EFFECT_MAP.containsKey(sideEffect.getSideEffectName())){
-                SideEffect effect=sideEffectRepository.save(sideEffect);
-                cnSideEffectRepository.save(effect);
-                if (effect==null){
-                    System.out.println("SideEffectService:-->"+effect.getSideEffectName());
-                }
-                SIDE_EFFECT_MAP.put(sideEffect.getSideEffectName(),effect);
-            }
-            return SIDE_EFFECT_MAP.get(sideEffect.getSideEffectName());
-        }finally {
-            lock.unlock();
-        }
-    }
-
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<SideEffect> saveList(List<SideEffect> sideEffectList) throws InterruptedException {
-        try {
-                List<SideEffect> resultList=new ArrayList<>();
-                for (SideEffect sideEffect:sideEffectList){
-                    SideEffect effect;
-                    String key=sideEffect.getSideEffectName();
-                    if (SIDE_EFFECT_MAP.containsKey(key)){
-                        effect=SIDE_EFFECT_MAP.get(key);
-                    }else {
-                        effect=sideEffectRepository.save(sideEffect);
-                        cnSideEffectRepository.save(effect);
-                        SIDE_EFFECT_MAP.put(key,effect);
-                    }
-                    resultList.add(effect);
-                }
-                return resultList;
-        }finally {
-//            lock.unlock();
+        List<SideEffect> resultList=new ArrayList<>();
+        for (SideEffect sideEffect:sideEffectList){
+            SideEffect effect;
+            String key=sideEffect.getSideEffectName();
+            if (SIDE_EFFECT_MAP.containsKey(key)){
+                effect=SIDE_EFFECT_MAP.get(key);
+            }else {
+                effect=sideEffectRepository.save(sideEffect);
+                cnSideEffectRepository.save(effect);
+                SIDE_EFFECT_MAP.put(key,effect);
+            }
+            resultList.add(effect);
         }
+        return resultList;
     }
 }

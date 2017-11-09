@@ -26,6 +26,7 @@ import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -143,6 +144,7 @@ public class EvidenceService extends BaseService {
     }
 
     @Override
+    @Async
     public void initDB() throws FileNotFoundException {
         CPA.EVIDENCE.name=cpaProperties.getEvidenceName();
         CPA.EVIDENCE.contentUrl=cpaProperties.getEvidenceUrl();

@@ -15,6 +15,7 @@ import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +68,7 @@ public class MutationStatisticService extends BaseService {
         }
     }
 
+    @Async
     @Override
     public void initDB() throws FileNotFoundException {
         CPA.MUTATION_STATISTICS.name=cpaProperties.getMutationStatisticsName();

@@ -1,4 +1,4 @@
-package com.todaysoft.cpa.total;
+package com.todaysoft.cpa.statistics;
 
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSON;

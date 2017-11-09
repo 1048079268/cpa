@@ -3,7 +3,9 @@ package com.todaysoft.cpa.service.vice;
 import com.todaysoft.cpa.domain.cn.drug.CnIndicationRepository;
 import com.todaysoft.cpa.domain.en.drug.IndicationRepository;
 import com.todaysoft.cpa.domain.entity.Indication;
+import com.todaysoft.cpa.utils.PkGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ public class IndicationService{
     @Autowired
     private CnIndicationRepository cnIndicationRepository;
 
+    @Async
     public void init() {
         indicationRepository.findByCreatedWay(2).stream().forEach(indication -> {
             String key=indication.getMeddraConceptName();
@@ -37,44 +40,36 @@ public class IndicationService{
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public Indication save(Indication indication) {
-        lock.lock();
-        try {
+    public List<Indication> saveList(List<Indication> indicationList) {
+        List<Indication> retList=new ArrayList<>();
+        for (Indication indication:indicationList){
+            Indication result;
             String key=indication.getMeddraConceptName();
             if (!INDICATION_MAP.containsKey(key)){
-                Indication indic=indicationRepository.save(indication);
-                cnIndicationRepository.save(indic);
-                if (indic==null){
-                    System.out.println("IndicationService:-->"+indication.getMeddraConceptName());
-                }
-                INDICATION_MAP.put(key,indic);
+                result=indicationRepository.save(indication);
+                cnIndicationRepository.save(result);
+                INDICATION_MAP.put(key,result);
+            }else {
+                result=INDICATION_MAP.get(key);
             }
-            return INDICATION_MAP.get(key);
-        }finally {
-            lock.unlock();
+            retList.add(result);
         }
+        return retList;
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<Indication> saveList(List<Indication> indicationList) throws InterruptedException {
-        try {
-//            lock.lock();
-                List<Indication> retList=new ArrayList<>();
-                for (Indication indication:indicationList){
-                    Indication result;
-                    String key=indication.getMeddraConceptName();
-                    if (!INDICATION_MAP.containsKey(key)){
-                        result=indicationRepository.save(indication);
-                        cnIndicationRepository.save(result);
-                        INDICATION_MAP.put(key,result);
-                    }else {
-                        result=INDICATION_MAP.get(key);
-                    }
-                    retList.add(result);
-                }
-                return retList;
-        }finally {
-//            lock.unlock();
+    public Indication save(Indication cnIndication,Indication enIndication){
+        String key= PkGenerator.generator(Indication.class);
+        cnIndication.setIndicationKey(key);
+        enIndication.setIndicationKey(key);
+        String mapKey=enIndication.getMeddraConceptName();
+        if (INDICATION_MAP.containsKey(mapKey)){
+            return INDICATION_MAP.get(mapKey);
+        }else {
+            Indication result = indicationRepository.save(enIndication);
+            cnIndicationRepository.save(cnIndication);
+            INDICATION_MAP.put(mapKey,result);
+            return result;
         }
     }
 }

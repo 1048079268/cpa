@@ -12,7 +12,8 @@ public class WordCountUtil {
         if (string==null||string.length()==0){
             return 0L;
         }
-        return Arrays.stream(string.split("[\\s\\d\\p{Punct}]+"))
+        // [\s\d\p{Punct}]+
+        return Arrays.stream(string.split("[\\s\\d.,?!|;]+"))
                 .map(word -> word.replaceAll("[^a-zA-Z]", ""))
                 .count();
     }

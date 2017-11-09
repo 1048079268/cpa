@@ -21,6 +21,7 @@ import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
@@ -206,6 +207,7 @@ public class GeneService extends BaseService {
         return false;
     }
 
+    @Async
     @Override
     public void initDB () throws FileNotFoundException {
         CPA.GENE.name=cpaProperties.getGeneName();

@@ -3,6 +3,7 @@ package com.todaysoft.cpa.service.vice;
 import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
 import com.todaysoft.cpa.domain.entity.Cancer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,21 +22,4 @@ public class CancerService {
     private static Map<String,Cancer> CANCER_MAP=new HashMap<>();
     @Autowired
     private CancerRepository cancerRepository;
-    public void  init (){
-        cancerRepository.findAll().stream().forEach(cancer -> {
-            CANCER_MAP.put(cancer.getDoid(),cancer);
-        });
-    }
-
-    @Transactional
-    public Cancer save(Cancer cancer){
-        Cancer cer;
-        if (CANCER_MAP.containsKey(cancer.getDoid())){
-            cer=CANCER_MAP.get(cancer.getDoid());
-        }else {
-            cer=cancerRepository.save(cancer);
-            CANCER_MAP.put(cancer.getDoid(),cancer);
-        }
-        return cer;
-    }
 }
