@@ -92,9 +92,6 @@ public class MedicationPlanService extends BaseService {
             return medicationPlan;
         };
         MedicationPlan medicationPlan=medicationPlanRepository.save(planConverter.convert(en));
-        if (medicationPlan==null){
-            throw new DataException("保存主表失败->id="+en.getString("id"));
-        }
         MedicationPlan planCn = planConverter.convert(cn);
         planCn.setProgramNameC(planCn.getRegimenName());
         planCn.setRegimenName(medicationPlan.getRegimenName());
@@ -146,7 +143,7 @@ public class MedicationPlanService extends BaseService {
                 PlanCancer planCancer=doid.toJavaObject(PlanCancer.class);
                 Cancer cancer=cancerRepository.findByDoid(String.valueOf(planCancer.getDoid()));
                 if (cancer==null){
-                    throw new DataException("未找到相应疾病，info->doid="+planCancer.getDoid());
+                    throw new DataException("未找到相应的疾病，info->doid="+planCancer.getDoid());
                 }
                 planCancer.setCancerKey(cancer.getCancerKey());
                 planCancer.setMedicationPlanKey(medicationPlan.getMedicationPlanKey());

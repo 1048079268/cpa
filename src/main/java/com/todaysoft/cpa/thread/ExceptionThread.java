@@ -9,6 +9,7 @@ import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.service.ContentService;
+import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.ExceptionInfo;
 import com.todaysoft.cpa.utils.JsoupUtil;
 import com.todaysoft.cpa.utils.StructureChangeException;
@@ -77,8 +78,12 @@ public class ExceptionThread implements Runnable {
                         logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                     }catch (Exception e){
                         contentParam.getCpa().dbId.remove(contentParam.getId());
-                        logger.error("【exception】存入数据异常，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
-                        logger.error("【exception】"+ ExceptionInfo.getErrorInfo(e));
+                        if (e instanceof DataException){
+                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+e.getMessage());
+                        }else {
+                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId());
+                            logger.error("【exception】"+ ExceptionInfo.getErrorInfo(e));
+                        }
                     }
                 }
                 Thread.sleep(1000);

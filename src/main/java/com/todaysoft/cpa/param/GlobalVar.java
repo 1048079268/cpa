@@ -1,5 +1,7 @@
 package com.todaysoft.cpa.param;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -17,6 +19,7 @@ public class GlobalVar {
     private static LinkedBlockingQueue<ContentParam> DRUG_QUEUE;
     private static LinkedBlockingQueue<ContentParam> FAILURE_QUEUE;
     private static String AUTHORIZATION;
+    public final static Set<String> EXCEPTION_FILTER_DATA=new HashSet<>();
 
     public static LinkedBlockingQueue<ContentParam> getContentQueue() {
         return CONTENT_QUEUE;

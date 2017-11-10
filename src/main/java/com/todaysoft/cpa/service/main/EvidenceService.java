@@ -100,9 +100,6 @@ public class EvidenceService extends BaseService {
         };
         Evidence evidence=evidenceRepository.save(evidenceConverter.convert(en));
         cnEvidenceRepository.save(evidenceConverter.convert(cn));
-        if (evidence==null){
-            throw new DataException("保存主表失败->id="+en.getString("id"));
-        }
         //参考文献
         JsonObjectConverter<EvidenceReference> referenceConverter=(json)->{
             JSONObject reference=json.getJSONObject("reference");

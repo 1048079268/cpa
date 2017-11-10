@@ -104,9 +104,6 @@ public class GeneService extends BaseService {
             }
         }
         cnGeneRepository.save(geneCn);
-        if (gene==null){
-            throw new DataException("保存主表失败->id="+en.getString("id"));
-        }
         //2.基因别名
         String aliasesKey=PkGenerator.generator(GeneAlias.class);
         JsonArrayLangConverter<GeneAlias> aliasConverter=(json, lang)->{

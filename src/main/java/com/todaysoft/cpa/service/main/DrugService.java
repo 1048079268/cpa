@@ -201,9 +201,6 @@ public class DrugService extends BaseService {
             }
         }
         cnDrugRepository.save(drugCn);
-        if (drug==null){
-            throw new DataException("保存主表失败->id="+en.getString("id"));
-        }
         //remove 2.判断插入是否成功
         //3.药物别名
         String synonymKey=PkGenerator.generator(DrugSynonym.class);

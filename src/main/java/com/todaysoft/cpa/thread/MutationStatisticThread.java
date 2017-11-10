@@ -11,6 +11,7 @@ import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Page;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.service.ContentService;
+import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.ExceptionInfo;
 import com.todaysoft.cpa.utils.StructureChangeException;
 import org.jsoup.Connection;
@@ -113,8 +114,12 @@ public class MutationStatisticThread implements Runnable {
                                             }else {
                                                 cpa.dbId.remove(id);
                                                 saveRetryTimes=3;
-                                                logger.error("【"+cpa.name()+"】存入数据库异常，info:-->"+id);
-                                                logger.error("【"+cpa.name()+"】"+ ExceptionInfo.getErrorInfo(e));
+                                                if (e instanceof DataException){
+                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+id+",cause:"+e.getMessage());
+                                                }else {
+                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+id);
+                                                    logger.error("【exception】"+ ExceptionInfo.getErrorInfo(e));
+                                                }
                                                 reSave=false;
                                             }
                                         }

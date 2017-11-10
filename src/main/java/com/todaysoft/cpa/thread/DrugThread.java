@@ -9,6 +9,7 @@ import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.service.ContentService;
+import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.ExceptionInfo;
 import com.todaysoft.cpa.utils.JsoupUtil;
 import com.todaysoft.cpa.utils.StructureChangeException;
@@ -93,8 +94,12 @@ public class DrugThread implements Runnable {
                             continue;
                         }else {
                             contentParam.getCpa().dbId.remove(contentParam.getId());
-                            logger.error("【drug】存入数据异常，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
-                            logger.error("【drug】"+ ExceptionInfo.getErrorInfo(ex));
+                            if (ex instanceof DataException){
+                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+ex.getMessage());
+                            }else {
+                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId());
+                                logger.error("【exception】"+ ExceptionInfo.getErrorInfo(ex));
+                            }
                             break;
                         }
                     }

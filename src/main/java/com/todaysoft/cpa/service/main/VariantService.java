@@ -98,9 +98,6 @@ public class VariantService extends BaseService {
         };
         Variant variant =variantRepository.save(variantConverter.convert(en));
         cnVariantRepository.save(variantConverter.convert(cn));
-        if (variant==null){
-            throw new DataException("保存主表失败->id="+en.getString("id"));
-        }
         JSONArray enTumorTypes=en.getJSONArray("tumorTypes");
         JSONArray cnTumorTypes=cn.getJSONArray("tumorTypes");
         if (enTumorTypes!=null&&enTumorTypes.size()>0){
@@ -127,7 +124,7 @@ public class VariantService extends BaseService {
                         String cancerDoid=json.getString("id");
                         Cancer cancer = cancerRepository.findByDoid(cancerDoid);
                         if (cancer==null){
-                            throw new DataException("未找到相应疾病，info->doid="+cancerDoid);
+                            throw new DataException("未找到相应的疾病，info->doid="+cancerDoid);
                         }
                         VariantTumorTypeDoid tumorTypeDoid=new VariantTumorTypeDoid();
                         tumorTypeDoid.setName(cancer.getCancerName());

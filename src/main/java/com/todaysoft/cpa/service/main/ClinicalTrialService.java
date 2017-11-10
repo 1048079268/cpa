@@ -129,7 +129,7 @@ public class ClinicalTrialService extends BaseService {
                     String drugId= drugs.getString(i);
                     Drug drug = drugRepository.findByDrugId(Integer.valueOf(drugId));
                     if (drug==null){
-                        throw new DataException("未找到相应药物，info->drugId="+drugId);
+                        throw new DataException("未找到相应的药物，info->drugId="+drugId);
                     }
                     DrugClinicalTrial drugClinicalTrial=new DrugClinicalTrial();
                     drugClinicalTrial.setClinicalTrialId(clinicalTrialEn.getClinicalTrialId());
@@ -252,7 +252,7 @@ public class ClinicalTrialService extends BaseService {
                         clinicalTrialCancer.setDoid(Integer.valueOf(cancer.getDoid()));
                         trailCancerList.add(clinicalTrialCancer);
                     }else {
-                        throw new DataException("未找到相应的疾病，info->doid="+doid);
+                        throw new DataException("未找到相应的疾病,info->doid="+doid);
                     }
                 }
             }

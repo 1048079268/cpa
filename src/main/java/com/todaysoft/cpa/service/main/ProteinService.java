@@ -76,9 +76,6 @@ public class ProteinService extends BaseService {
         };
         Protein protein = proteinRepository.save(proteinConverter.convert(en));
         cnProteinRepository.save(proteinConverter.convert(cn));
-        if (protein==null){
-            throw new DataException("保存主表失败->id="+en.getString("id"));
-        }
         //3.别名
         String synonymKey=PkGenerator.generator(ProteinSynonym.class);
         JsonArrayConverter<ProteinSynonym> synonymConverter=(json)->{
