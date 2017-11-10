@@ -31,6 +31,10 @@ public class AcquireJsonStructure {
             JsonDataType jsonDataType;
             if (value instanceof String){
                 jsonDataType = JsonDataType.String;
+                String v= (String) value;
+                if (v==null||v.length()==0){
+                    jsonDataType=JsonDataType.NULL;
+                }
             }else if (value instanceof Number){
                 jsonDataType = JsonDataType.Number;
             }else if (value instanceof Boolean){

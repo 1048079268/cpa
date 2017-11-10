@@ -14,6 +14,8 @@ import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.Id;
+
 /**
  * @desc:
  * @author: 鱼唇的人类
@@ -86,14 +88,15 @@ public class IdThread implements Runnable {
                     logger.info("【"+cpa.name()+"】完成一次id抓取,开始执行分页偏移，page["+metaOffset+"/"+metaTotal+"],数据量："+insertCount);
                     page.offset();//执行偏移操作
                     retryTimes=3;
-                    //TODO 测试使用(药物全部抓取)
-                    if (contentParam.isHasDependence()){
-                        if (insertCount>=10){
-                            break;
-                        }
-                    }else {
-                        if (insertCount>=100) {
-                            break;
+                    if (logger.isDebugEnabled()){
+                        if (contentParam.isHasDependence()){
+                            if (insertCount>=10){
+                                break;
+                            }
+                        }else {
+                            if (insertCount>=100) {
+                                break;
+                            }
                         }
                     }
                     Thread.sleep(200);

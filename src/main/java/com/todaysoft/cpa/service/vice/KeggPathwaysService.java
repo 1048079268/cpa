@@ -4,6 +4,8 @@ import com.todaysoft.cpa.domain.cn.drug.CnKeggPathwayRepository;
 import com.todaysoft.cpa.domain.en.drug.KeggPathwayRepository;
 import com.todaysoft.cpa.domain.entity.KeggPathway;
 import com.todaysoft.cpa.utils.PkGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Service
 public class KeggPathwaysService{
+    private static Logger logger= LoggerFactory.getLogger(KeggPathwaysService.class);
     private final Lock lock=new ReentrantLock();
     private static Map<String,KeggPathway> KEGG_PATHWAY_MAP=new HashMap();
     private static Map<String,KeggPathway> pathwayMap=new HashMap<>();
@@ -92,6 +95,7 @@ public class KeggPathwaysService{
             enKeggPathway=keggPathwayRepository.save(enKeggPathway);
             pathwayMap.remove(compareName);
             KEGG_PATHWAY_MAP.put(enKeggPathway.getKeggId(),enKeggPathway);
+            logger.info("【KeggPathway】与老库合并->id="+enKeggPathway.getKeggId());
             return enKeggPathway;
         } else {
             //老库没有记录的话查询keggId有没有重的

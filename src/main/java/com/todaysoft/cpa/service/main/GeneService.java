@@ -73,6 +73,7 @@ public class GeneService extends BaseService {
         Gene checkGene = cn.toJavaObject(Gene.class);
         Gene byName = cnGeneRepository.findByName(checkGene.getGeneSymbol());
         if (byName!=null){
+            logger.info("【" + CPA.GENE.name() + "】与老库合并->id="+byName.getGeneId());
             geneKey=byName.getGeneKey();
         }
         String finalGeneKey = geneKey;

@@ -15,6 +15,8 @@ import com.todaysoft.cpa.utils.*;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectKeyConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ import java.util.Set;
  */
 @Service
 public class MedicationPlanService extends BaseService {
+    private static Logger logger= LoggerFactory.getLogger(MedicationPlanService.class);
     @Autowired
     private CnMedicationPlanRepository cnMedicationPlanRepository;
     @Autowired
@@ -76,6 +79,7 @@ public class MedicationPlanService extends BaseService {
         String planNameCheck=planCheck.getRegimenName();
         MedicationPlan byName = cnMedicationPlanRepository.findByName(planNameCheck);
         if (byName!=null){
+            logger.info("【" + CPA.REGIMEN.name() + "】与老库合并->id="+byName.getMedicinePlanId());
             planKey=byName.getMedicationPlanKey();
         }
         String finalPlanKey = planKey;

@@ -102,20 +102,7 @@ public class MainService {
         mainManager.start();
         //子业务抓取id线程池(抓取id线程数量的控制主要是在子业务线程上)
         childrenTreadPool=Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
-        //TODO 单项测试
-        boolean test=false;
-        if (test){
-//            Thread drugContentThread=new Thread(new DrugThread(contentService));
-//            drugContentThread.start();
-//            ContentParam param=new ContentParam(CPA.REGIMEN,medicationPlanService);
-//            param.setId("1759");
-//            GlobalVar.getContentQueue().put(param);
-            Page msPage=new Page(CPA.MUTATION_STATISTICS.contentUrl);
-            msPage.putParam("cosmicId","COSM1458320");
-            ContentParam msParam=new ContentParam(CPA.MUTATION_STATISTICS,mutationStatisticService);
-            MainService.childrenTreadPool.execute(new MutationStatisticThread(msPage,msParam,contentService));
-        }
-        while (!test){
+        while (true){
             //一线id抓取线程池（主）
             ExecutorService mainPool = Executors.newFixedThreadPool(2);
             //启动一级线程（暂时不去除线程池，以便以后扩展）
@@ -202,8 +189,10 @@ public class MainService {
             ExecutorService fourthPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
             //启动三级线程
             fourthPool.execute(evidence());
-            //TODO 测试环境屏蔽该项
-//            fourthPool.execute(mutationStatistic());
+            //测试环境屏蔽突变样本量抓取
+            if (!logger.isDebugEnabled()){
+                fourthPool.execute(mutationStatistic());
+            }
             logger.info("【manager】四级主线程全部启动完成");
             fourthPool.shutdown();
             while (true) {
@@ -226,6 +215,26 @@ public class MainService {
             logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()/60000+"】分钟...");
             Thread.sleep(cpaProperties.getHeartbeat());
             logger.info("【manager】休眠结束，开始重启各线程...");
+        }
+    }
+
+
+    /**
+     * @desc: 测试使用
+     */
+    @Async
+    public void test() throws InterruptedException {
+        if (logger.isDebugEnabled()){
+            //内容线程启动
+            ContentManagerThread mainManager=new ContentManagerThread(cpaProperties.getMaxContentThreadNum(),contentService);
+            mainManager.start();
+            //子业务抓取id线程池(抓取id线程数量的控制主要是在子业务线程上)
+            childrenTreadPool=Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
+//            Thread drugContentThread=new Thread(new DrugThread(contentService));
+//            drugContentThread.start();
+            ContentParam param=new ContentParam(CPA.REGIMEN,medicationPlanService);
+            param.setId("3175");
+            GlobalVar.getContentQueue().put(param);
         }
     }
 

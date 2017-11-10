@@ -27,6 +27,8 @@ import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.*;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,7 @@ import java.util.Set;
  */
 @Service
 public class ClinicalTrialService extends BaseService {
+    private static Logger logger= LoggerFactory.getLogger(ClinicalTrialService.class);
     @Autowired
     private CPAProperties cpaProperties;
     @Autowired
@@ -73,9 +76,10 @@ public class ClinicalTrialService extends BaseService {
     public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
         String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
         ClinicalTrial checkClinicalTrial=cn.toJavaObject(ClinicalTrial.class);
-        ClinicalTrial byTitle = cnClinicalTrailRepository.findByTitle(checkClinicalTrial.getTheTitle());
-        if (byTitle!=null){
-            clinicalTrialKey=byTitle.getClinicalTrialKey();
+        ClinicalTrial byId= cnClinicalTrailRepository.findById(checkClinicalTrial.getClinicalTrialId());
+        if (byId!=null){
+            logger.info("【" + CPA.CLINICAL_TRIAL.name() + "】与老库合并->id="+byId.getClinicalTrialId());
+            clinicalTrialKey=byId.getClinicalTrialKey();
         }
         String finalClinicalTrialKey = clinicalTrialKey;
         JsonObjectConverter<ClinicalTrial> converter=(json)->{
@@ -91,27 +95,27 @@ public class ClinicalTrialService extends BaseService {
         ClinicalTrial clinicalTrialEn=clinicalTrailRepository.save(converter.convert(en));
         ClinicalTrial clinicalTrialCn = converter.convert(cn);
         //老库覆盖CPA中文库
-        if (byTitle!=null){
-            if (!StringUtils.isEmpty(byTitle.getTheTitle())){
-                clinicalTrialCn.setTheTitle(byTitle.getTheTitle());
+        if (byId!=null){
+            if (!StringUtils.isEmpty(byId.getTheTitle())){
+                clinicalTrialCn.setTheTitle(byId.getTheTitle());
             }
-            if (!StringUtils.isEmpty(byTitle.getTheStatus())){
-                clinicalTrialCn.setTheStatus(byTitle.getTheStatus());
+            if (!StringUtils.isEmpty(byId.getTheStatus())){
+                clinicalTrialCn.setTheStatus(byId.getTheStatus());
             }
-            if (!StringUtils.isEmpty(byTitle.getThePhase())){
-                clinicalTrialCn.setThePhase(byTitle.getThePhase());
+            if (!StringUtils.isEmpty(byId.getThePhase())){
+                clinicalTrialCn.setThePhase(byId.getThePhase());
             }
-            if (!StringUtils.isEmpty(byTitle.getTheType())){
-                clinicalTrialCn.setTheType(byTitle.getTheType());
+            if (!StringUtils.isEmpty(byId.getTheType())){
+                clinicalTrialCn.setTheType(byId.getTheType());
             }
-            if (!StringUtils.isEmpty(byTitle.getStartDate())){
-                clinicalTrialCn.setStartDate(byTitle.getStartDate());
+            if (!StringUtils.isEmpty(byId.getStartDate())){
+                clinicalTrialCn.setStartDate(byId.getStartDate());
             }
-            if (!StringUtils.isEmpty(byTitle.getCountries())){
-                clinicalTrialCn.setCountries(byTitle.getCountries());
+            if (!StringUtils.isEmpty(byId.getCountries())){
+                clinicalTrialCn.setCountries(byId.getCountries());
             }
-            if (!StringUtils.isEmpty(byTitle.getTheUrl())){
-                clinicalTrialCn.setTheUrl(byTitle.getTheUrl());
+            if (!StringUtils.isEmpty(byId.getTheUrl())){
+                clinicalTrialCn.setTheUrl(byId.getTheUrl());
             }
         }
         cnClinicalTrailRepository.save(clinicalTrialCn);
@@ -147,8 +151,9 @@ public class ClinicalTrialService extends BaseService {
     public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey) throws InterruptedException {
         String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
         ClinicalTrial checkClinicalTrial=cn.toJavaObject(ClinicalTrial.class);
-        ClinicalTrial byTitle = cnClinicalTrailRepository.findByTitle(checkClinicalTrial.getTheTitle());
+        ClinicalTrial byTitle = cnClinicalTrailRepository.findById(checkClinicalTrial.getClinicalTrialId());
         if (byTitle!=null){
+            logger.info("【" + CPA.CLINICAL_TRIAL.name() + "】与老库合并->id="+byTitle.getClinicalTrialId());
             clinicalTrialKey=byTitle.getClinicalTrialKey();
         }
         String finalClinicalTrialKey = clinicalTrialKey;

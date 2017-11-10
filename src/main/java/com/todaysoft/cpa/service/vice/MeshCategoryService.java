@@ -3,7 +3,10 @@ package com.todaysoft.cpa.service.vice;
 import com.todaysoft.cpa.domain.cn.drug.CnMeshCategoryRepository;
 import com.todaysoft.cpa.domain.en.drug.MeshCategoryRepository;
 import com.todaysoft.cpa.domain.entity.MeshCategory;
+import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.utils.PkGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Service
 public class MeshCategoryService {
+    private static Logger logger= LoggerFactory.getLogger(MeshCategoryService.class);
     private final Lock lock=new ReentrantLock();
     private static Map<String,MeshCategory> MESH_CATEGORY_MAP=new HashMap<>();
     private static Map<String,MeshCategory> meshCategoryMapOldDB=new HashMap<>();
@@ -76,6 +80,7 @@ public class MeshCategoryService {
             enMeshCategory=meshCategoryRepository.save(enMeshCategory);
             meshCategoryMapOldDB.remove(cnMeshCategory.getCategoryName());
             MESH_CATEGORY_MAP.put(enMeshCategory.getMeshId(),enMeshCategory);
+            logger.info("【MeshCategory】与老库合并->id="+enMeshCategory.getMeshId());
             return enMeshCategory;
         }else {
             if (MESH_CATEGORY_MAP.containsKey(enMeshCategory.getMeshId())){

@@ -41,8 +41,18 @@ public class ContentService {
     private final static AtomicBoolean TEST_SEND_STRUCTURE_EMAIL=new AtomicBoolean(true);
 
     public synchronized void sendStructureChangeInfo(String changeInfo, ContentParam param){
-        if (TEST_SEND_STRUCTURE_EMAIL.get()){
-            TEST_SEND_STRUCTURE_EMAIL.set(false);
+        boolean isSend;
+        if (logger.isDebugEnabled()){
+            isSend=TEST_SEND_STRUCTURE_EMAIL.get();
+        }else {
+            isSend=GlobalVar.SEND_STRUCTURE_EMAIL.get();
+        }
+        if (isSend){
+            if (logger.isDebugEnabled()){
+                TEST_SEND_STRUCTURE_EMAIL.set(false);
+            }else {
+                GlobalVar.SEND_STRUCTURE_EMAIL.set(false);
+            }
             StringBuffer content=new StringBuffer();
             content.append("<h3>【CPA JSON结构改变】</h3><h4>比对项：");
             content.append(param.getCpa().name+",id="+param.getId());

@@ -7,7 +7,15 @@
       "chemotherapyName": "String",
       "chemotherapyDescription": "String",
       "regimenName": "String",
-      "studies": null,
+      "studies": [
+        {
+          "pmid": null,
+          "study": null,
+          "efficacy": null,
+          "evidence": null,
+          "comparator": null
+        }
+      ],
       "drugs": [
         0
       ],
