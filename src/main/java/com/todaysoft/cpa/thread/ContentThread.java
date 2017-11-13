@@ -12,9 +12,6 @@ import com.todaysoft.cpa.service.ContentService;
 import com.todaysoft.cpa.utils.ExceptionInfo;
 import com.todaysoft.cpa.utils.JsoupUtil;
 import com.todaysoft.cpa.utils.StructureChangeException;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

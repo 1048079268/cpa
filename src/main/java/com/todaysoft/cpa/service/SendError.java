@@ -35,7 +35,7 @@ public class SendError {
 
     /**
      * @desc: 发送昨天的错误日志
-     *  每天1:00发送
+     *  每天9:00发送
      *  如果昨天的日志为空就不发
      * @author: 鱼唇的人类
      */
@@ -50,9 +50,6 @@ public class SendError {
             helper.setSubject("【CPA 错误日志】-"+ DateUtil.yesterday());
             helper.setText("CPA错误日志，详情请查看附件！谢谢！");
             File dir=new File(errorPath);
-            if (!dir.exists()){
-                logger.error("【定时邮件任务】--找不到日志文件");
-            }
             String regex="error-"+DateUtil.yesterday()+".*";
             List<File> fileList=new ArrayList<>();
             if (dir.exists()){
@@ -60,12 +57,14 @@ public class SendError {
                 if (files!=null&&files.length>0){
                     Arrays.stream(files)
                             .filter(file -> file.exists() && file.length() > 0 && file.getName().matches(regex))
-                            .forEach(file -> fileList.add(file));
+                            .forEach(fileList::add);
                 }
+            }else {
+                logger.error("【定时邮件任务】--找不到日志目录");
             }
-            if (fileList!=null&&fileList.size()>0){
-                for (int i=0;i<fileList.size();i++){
-                    helper.addAttachment("cpa-"+fileList.get(i).getName(), fileList.get(i));
+            if (fileList.size() > 0){
+                for (File aFileList : fileList) {
+                    helper.addAttachment("cpa-" + aFileList.getName(), aFileList);
                 }
                 mailSender.send(mimeMessage);
                 logger.info("【定时任务】--邮件发送成功");

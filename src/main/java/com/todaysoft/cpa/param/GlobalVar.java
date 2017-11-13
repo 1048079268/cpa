@@ -19,6 +19,11 @@ public class GlobalVar {
     private static LinkedBlockingQueue<ContentParam> DRUG_QUEUE;
     private static LinkedBlockingQueue<ContentParam> FAILURE_QUEUE;
     private static String AUTHORIZATION;
+    /**
+     * 异常过滤列表
+     * 已在过滤列表中的异常不再输出至错误日志文件
+     * @see com.todaysoft.cpa.utils.DataException
+     */
     public final static Set<String> EXCEPTION_FILTER_DATA=new HashSet<>();
 
     public static LinkedBlockingQueue<ContentParam> getContentQueue() {
