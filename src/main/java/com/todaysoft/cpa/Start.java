@@ -30,9 +30,9 @@ public class Start implements CommandLineRunner {
     @Override
     public void run(String... strings) throws IOException, InterruptedException {
         mainService.init();
-        mainService.manager();
-//        statisticsService.init();
-//        statisticsService.statistics();
+//        mainService.manager();
+        statisticsService.init();
+        statisticsService.statistics();
         logger.info("<<<<<<<<<启动完成>>>>>>>>>");
     }
 }

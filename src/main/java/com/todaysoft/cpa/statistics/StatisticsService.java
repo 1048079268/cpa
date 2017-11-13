@@ -97,20 +97,20 @@ public class StatisticsService {
 
     public void statistics() throws IOException, InterruptedException {
         logger.info("<<<<<<<<<<<<<statistics>>>>>>>>>>>>".toUpperCase());
-        //drug
-        List<Drug> drugList=new ArrayList<>();
-        drugList.add(drugRepository.findByDrugId(5472));
-        statisticsDrugList.forEach(drug -> {
-            Example<Drug> example=Example.of(drug);
-            List<Drug> drugs = drugRepository.findAll(example);
-            drugList.addAll(drugs);
-        });
-        logger.info("drug:"+drugList.size());
-        statisticsDrug(drugList);
-        //medicationPlan
-        Set<String> drugIds=new HashSet<>();
-        drugList.forEach(drug -> drugIds.add(String.valueOf(drug.getDrugId())));
-        statisticsRegimen(drugIds);
+//        //drug
+//        List<Drug> drugList=new ArrayList<>();
+//        drugList.add(drugRepository.findByDrugId(5472));
+//        statisticsDrugList.forEach(drug -> {
+//            Example<Drug> example=Example.of(drug);
+//            List<Drug> drugs = drugRepository.findAll(example);
+//            drugList.addAll(drugs);
+//        });
+//        logger.info("drug:"+drugList.size());
+//        statisticsDrug(drugList);
+//        //medicationPlan
+//        Set<String> drugIds=new HashSet<>();
+//        drugList.forEach(drug -> drugIds.add(String.valueOf(drug.getDrugId())));
+//        statisticsRegimen(drugIds);
         //gene
         List<Gene> geneList=new ArrayList<>();
         statisticsGeneList.forEach(gene -> {
@@ -136,9 +136,9 @@ public class StatisticsService {
         });
         logger.info("protein:"+proteinList.size());
         statisticsProtein(proteinList);
-
-        //clinicalTrial
-        statisticsClinicalTrail(clinicalTrialIdList);
+//
+//        //clinicalTrial
+//        statisticsClinicalTrail(clinicalTrialIdList);
     }
 
     @Async
