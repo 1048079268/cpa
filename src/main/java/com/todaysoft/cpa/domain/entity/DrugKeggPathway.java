@@ -1,5 +1,7 @@
 package com.todaysoft.cpa.domain.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -16,7 +18,9 @@ public class DrugKeggPathway implements Serializable {
     private String drugKey;
     private String pathwayKey;
     private int drugId;
+    @JSONField(name = "id")
     private String keggId;
+    @JSONField(name = "name")
     private String pathwayName;
 
     @Id

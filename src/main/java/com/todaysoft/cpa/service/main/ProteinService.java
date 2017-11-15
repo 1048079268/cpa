@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -53,18 +54,18 @@ public class ProteinService extends BaseService {
     private GeneRepository geneRepository;
 
     @Override
-    public boolean save(JSONObject object,JSONObject cn) throws InterruptedException {
+    public boolean save(JSONObject object,JSONObject cn,int status) throws InterruptedException {
         Protein protein=object.toJavaObject(Protein.class);
         Gene gene=geneRepository.findByGeneIdAndCreateWay(protein.getGeneId(),2);
         if (gene==null){
             throw new DataException("未找到相应的基因，info->geneId="+protein.getGeneId());
         }
-        return saveByDependence(object,cn,gene.getGeneKey());
+        return saveByDependence(object,cn,gene.getGeneKey(),status);
     }
 
     @Override
     @Transactional
-    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey) throws InterruptedException {
+    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey,int status) throws InterruptedException {
         String proteinKey=PkGenerator.generator(Protein.class);
         JsonObjectConverter<Protein> proteinConverter=(json)->{
             Protein protein=json.toJavaObject(Protein.class);

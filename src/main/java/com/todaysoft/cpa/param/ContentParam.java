@@ -24,6 +24,10 @@ public class ContentParam {
         this.baseService = baseService;
         this.id=null;
     }
+    public ContentParam(CPA cpa){
+        this.cpa=cpa;
+        this.id=null;
+    }
 
     public ContentParam(CPA cpa, BaseService baseService, boolean hasDependence, String dependenceKey) {
         this.cpa = cpa;

@@ -1,5 +1,9 @@
 package com.todaysoft.cpa.utils;
 
+import com.alibaba.druid.util.StringUtils;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.statistics.CountScan;
 import org.jsoup.Connection;
@@ -78,4 +82,25 @@ public class JsoupUtil {
         }
         return response.body();
     }
+
+    /**
+     * 获取json对象
+     * @param cpa
+     * @param id
+     * @param language
+     * @return
+     * @throws IOException
+     */
+    public static JSONObject getJsonByUrl(CPA cpa, String id, String language) throws IOException {
+        String url=cpa.contentUrl+"/"+id;
+        String body = JsoupUtil.getBody(url, language);
+        if (!StringUtils.isEmpty(body)){
+            JSONObject data = JSON.parseObject(body).getJSONObject("data").getJSONObject(cpa.name);
+            if (data!=null){
+                return data;
+            }
+        }
+        return null;
+    }
+
 }

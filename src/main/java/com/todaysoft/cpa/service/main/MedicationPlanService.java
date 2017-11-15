@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -73,7 +74,7 @@ public class MedicationPlanService extends BaseService {
 
     @Override
     @Transactional
-    public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
+    public boolean save(JSONObject en,JSONObject cn,int status) throws InterruptedException {
         String planKey=PkGenerator.generator(MedicationPlan.class);
         MedicationPlan planCheck=cn.toJavaObject(MedicationPlan.class);
         String planNameCheck=planCheck.getRegimenName();
@@ -231,7 +232,7 @@ public class MedicationPlanService extends BaseService {
     }
 
     @Override
-    public boolean saveByDependence(JSONObject object,JSONObject cn, String dependenceKey) {
+    public boolean saveByDependence(JSONObject object,JSONObject cn, String dependenceKey,int status) {
         return false;
     }
 

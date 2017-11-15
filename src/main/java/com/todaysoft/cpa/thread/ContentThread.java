@@ -67,9 +67,9 @@ public class ContentThread implements Runnable{
                         cnObj=enObj;
                     }
                     if (contentParam.isHasDependence()){
-                        baseService.saveByDependence(enObj,cnObj,contentParam.getDependenceKey());
+                        baseService.saveByDependence(enObj,cnObj,contentParam.getDependenceKey(),0);
                     }else {
-                        baseService.save(enObj,cnObj);
+                        baseService.save(enObj,cnObj,0);
                     }
                     logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                 }

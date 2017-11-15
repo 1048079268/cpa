@@ -9,10 +9,7 @@ import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.service.ContentService;
-import com.todaysoft.cpa.utils.DataException;
-import com.todaysoft.cpa.utils.ExceptionInfo;
-import com.todaysoft.cpa.utils.JsoupUtil;
-import com.todaysoft.cpa.utils.StructureChangeException;
+import com.todaysoft.cpa.utils.*;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -71,14 +68,16 @@ public class ExceptionThread implements Runnable {
                     }
                     try {
                         if (contentParam.isHasDependence()){
-                            baseService.saveByDependence(enObj,cnObj,contentParam.getDependenceKey());
+                            baseService.saveByDependence(enObj,cnObj,contentParam.getDependenceKey(),0);
                         }else {
-                            baseService.save(enObj,cnObj);
+                            baseService.save(enObj,cnObj,0);
                         }
                         logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                     }catch (Exception e){
                         contentParam.getCpa().dbId.remove(contentParam.getId());
                         if (e instanceof DataException){
+                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+e.getMessage());
+                        }else if (e instanceof MergeException){
                             logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+e.getMessage());
                         }else {
                             logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId());

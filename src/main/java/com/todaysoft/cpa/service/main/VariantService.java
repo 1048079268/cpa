@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -74,18 +75,18 @@ public class VariantService extends BaseService {
     private ContentService contentService;
 
     @Override
-    public boolean save(JSONObject object,JSONObject cn) {
+    public boolean save(JSONObject object,JSONObject cn,int status) {
         Variant variant = JSONObject.toJavaObject(object, Variant.class);
         Gene gene=geneRepository.findByGeneIdAndCreateWay(variant.getGeneId(),2);
         if(gene==null){
             throw new DataException("未找到相应的基因，info->geneId="+variant.getGeneId());
         }
-        return saveByDependence(object,cn,gene.getGeneKey());
+        return saveByDependence(object,cn,gene.getGeneKey(),status);
     }
 
     @Override
     @Transactional
-    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey) {
+    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey,int status) {
         String variantKey=PkGenerator.generator(Variant.class);
         JsonObjectConverter<Variant> variantConverter=(json)->{
             Variant variant = json.toJavaObject(Variant.class);

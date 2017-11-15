@@ -13,6 +13,7 @@ import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.service.ContentService;
 import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.ExceptionInfo;
+import com.todaysoft.cpa.utils.MergeException;
 import com.todaysoft.cpa.utils.StructureChangeException;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -95,9 +96,9 @@ public class MutationStatisticThread implements Runnable {
                                         try {
                                             boolean success;
                                             if (contentParam.isHasDependence()){
-                                                success=contentParam.getBaseService().saveByDependence(idObject,idObject,contentParam.getDependenceKey());
+                                                success=contentParam.getBaseService().saveByDependence(idObject,idObject,contentParam.getDependenceKey(),0);
                                             }else {
-                                                success=contentParam.getBaseService().save(idObject,idObject);
+                                                success=contentParam.getBaseService().save(idObject,idObject,0);
                                             }
                                             if (success){
                                                 insertCount++;
@@ -116,6 +117,8 @@ public class MutationStatisticThread implements Runnable {
                                                 saveRetryTimes=3;
                                                 if (e instanceof DataException){
                                                     logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+id+",cause:"+e.getMessage());
+                                                }else if (e instanceof MergeException){
+                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+e.getMessage());
                                                 }else {
                                                     logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+id);
                                                     logger.error("【exception】"+ ExceptionInfo.getErrorInfo(e));

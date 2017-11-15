@@ -7,10 +7,7 @@ import com.todaysoft.cpa.compare.AcquireJsonStructure;
 import com.todaysoft.cpa.domain.cn.gene.*;
 import com.todaysoft.cpa.domain.en.gene.*;
 import com.todaysoft.cpa.domain.entity.*;
-import com.todaysoft.cpa.param.CPAProperties;
-import com.todaysoft.cpa.param.CPA;
-import com.todaysoft.cpa.param.ContentParam;
-import com.todaysoft.cpa.param.Page;
+import com.todaysoft.cpa.param.*;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.service.MainService;
 import com.todaysoft.cpa.thread.IdThread;
@@ -25,6 +22,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -66,15 +64,27 @@ public class GeneService extends BaseService {
     private CPAProperties cpaProperties;
 
     @Override
-    public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
+    public boolean save(JSONObject en,JSONObject cn,int status) throws InterruptedException {
         //1.基因
         String geneKey=PkGenerator.generator(Gene.class);
         //查重覆盖
         Gene checkGene = cn.toJavaObject(Gene.class);
         Gene byName = cnGeneRepository.findByName(checkGene.getGeneSymbol());
         if (byName!=null){
-            logger.info("【" + CPA.GENE.name() + "】与老库合并->id="+byName.getGeneId());
-            geneKey=byName.getGeneKey();
+            if (status==0){
+                if (MergeInfo.GENE.sign.add(String.valueOf(checkGene.getGeneId()))){
+                    List<String> list=new ArrayList<>(4);
+                    list.add(0, String.valueOf(checkGene.getGeneId()));
+                    list.add(1,checkGene.getGeneSymbol());
+                    list.add(2,byName.getGeneKey());
+                    list.add(3,byName.getGeneSymbol());
+                    MergeInfo.GENE.checkList.add(list);
+                }
+                throw new MergeException("【" + CPA.GENE.name() + "】与老库重合，等待审核->id="+checkGene.getGeneId());
+            }else if (status==1){
+                logger.info("【" + CPA.GENE.name() + "】与老库合并->id="+byName.getGeneId());
+                geneKey=byName.getGeneKey();
+            }
         }
         String finalGeneKey = geneKey;
         JsonObjectConverter<Gene> geneConverter=(json)->{
@@ -86,7 +96,7 @@ public class GeneService extends BaseService {
         };
         Gene gene = geneRepository.save(geneConverter.convert(en));
         Gene geneCn = geneConverter.convert(cn);
-        if (byName!=null){
+        if (byName!=null&&status==1){
             if (!StringUtils.isEmpty(byName.getGeneType())){
                 geneCn.setGeneType(byName.getGeneType());
             }
@@ -113,13 +123,15 @@ public class GeneService extends BaseService {
                 for (int i = 0; i < aliases.size(); i++) {
                     GeneAlias alias = new GeneAlias();
                     alias.setGeneAliasKey(PkGenerator.md5(aliasesKey+i));
-                    GeneAlias geneAlias = cnGeneAliasRepository.findByGeneKeyAndGeneAlias(gene.getGeneKey(), aliases.getString(i));
-                    if (geneAlias!=null){
-                        if (lang==1){
-                            alias.setGeneAliasKey(geneAlias.getGeneAliasKey());
-                        }
-                        if (lang==2){
-                            continue;
+                    if (status==1){
+                        GeneAlias geneAlias = cnGeneAliasRepository.findByGeneKeyAndGeneAlias(gene.getGeneKey(), aliases.getString(i));
+                        if (geneAlias!=null){
+                            if (lang==1){
+                                alias.setGeneAliasKey(geneAlias.getGeneAliasKey());
+                            }
+                            if (lang==2){
+                                continue;
+                            }
                         }
                     }
                     alias.setGeneId(gene.getGeneId());
@@ -187,6 +199,10 @@ public class GeneService extends BaseService {
         };
         geneOtherNameRepository.save(otherNameConverter.convert(en));
         cnGeneOtherNameRepository.save(otherNameConverter.convert(cn));
+        //如果不是扫描接口启动的就不运行子程序
+        if (status!=0){
+            return true;
+        }
         //插入与该id关联的蛋白质
         logger.info("【" + CPA.GENE.name() + "】开始插入关联的蛋白质");
         Page proteinPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.PROTEIN.name+"s");
@@ -201,7 +217,7 @@ public class GeneService extends BaseService {
     }
 
     @Override
-    public boolean saveByDependence (JSONObject object,JSONObject cn, String dependenceKey){
+    public boolean saveByDependence (JSONObject object,JSONObject cn, String dependenceKey,int status){
         return false;
     }
 

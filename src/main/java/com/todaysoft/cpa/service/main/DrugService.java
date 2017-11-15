@@ -9,13 +9,12 @@ import com.todaysoft.cpa.domain.cn.drug.*;
 import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrailRepository;
 import com.todaysoft.cpa.domain.en.drug.*;
 import com.todaysoft.cpa.domain.entity.*;
+import com.todaysoft.cpa.param.MergeInfo;
 import com.todaysoft.cpa.param.*;
-import com.todaysoft.cpa.service.*;
 import com.todaysoft.cpa.service.vice.IndicationService;
 import com.todaysoft.cpa.service.vice.KeggPathwaysService;
 import com.todaysoft.cpa.service.vice.MeshCategoryService;
 import com.todaysoft.cpa.service.vice.SideEffectService;
-import com.todaysoft.cpa.thread.IdThread;
 import com.todaysoft.cpa.utils.*;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayLangConverter;
@@ -30,15 +29,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 /**
- * @desc:
+ * @desc: 单独运行
  * @author: 鱼唇的人类
  * @date: 2017/8/8 12:07
  */
 @Service
-public class DrugService extends BaseService {
+public class DrugService{
     private static Logger logger= LoggerFactory.getLogger(DrugService.class);
     @Autowired
     private CPAProperties cpaProperties;
@@ -113,18 +113,45 @@ public class DrugService extends BaseService {
     @Autowired
     private CnDrugClinicalTrialRepository cnDrugClinicalTrialRepository;
 
-    @Override
+    /**
+     * @param en
+     * @param cn
+     * @param status
+     *  键是合并的对比项如药物id,通路id，药品名称
+     *  值是判断其是否合并的
+     *     如果键值不存在或者值为0，则抛出异常并提交审核
+     *     如果值为1，表示合并
+     *     如果值为2，表示不合并
+     * @return
+     * @throws InterruptedException
+     */
     @Transactional
-    public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
+    public boolean save(JSONObject en,JSONObject cn,Map<String,Integer> status) throws InterruptedException {
         //1.解析药物基本信息
         String drugKey=PkGenerator.generator(Drug.class);
-        Drug checkDrugCn=cn.toJavaObject(Drug.class);
-        String cnName=checkDrugCn.getNameEn();
-        checkDrugCn = cnDrugRepository.findByName(cnName);
+        Drug checkDrug=cn.toJavaObject(Drug.class);
+        String cnName=checkDrug.getNameEn();
+        boolean merge=false;
+        Drug checkDrugCn = cnDrugRepository.findByName(cnName);
         if (checkDrugCn!=null){
-            logger.info("【" + CPA.DRUG.name() + "】与老库合并->id="+checkDrugCn.getDrugId());
-            drugKey=checkDrugCn.getDrugKey();
+            Integer s=status.get(String.valueOf(checkDrug.getDrugId()));
+            if ( s== null||s==0) {
+                if (MergeInfo.DRUG.sign.add(String.valueOf(checkDrug.getDrugId()))){
+                    List<String> list=new ArrayList<>(4);
+                    list.add(0, String.valueOf(checkDrug.getDrugId()));
+                    list.add(1,checkDrug.getNameEn());
+                    list.add(2,checkDrugCn.getDrugKey());
+                    list.add(3,checkDrugCn.getNameEn());
+                    MergeInfo.DRUG.checkList.add(list);
+                }
+                throw new MergeException("【" + CPA.DRUG.name() + "】与老库重合，等待审核->id="+checkDrug.getDrugId());
+            }else if (s==1){
+                merge=true;
+                logger.info("【" + CPA.DRUG.name() + "】与老库合并->id="+checkDrug.getDrugId());
+                drugKey=checkDrugCn.getDrugKey();
+            }
         }
+        boolean finalMerge = merge;
         String finalDrugKey = drugKey;
         JsonObjectConverter<Drug> drugConverter=(json)->{
             Drug drug=json.toJavaObject(Drug.class);
@@ -147,7 +174,7 @@ public class DrugService extends BaseService {
         drugCn.setNameChinese(drugCn.getNameEn());
         drugCn.setNameEn(drugEn.getNameEn());
         Drug drug=drugRepository.save(drugEn);
-        if (checkDrugCn!=null){
+        if (checkDrugCn!=null&&finalMerge){
             if (!StringUtils.isEmpty(checkDrugCn.getNameEn())){
                 drugCn.setNameEn(checkDrugCn.getNameEn());
             }
@@ -215,16 +242,19 @@ public class DrugService extends BaseService {
                     /**
                      * 不规范，暂时这样
                      */
-                    if (lang==1){
-                        if (synonymKeys.containsKey(i)){
-                            synonym.setSynonymKey(synonymKeys.get(i));
+                    if (finalMerge){
+                        if (lang==1){
+                            if (synonymKeys.containsKey(i)){
+                                synonym.setSynonymKey(synonymKeys.get(i));
+                            }
                         }
-                    }
-                    if (lang==2){
-                        DrugSynonym drugSynonym = cnDrugSynonymRepository.findByDrugKeyAndSynonym(drug.getDrugKey(), synonyms.getString(i));
-                        if (drugSynonym!=null){
-                            synonymKeys.put(i,drugSynonym.getSynonymKey());
-                            continue;
+                        if (lang==2){
+                            DrugSynonym drugSynonym = cnDrugSynonymRepository.findByDrugKeyAndSynonym(drug.getDrugKey(), synonyms.getString(i));
+                            if (drugSynonym!=null){
+                                synonym.setSynonymKey(drugSynonym.getSynonymKey());
+                                synonymKeys.put(i,drugSynonym.getSynonymKey());
+                                continue;
+                            }
                         }
                     }
                     synonym.setDrugId(drug.getDrugId());
@@ -270,11 +300,11 @@ public class DrugService extends BaseService {
                     otherName.setOtherName(otherNames.getString(i));
                     otherNameList.add(otherName);
                 }
-                drugOtherNameRepository.save(otherNameList);
-                cnDrugOtherNameRepository.save(otherNameList);
             }
             return otherNameList;
         };
+        drugOtherNameRepository.save(otherNameConverter.convert(en));
+        cnDrugOtherNameRepository.save(otherNameConverter.convert(cn));
         //6.药物商品
         String internationalBrandKey=PkGenerator.generator(DrugInternationalBrand.class);
         JsonArrayConverter<DrugInternationalBrand> brandConverter=(json)->{
@@ -316,7 +346,7 @@ public class DrugService extends BaseService {
                 String nameCn = keggPathwaysCn.getJSONObject(i).getString("name");
                 KeggPathway keggPathwayEn = pathwayConverter.convert(keggPathwaysEn.getJSONObject(i));
                 KeggPathway keggPathwayCn = pathwayConverter.convert(keggPathwaysCn.getJSONObject(i));
-                KeggPathway keggPathway = keggPathwaysService.save(keggPathwayCn, keggPathwayEn);
+                KeggPathway keggPathway = keggPathwaysService.save(keggPathwayCn,keggPathwayEn, String.valueOf(drug.getDrugId()),status);
                 if(keggPathway!=null){
                     DrugKeggPathway drugKeggPathway=new DrugKeggPathway();
                     drugKeggPathway.setPathwayKey(keggPathway.getPathwayKey());
@@ -673,20 +703,17 @@ public class DrugService extends BaseService {
         cnDrugSequenceRepository.save(sequenceConverter.convert(cn));
         //15.TODO（该字段全部为空，看不到结构，暂时不做） 药物食物不良反应
         // JSONArray foodInteractions=object.getJSONArray("foodInteractions");
-        logger.info("【" + CPA.DRUG.name() + "】开始插入关联的临床实验->id="+drug.getDrugId());
-        Page page=new Page(cpaProperties.getClinicalTrialUrl());
-        page.putParam("drugId", String.valueOf(drug.getDrugId()));
-        ContentParam param=new ContentParam(CPA.CLINICAL_TRIAL, clinicalTrialService,true,drug.getDrugKey());
-        MainService.childrenTreadPool.execute(new IdThread(page,param));
+        /**
+         * 因为临床试验不只有一个药物，所有去除临床试验子线程
+         */
+//        logger.info("【" + CPA.DRUG.name() + "】开始插入关联的临床实验->id="+drug.getDrugId());
+//        Page page=new Page(cpaProperties.getClinicalTrialUrl());
+//        page.putParam("drugId", String.valueOf(drug.getDrugId()));
+//        ContentParam param=new ContentParam(CPA.CLINICAL_TRIAL, clinicalTrialService,true,drug.getDrugKey());
+//        MainService.childrenTreadPool.execute(new IdThread(page,param));
         return true;
     }
 
-    @Override
-    public boolean saveByDependence(JSONObject object, JSONObject cn, String dependenceKey) {
-        return false;
-    }
-
-    @Override
     @Async
     public void initDB() throws FileNotFoundException {
         CPA.DRUG.name=cpaProperties.getDrugName();
@@ -698,5 +725,31 @@ public class DrugService extends BaseService {
             String id=String.valueOf(iterator.next());
             CPA.DRUG.dbId.add(id);
         }
+    }
+
+    public boolean saveOne(String id,Map<String,Integer> status) throws IOException {
+        JSONObject en = JsoupUtil.getJsonByUrl(CPA.DRUG, id, "en");
+        JSONObject cn = JsoupUtil.getJsonByUrl(CPA.DRUG, id, "zn");
+        if (en==null){
+            return false;
+        }
+        if (cn==null){
+            cn=en;
+        }
+        boolean success=false;
+        try {
+            if (CPA.DRUG.dbId.add(id)){
+                success=this.save(en,cn,status);
+                if (!success){
+                    CPA.DRUG.dbId.remove(id);
+                }
+            }
+        }catch (Exception e){
+            CPA.DRUG.dbId.remove(id);
+        }
+        if (success){
+            MergeInfo.DRUG.sign.remove(id);
+        }
+        return success;
     }
 }

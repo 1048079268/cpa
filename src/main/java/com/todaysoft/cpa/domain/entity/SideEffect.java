@@ -1,5 +1,7 @@
 package com.todaysoft.cpa.domain.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import javax.persistence.*;
 
 /**
@@ -14,6 +16,7 @@ public class SideEffect {
     private String umlsConceptId;
     private String meddraId;
     private String kindOfTerm;
+    @JSONField(name = "adrName")
     private String sideEffectName;
     private Long createdAt;
     private Integer createdWay;

@@ -23,6 +23,7 @@ import com.todaysoft.cpa.domain.entity.DrugClinicalTrial;
 import com.todaysoft.cpa.domain.entity.DrugClinicalTrialPK;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
+import com.todaysoft.cpa.param.MergeInfo;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.*;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
@@ -35,8 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -73,13 +74,24 @@ public class ClinicalTrialService extends BaseService {
 
     @Override
     @Transactional
-    public boolean save(JSONObject en,JSONObject cn) throws InterruptedException {
+    public boolean save(JSONObject en,JSONObject cn,int status) throws InterruptedException {
         String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
         ClinicalTrial checkClinicalTrial=cn.toJavaObject(ClinicalTrial.class);
         ClinicalTrial byId= cnClinicalTrailRepository.findById(checkClinicalTrial.getClinicalTrialId());
         if (byId!=null){
-            logger.info("【" + CPA.CLINICAL_TRIAL.name() + "】与老库合并->id="+byId.getClinicalTrialId());
-            clinicalTrialKey=byId.getClinicalTrialKey();
+            if (status==0){
+                if (MergeInfo.CLINICAL_TRIAL.sign.add(checkClinicalTrial.getClinicalTrialId())){
+                    List<String> list=new ArrayList<>(3);
+                    list.add(0,checkClinicalTrial.getClinicalTrialId());
+                    list.add(1,byId.getClinicalTrialKey());
+                    list.add(2,byId.getClinicalTrialId());
+                    MergeInfo.CLINICAL_TRIAL.checkList.add(list);
+                }
+                throw new MergeException("【" + CPA.CLINICAL_TRIAL.name() + "】与老库重合，等待审核->id="+checkClinicalTrial.getClinicalTrialId());
+            }else if (status==1){
+                logger.info("【" + CPA.CLINICAL_TRIAL.name() + "】与老库合并->id="+byId.getClinicalTrialId());
+                clinicalTrialKey=byId.getClinicalTrialKey();
+            }
         }
         String finalClinicalTrialKey = clinicalTrialKey;
         JsonObjectConverter<ClinicalTrial> converter=(json)->{
@@ -95,7 +107,7 @@ public class ClinicalTrialService extends BaseService {
         ClinicalTrial clinicalTrialEn=clinicalTrailRepository.save(converter.convert(en));
         ClinicalTrial clinicalTrialCn = converter.convert(cn);
         //老库覆盖CPA中文库
-        if (byId!=null){
+        if (byId!=null&&status==1){
             if (!StringUtils.isEmpty(byId.getTheTitle())){
                 clinicalTrialCn.setTheTitle(byId.getTheTitle());
             }
@@ -148,7 +160,7 @@ public class ClinicalTrialService extends BaseService {
 
     @Override
     @Transactional
-    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey) throws InterruptedException {
+    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey,int status) throws InterruptedException {
         String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
         ClinicalTrial checkClinicalTrial=cn.toJavaObject(ClinicalTrial.class);
         ClinicalTrial byTitle = cnClinicalTrailRepository.findById(checkClinicalTrial.getClinicalTrialId());
@@ -271,4 +283,5 @@ public class ClinicalTrialService extends BaseService {
         Set<String> ids=clinicalTrailRepository.findIdByCPA();
         CPA.CLINICAL_TRIAL.dbId.addAll(ids);
     }
+
 }

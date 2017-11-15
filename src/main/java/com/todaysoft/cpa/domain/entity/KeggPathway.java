@@ -1,5 +1,8 @@
 package com.todaysoft.cpa.domain.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import org.apache.poi.ss.formula.functions.Na;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -13,7 +16,9 @@ import java.io.Serializable;
 public class KeggPathway implements Serializable {
     private static final long serialVersionUID = 1L;
     private String pathwayKey;
+    @JSONField(name = "id")
     private String keggId;
+    @JSONField(name = "name")
     private String pathwayName;
     private String keggLink;
     private String selleckLink;

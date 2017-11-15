@@ -3,6 +3,8 @@ package com.todaysoft.cpa.service.vice;
 import com.todaysoft.cpa.domain.cn.drug.CnKeggPathwayRepository;
 import com.todaysoft.cpa.domain.en.drug.KeggPathwayRepository;
 import com.todaysoft.cpa.domain.entity.KeggPathway;
+import com.todaysoft.cpa.param.CPA;
+import com.todaysoft.cpa.utils.MergeException;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,14 +77,20 @@ public class KeggPathwaysService{
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public KeggPathway save(KeggPathway cnKeggPathway,KeggPathway enKeggPathway){
+    public KeggPathway save(KeggPathway cnKeggPathway,KeggPathway enKeggPathway,String drugId,Map<String,Integer> status){
         String key= PkGenerator.generator(KeggPathway.class);
         cnKeggPathway.setPathwayKey(key);
         enKeggPathway.setPathwayKey(key);
         //此处使用en的做比较是因为老库的数据也是英文的
         String compareName=enKeggPathway.getPathwayName().toLowerCase().trim();
+        Integer s = status.get(enKeggPathway.getKeggId());
+        if (pathwayMap.containsKey(compareName)&&s==null){
+            //TODO　待确定
+            throw new MergeException("【KeggPathway】等待审核->id="+enKeggPathway.getKeggId());
+        }
+        boolean merge=pathwayMap.containsKey(compareName)&&s!=null&&s==1;
         //中文老库已有该记录
-        if (pathwayMap.containsKey(compareName)) {
+        if (merge) {
             //中文的状态与英文状态一致
             KeggPathway pathway = pathwayMap.get(compareName);
             pathway.setCreateWay(cnKeggPathway.getCreateWay());

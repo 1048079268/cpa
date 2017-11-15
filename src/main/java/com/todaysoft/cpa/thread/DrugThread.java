@@ -9,16 +9,15 @@ import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.service.ContentService;
-import com.todaysoft.cpa.utils.DataException;
-import com.todaysoft.cpa.utils.ExceptionInfo;
-import com.todaysoft.cpa.utils.JsoupUtil;
-import com.todaysoft.cpa.utils.StructureChangeException;
+import com.todaysoft.cpa.service.main.DrugService;
+import com.todaysoft.cpa.utils.*;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -30,24 +29,24 @@ public class DrugThread implements Runnable {
     private static Logger logger= LoggerFactory.getLogger(DrugThread.class);
     private int retryTimes=2;
     private ContentService contentService;
+    private DrugService drugService;
     volatile boolean isRun=true;
 
-    public DrugThread(ContentService contentService) {
+    public DrugThread(ContentService contentService,DrugService drugService) {
         this.contentService = contentService;
+        this.drugService=drugService;
     }
 
     @Override
     public void run() {
         while (isRun){
             ContentParam contentParam=null;
-            BaseService baseService =null;
             int retryTime=retryTimes;
             try {
                 contentParam= GlobalVar.getDrugQueue().take();
                 //加入重试机制
                 while (true){
                     try {
-                        baseService =contentParam.getBaseService();
                         String url=contentParam.getCpa().contentUrl + "/" + contentParam.getId();
                         String enJson= JsoupUtil.getBody(url,"en");
                         String cnJson= JsoupUtil.getBody(url,"zn");
@@ -76,11 +75,7 @@ public class DrugThread implements Runnable {
                             if (cnObj==null){
                                 cnObj=enObj;
                             }
-                            if (contentParam.isHasDependence()){
-                                baseService.saveByDependence(enObj,cnObj,contentParam.getDependenceKey());
-                            }else {
-                                baseService.save(enObj,cnObj);
-                            }
+                            drugService.save(enObj,cnObj, new HashMap<>());
                             logger.info("【"+ contentParam.getCpa().name()+"】插入数据库成功,id="+contentParam.getId());
                         }
                         Thread.sleep(1000);
@@ -95,6 +90,8 @@ public class DrugThread implements Runnable {
                         }else {
                             contentParam.getCpa().dbId.remove(contentParam.getId());
                             if (ex instanceof DataException){
+                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+ex.getMessage());
+                            }else if (ex instanceof MergeException){
                                 logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+ex.getMessage());
                             }else {
                                 logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId());

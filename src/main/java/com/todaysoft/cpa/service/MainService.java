@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -57,6 +58,8 @@ public class MainService {
     private SideEffectService sideEffectService;
     @Autowired
     private ContentService contentService;
+    @Autowired
+    private MergeService mergeService;
 
     public static ExecutorService childrenTreadPool;
 
@@ -92,7 +95,7 @@ public class MainService {
      * @throws InterruptedException
      */
     @Async
-    public void manager() throws InterruptedException {
+    public void manager() throws InterruptedException, IOException {
         //如果已经发送了结构改变邮件，那么就不执行接口抓取，直到解决该结构变化为止。
         if (!GlobalVar.SEND_STRUCTURE_EMAIL.get()){
             return;
@@ -103,11 +106,13 @@ public class MainService {
         //子业务抓取id线程池(抓取id线程数量的控制主要是在子业务线程上)
         childrenTreadPool=Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
         while (true){
+            //每次重新运行要清除重合信息
+            mergeService.mergeInit();
             //一线id抓取线程池（主）
             ExecutorService mainPool = Executors.newFixedThreadPool(2);
             //启动一级线程（暂时不去除线程池，以便以后扩展）
             mainPool.execute(drug());
-            Thread drugContentThread=new Thread(new DrugThread(contentService));
+            Thread drugContentThread=new Thread(new DrugThread(contentService,drugService));
             drugContentThread.start();
             logger.info("【manager】一级主线程全部启动完成");
             mainPool.shutdown();
@@ -129,7 +134,7 @@ public class MainService {
                 if (GlobalVar.SEND_STRUCTURE_EMAIL.get()){
                     //监控内容抓取线程，如果挂掉则重启
                     if (!drugContentThread.isAlive()){
-                        drugContentThread=new Thread(new DrugThread(contentService));
+                        drugContentThread=new Thread(new DrugThread(contentService,drugService));
                         drugContentThread.start();
                     }
                     mainManager.checkAndRestart();
@@ -212,6 +217,8 @@ public class MainService {
                 }
                 Thread.sleep(10000);
             }
+            //执行CPA与老库重合数据审核流程
+            mergeService.createExcelAndSend();
             logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()/60000+"】分钟...");
             Thread.sleep(cpaProperties.getHeartbeat());
             logger.info("【manager】休眠结束，开始重启各线程...");
@@ -244,7 +251,7 @@ public class MainService {
      */
     public Runnable drug(){
         Page page=new Page(cpaProperties.getDrugUrl());
-        ContentParam param=new ContentParam(CPA.DRUG,drugService);
+        ContentParam param=new ContentParam(CPA.DRUG);
         return new IdThread(page,param);
     }
 

@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -65,18 +66,18 @@ public class EvidenceService extends BaseService {
     private VariantRepository variantRepository;
 
     @Override
-    public boolean save(JSONObject object,JSONObject cn) throws InterruptedException {
+    public boolean save(JSONObject object,JSONObject cn,int status) throws InterruptedException {
         Evidence evidence=object.toJavaObject(Evidence.class);
         Variant variant=variantRepository.findByVariantIdAndCreatedWay(evidence.getVariantId(),2);
         if (variant==null){
             throw new DataException("未找到相应的突变，info->variantId="+evidence.getVariantId());
         }
-        return saveByDependence(object,cn,variant.getVariantKey());
+        return saveByDependence(object,cn,variant.getVariantKey(),status);
     }
 
     @Override
     @Transactional
-    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey) throws InterruptedException {
+    public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey,int status) throws InterruptedException {
         String evidenceKey=PkGenerator.generator(Evidence.class);
         JsonObjectConverter<Evidence> evidenceConverter=(json)->{
             Evidence evidence=json.toJavaObject(Evidence.class);
