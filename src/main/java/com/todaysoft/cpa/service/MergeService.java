@@ -1,13 +1,18 @@
 package com.todaysoft.cpa.service;
 
+import com.todaysoft.cpa.domain.entity.Drug;
+import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.MergeInfo;
 import com.todaysoft.cpa.service.main.DrugService;
+import com.todaysoft.cpa.service.main.GeneService;
 import com.todaysoft.cpa.utils.DateUtil;
 import com.todaysoft.cpa.utils.ExceptionInfo;
 import com.todaysoft.cpa.utils.FileUtil;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +26,8 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.security.PrivateKey;
+import java.util.*;
 
 /**
  * @desc:
@@ -40,7 +45,10 @@ public class MergeService {
     private String sendFrom;
     @Autowired
     private JavaMailSender mailSender;
-
+    @Autowired
+    private DrugService drugService;
+    @Autowired
+    private GeneService geneService;
     /**
      * 根据各项的重合数据创建excel
      * 如果有一项由重合数据就发送邮件给相关人员
@@ -63,12 +71,12 @@ public class MergeService {
             }
             return false;
         };
-        boolean isCreateAndSen= simpleCreateSheet.createSheet(MergeInfo.DRUG);
-        isCreateAndSen=isCreateAndSen||simpleCreateSheet.createSheet(MergeInfo.DRUG_PRODUCT);
-        isCreateAndSen=isCreateAndSen||simpleCreateSheet.createSheet(MergeInfo.KEGG_PATHWAY);
-        isCreateAndSen=isCreateAndSen||simpleCreateSheet.createSheet(MergeInfo.CLINICAL_TRIAL);
-        isCreateAndSen=isCreateAndSen||simpleCreateSheet.createSheet(MergeInfo.GENE);
-        if (!isCreateAndSen){
+        boolean isCreateAndSend= simpleCreateSheet.createSheet(MergeInfo.DRUG);
+        isCreateAndSend=isCreateAndSend||simpleCreateSheet.createSheet(MergeInfo.DRUG_PRODUCT);
+        isCreateAndSend=isCreateAndSend||simpleCreateSheet.createSheet(MergeInfo.KEGG_PATHWAY);
+        isCreateAndSend=isCreateAndSend||simpleCreateSheet.createSheet(MergeInfo.CLINICAL_TRIAL);
+        isCreateAndSend=isCreateAndSend||simpleCreateSheet.createSheet(MergeInfo.GENE);
+        if (!isCreateAndSend){
             wb.close();
             return;
         }
@@ -105,8 +113,69 @@ public class MergeService {
      * @author: 鱼唇的人类
      */
     @Scheduled(cron = "0 0 0 * * ?")
-    public void scanAndSave(){
-
+    public void scanAndSave() throws IOException, InvalidFormatException {
+        //扫描文件并将数据写入各自的mergeList
+        File dir=new File(mergeScanDir);
+        if (!dir.exists()){
+            return;
+        }
+        //文件名规则：merge[数字].xlsx
+        File[] files = dir.listFiles(pathname -> pathname.getName().matches("merge\\d*\\.xlsx"));
+        if (files==null||files.length==0){
+            return;
+        }
+        for (File file : files) {
+            XSSFWorkbook workbook = new XSSFWorkbook(file);
+            SimpleReadSheet readSheet=(mergeInfo)->{
+                XSSFSheet sheet=workbook.getSheet(mergeInfo.name().toLowerCase());
+                if (sheet!=null){
+                    for (Row next : sheet) {
+                        List<String> list = new ArrayList<>();
+                        for (int i = 0; i < next.getLastCellNum(); i++) {
+                            list.add(next.getCell(i).getStringCellValue());
+                        }
+                        mergeInfo.mergeList.add(list);
+                    }
+                }
+            };
+            readSheet.read(MergeInfo.DRUG);
+            readSheet.read(MergeInfo.DRUG_PRODUCT);
+            readSheet.read(MergeInfo.KEGG_PATHWAY);
+            readSheet.read(MergeInfo.CLINICAL_TRIAL);
+            readSheet.read(MergeInfo.GENE);
+        }
+        //合并药物的审核结果
+        Map<String,Map<String,Integer>> map=new HashMap<>();
+        MergeInfo.DRUG.mergeList.forEach(list->{
+            Map<String,Integer> value=new HashMap<>();
+            value.put(list.get(0), Integer.valueOf(list.get(1)));
+            map.put(list.get(0),value);
+        });
+        MergeInfo.DRUG_PRODUCT.mergeList.forEach(list->{
+            if (map.containsKey(list.get(0))){
+                map.get(list.get(0)).put(list.get(1), Integer.valueOf(list.get(2)));
+            }else {
+                Map<String,Integer> value=new HashMap<>();
+                value.put(list.get(1), Integer.valueOf(list.get(2)));
+                map.put(list.get(0),value);
+            }
+        });
+        //药物
+        map.forEach((key,value)->{
+            boolean success = drugService.saveOne(key, value);
+            if (success){
+                MergeInfo.DRUG.mergeList.removeIf(next -> next.get(0).equals(key));
+                MergeInfo.DRUG_PRODUCT.mergeList.removeIf(next -> next.get(0).equals(key));
+                MergeInfo.KEGG_PATHWAY.mergeList.removeIf(next -> next.get(0).equals(key));
+            }
+        });
+        //基因
+        MergeInfo.GENE.mergeList.forEach(list->{
+            boolean success = geneService.saveOne(CPA.GENE, list.get(0), Integer.parseInt(list.get(1)));
+            if (success){
+                MergeInfo.GENE.mergeList.removeIf(strings -> strings.get(0).equals(list.get(0)));
+            }
+        });
     }
 
     /**
@@ -165,5 +234,10 @@ public class MergeService {
     @FunctionalInterface
     private interface SimpleCreateSheet{
         boolean createSheet(MergeInfo mergeInfo);
+    }
+
+    @FunctionalInterface
+    private interface SimpleReadSheet{
+        void read(MergeInfo mergeInfo);
     }
 }

@@ -727,9 +727,15 @@ public class DrugService{
         }
     }
 
-    public boolean saveOne(String id,Map<String,Integer> status) throws IOException {
-        JSONObject en = JsoupUtil.getJsonByUrl(CPA.DRUG, id, "en");
-        JSONObject cn = JsoupUtil.getJsonByUrl(CPA.DRUG, id, "zn");
+    public boolean saveOne(String id,Map<String,Integer> status){
+        JSONObject en = null;
+        JSONObject cn=null;
+        try {
+            en = JsoupUtil.getJsonByUrl(CPA.DRUG, id, "en");
+            cn = JsoupUtil.getJsonByUrl(CPA.DRUG, id, "zn");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         if (en==null){
             return false;
         }

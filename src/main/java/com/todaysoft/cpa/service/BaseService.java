@@ -54,9 +54,15 @@ public abstract class BaseService<T> {
      * @return
      * @throws IOException
      */
-    protected boolean saveOne(CPA cpa,String id,int status) throws IOException {
-        JSONObject en = JsoupUtil.getJsonByUrl(cpa, id, "en");
-        JSONObject cn = JsoupUtil.getJsonByUrl(cpa, id, "zn");
+    protected boolean saveOne(CPA cpa,String id,int status) {
+        JSONObject en = null;
+        JSONObject cn = null;
+        try {
+            en = JsoupUtil.getJsonByUrl(cpa, id, "en");
+            cn = JsoupUtil.getJsonByUrl(cpa, id, "zn");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         if (en==null){
             return false;
         }
