@@ -68,21 +68,22 @@ public class MeshCategoryService {
         String key= PkGenerator.generator(MeshCategory.class);
         cnMeshCategory.setMeshCategoryKey(key);
         enMeshCategory.setMeshCategoryKey(key);
-        if (meshCategoryMapOldDB.containsKey(cnMeshCategory.getCategoryName())){
-            MeshCategory meshCategory = meshCategoryMapOldDB.get(cnMeshCategory.getCategoryName());
-            meshCategory.setCheckState(cnMeshCategory.getCheckState());
-            meshCategory.setCreatedWay(cnMeshCategory.getCreatedWay());
-            //该处的id与英文库保持一致
-            meshCategory.setMeshId(cnMeshCategory.getMeshId());
-            meshCategory.setCreatedAt(cnMeshCategory.getCreatedAt());
-            cnMeshCategoryRepository.save(meshCategory);
-            enMeshCategory.setMeshCategoryKey(meshCategory.getMeshCategoryKey());
-            enMeshCategory=meshCategoryRepository.save(enMeshCategory);
-            meshCategoryMapOldDB.remove(cnMeshCategory.getCategoryName());
-            MESH_CATEGORY_MAP.put(enMeshCategory.getMeshId(),enMeshCategory);
-            logger.info("【MeshCategory】与老库合并->id="+enMeshCategory.getMeshId());
-            return enMeshCategory;
-        }else {
+        //TODO 暂时屏蔽与老库合并
+//        if (meshCategoryMapOldDB.containsKey(cnMeshCategory.getCategoryName())){
+//            MeshCategory meshCategory = meshCategoryMapOldDB.get(cnMeshCategory.getCategoryName());
+//            meshCategory.setCheckState(cnMeshCategory.getCheckState());
+//            meshCategory.setCreatedWay(cnMeshCategory.getCreatedWay());
+//            //该处的id与英文库保持一致
+//            meshCategory.setMeshId(cnMeshCategory.getMeshId());
+//            meshCategory.setCreatedAt(cnMeshCategory.getCreatedAt());
+//            cnMeshCategoryRepository.save(meshCategory);
+//            enMeshCategory.setMeshCategoryKey(meshCategory.getMeshCategoryKey());
+//            enMeshCategory=meshCategoryRepository.save(enMeshCategory);
+//            meshCategoryMapOldDB.remove(cnMeshCategory.getCategoryName());
+//            MESH_CATEGORY_MAP.put(enMeshCategory.getMeshId(),enMeshCategory);
+//            logger.info("【MeshCategory】与老库合并->id="+enMeshCategory.getMeshId());
+//            return enMeshCategory;
+//        }else {
             if (MESH_CATEGORY_MAP.containsKey(enMeshCategory.getMeshId())){
                 return MESH_CATEGORY_MAP.get(enMeshCategory.getMeshId());
             }else {
@@ -91,6 +92,6 @@ public class MeshCategoryService {
                 MESH_CATEGORY_MAP.put(enMeshCategory.getMeshId(),enMeshCategory);
                 return enMeshCategory;
             }
-        }
+//        }
     }
 }

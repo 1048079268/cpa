@@ -82,7 +82,7 @@ public class GeneService extends BaseService {
                 }
                 throw new MergeException("【" + CPA.GENE.name() + "】与老库重合，等待审核->id="+checkGene.getGeneId());
             }else if (status==1){
-                logger.info("【" + CPA.GENE.name() + "】与老库合并->id="+byName.getGeneId());
+                logger.info("【" + CPA.GENE.name() + "】与老库合并->id="+checkGene.getGeneId());
                 geneKey=byName.getGeneKey();
             }
         }

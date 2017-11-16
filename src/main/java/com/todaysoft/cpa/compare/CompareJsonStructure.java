@@ -15,10 +15,6 @@ import java.util.Set;
  */
 public class CompareJsonStructure {
     public static void compare(Map<String,JsonDataType> template,Map<String,JsonDataType> dataMap) throws StructureChangeException {
-        System.out.println("temp:-----------");
-        template.forEach((key, value)-> System.out.println(key+"->"+value.name()));
-        System.out.println("dataMap:-----------");
-        dataMap.forEach((key, value)-> System.out.println(key+"->"+value.name()));
         Map<String,JsonDataType> temp=new HashMap<>();
         temp.putAll(template);
         StringBuffer notMatch=new StringBuffer();

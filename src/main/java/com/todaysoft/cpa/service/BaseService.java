@@ -4,7 +4,12 @@ import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.param.CPA;
+import com.todaysoft.cpa.param.MergeInfo;
+import com.todaysoft.cpa.utils.DataException;
+import com.todaysoft.cpa.utils.ExceptionInfo;
 import com.todaysoft.cpa.utils.JsoupUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,7 +20,8 @@ import java.util.Map;
  * @author: 鱼唇的人类
  * @date: 2017/8/15 10:35
  */
-public abstract class BaseService<T> {
+public abstract class BaseService {
+    private static Logger logger= LoggerFactory.getLogger(BaseService.class);
     /**
      * 保存数据
      * @param en
@@ -54,7 +60,7 @@ public abstract class BaseService<T> {
      * @return
      * @throws IOException
      */
-    protected boolean saveOne(CPA cpa,String id,int status) {
+    protected boolean saveOne(CPA cpa, MergeInfo mergeInfo, String id, int status) {
         JSONObject en = null;
         JSONObject cn = null;
         try {
@@ -76,9 +82,20 @@ public abstract class BaseService<T> {
                 if (!success){
                     cpa.dbId.remove(id);
                 }
+                logger.info("【Merge-"+ cpa.name()+"】插入数据库成功,id="+id);
             }
         }catch (Exception e){
             cpa.dbId.remove(id);
+            if (e instanceof DataException){
+                logger.error("【MergeException】存入数据异常，info:["+cpa.name()+"]-->"+id+",cause:"+e.getMessage());
+            } else {
+                logger.error("【MergeException】存入数据异常，info:["+cpa.name()+"]-->"+id);
+                logger.error("【MergeException】"+ ExceptionInfo.getErrorInfo(e));
+            }
+        }
+        if (success){
+            mergeInfo.sign.remove(id);
+            mergeInfo.mergeList.removeIf(strings ->strings.get(0).equals(id));
         }
         return success;
     }

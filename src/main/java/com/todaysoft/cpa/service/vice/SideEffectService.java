@@ -67,20 +67,21 @@ public class SideEffectService{
         String generator = PkGenerator.generator(SideEffect.class);
         cnSideEffect.setSideEffectKey(generator);
         enSideEffect.setSideEffectKey(generator);
-        String compareName=cnSideEffect.getSideEffectName();
-        if (SIDE_EFFECT_MAP_OLD.containsKey(compareName)){
-            SideEffect sideEffect = SIDE_EFFECT_MAP_OLD.get(compareName);
-            sideEffect.setCheckState(cnSideEffect.getCheckState());
-            sideEffect.setCreatedAt(cnSideEffect.getCreatedAt());
-            sideEffect.setCreatedWay(cnSideEffect.getCreatedWay());
-            cnSideEffectRepository.save(sideEffect);
-            enSideEffect.setSideEffectKey(sideEffect.getSideEffectKey());
-            enSideEffect=sideEffectRepository.save(enSideEffect);
-            SIDE_EFFECT_MAP_OLD.remove(compareName);
-            SIDE_EFFECT_MAP.put(compareName,enSideEffect);
-            logger.info("【SideEffect】与老库合并->key="+enSideEffect.getSideEffectKey());
-            return enSideEffect;
-        }else {
+        //TODO 暂时屏蔽与老库合并
+//        String compareName=cnSideEffect.getSideEffectName();
+//        if (SIDE_EFFECT_MAP_OLD.containsKey(compareName)){
+//            SideEffect sideEffect = SIDE_EFFECT_MAP_OLD.get(compareName);
+//            sideEffect.setCheckState(cnSideEffect.getCheckState());
+//            sideEffect.setCreatedAt(cnSideEffect.getCreatedAt());
+//            sideEffect.setCreatedWay(cnSideEffect.getCreatedWay());
+//            cnSideEffectRepository.save(sideEffect);
+//            enSideEffect.setSideEffectKey(sideEffect.getSideEffectKey());
+//            enSideEffect=sideEffectRepository.save(enSideEffect);
+//            SIDE_EFFECT_MAP_OLD.remove(compareName);
+//            SIDE_EFFECT_MAP.put(compareName,enSideEffect);
+//            logger.info("【SideEffect】与老库合并->key="+enSideEffect.getSideEffectKey());
+//            return enSideEffect;
+//        }else {
             if (SIDE_EFFECT_MAP.containsKey(enSideEffect.getSideEffectName())){
                 return SIDE_EFFECT_MAP.get(enSideEffect.getSideEffectName());
             }else {
@@ -89,6 +90,6 @@ public class SideEffectService{
                 SIDE_EFFECT_MAP_OLD.put(enSideEffect.getSideEffectName(),enSideEffect);
                 return enSideEffect;
             }
-        }
+//        }
     }
 }

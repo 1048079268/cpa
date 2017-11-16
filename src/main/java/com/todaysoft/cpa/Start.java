@@ -3,6 +3,7 @@ package com.todaysoft.cpa;
 import com.todaysoft.cpa.service.MainService;
 import com.todaysoft.cpa.statistics.StatisticsService;
 import com.todaysoft.cpa.statistics.CountService;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +29,15 @@ public class Start implements CommandLineRunner {
     @Autowired
     private StatisticsService statisticsService;
     @Override
-    public void run(String... strings) throws IOException, InterruptedException {
+    public void run(String... strings) throws IOException, InterruptedException, InvalidFormatException {
         mainService.init();
-//        mainService.manager();
-        statisticsService.init();
-        statisticsService.statistics();
+        if (logger.isDebugEnabled()){
+            mainService.test();
+        }else {
+            mainService.manager();
+        }
+//        statisticsService.init();
+//        statisticsService.statistics();
         logger.info("<<<<<<<<<启动完成>>>>>>>>>");
     }
 }

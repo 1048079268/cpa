@@ -752,9 +752,26 @@ public class DrugService{
             }
         }catch (Exception e){
             CPA.DRUG.dbId.remove(id);
+            if (e instanceof DataException){
+                logger.error("【MergeException】存入数据异常，info:["+CPA.DRUG.name()+"]-->"+id+",cause:"+e.getMessage());
+            } else {
+                logger.error("【MergeException】存入数据异常，info:["+CPA.DRUG.name()+"]-->"+id);
+                logger.error("【MergeException】"+ ExceptionInfo.getErrorInfo(e));
+            }
         }
         if (success){
             MergeInfo.DRUG.sign.remove(id);
+            status.forEach((key,value)->{
+                if (MergeInfo.KEGG_PATHWAY.sign.contains(key)){
+                    MergeInfo.KEGG_PATHWAY.sign.remove(key);
+                }
+                if (MergeInfo.DRUG_PRODUCT.sign.contains(key)){
+                    MergeInfo.DRUG_PRODUCT.sign.remove(key);
+                }
+            });
+            MergeInfo.DRUG.mergeList.removeIf(next -> next.get(0).equals(id));
+            MergeInfo.DRUG_PRODUCT.mergeList.removeIf(next -> next.get(0).equals(id));
+            MergeInfo.KEGG_PATHWAY.mergeList.removeIf(next -> next.get(0).equals(id));
         }
         return success;
     }

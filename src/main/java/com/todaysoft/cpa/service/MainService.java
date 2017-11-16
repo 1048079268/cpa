@@ -8,6 +8,7 @@ import com.todaysoft.cpa.thread.ContentManagerThread;
 import com.todaysoft.cpa.thread.DrugThread;
 import com.todaysoft.cpa.thread.IdThread;
 import com.todaysoft.cpa.thread.MutationStatisticThread;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -217,6 +218,10 @@ public class MainService {
                 }
                 Thread.sleep(10000);
             }
+            //等待内容线程完成
+            while (!mainManager.isAllWaiting()){
+                Thread.sleep(1000);
+            }
             //执行CPA与老库重合数据审核流程
             mergeService.createExcelAndSend();
             logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()/60000+"】分钟...");
@@ -230,8 +235,11 @@ public class MainService {
      * @desc: 测试使用
      */
     @Async
-    public void test() throws InterruptedException {
+    public void test() throws InterruptedException, IOException, InvalidFormatException {
         if (logger.isDebugEnabled()){
+            //每次重新运行要清除重合信息
+            System.out.println(MergeInfo.GENE.mergeList.size());
+            mergeService.mergeInit();
             //内容线程启动
             ContentManagerThread mainManager=new ContentManagerThread(cpaProperties.getMaxContentThreadNum(),contentService);
             mainManager.start();
@@ -239,9 +247,16 @@ public class MainService {
             childrenTreadPool=Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
 //            Thread drugContentThread=new Thread(new DrugThread(contentService));
 //            drugContentThread.start();
-            ContentParam param=new ContentParam(CPA.REGIMEN,medicationPlanService);
-            param.setId("3175");
+            ContentParam param=new ContentParam(CPA.GENE,geneService);
+            param.setId("8178");
             GlobalVar.getContentQueue().put(param);
+            //等待内容线程完成
+            while (!mainManager.isAllWaiting()){
+                Thread.sleep(1000);
+            }
+            //执行CPA与老库重合数据审核流程
+//            mergeService.createExcelAndSend();
+            mergeService.scanAndSave();
         }
     }
 
