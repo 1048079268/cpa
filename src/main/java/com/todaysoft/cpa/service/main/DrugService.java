@@ -9,7 +9,7 @@ import com.todaysoft.cpa.domain.cn.drug.*;
 import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrailRepository;
 import com.todaysoft.cpa.domain.en.drug.*;
 import com.todaysoft.cpa.domain.entity.*;
-import com.todaysoft.cpa.param.MergeInfo;
+import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.param.*;
 import com.todaysoft.cpa.service.vice.IndicationService;
 import com.todaysoft.cpa.service.vice.KeggPathwaysService;

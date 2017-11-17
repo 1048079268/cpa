@@ -7,6 +7,7 @@ import com.todaysoft.cpa.compare.AcquireJsonStructure;
 import com.todaysoft.cpa.domain.cn.gene.*;
 import com.todaysoft.cpa.domain.en.gene.*;
 import com.todaysoft.cpa.domain.entity.*;
+import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.param.*;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.service.MainService;
@@ -22,7 +23,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

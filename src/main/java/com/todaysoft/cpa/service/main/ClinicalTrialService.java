@@ -23,7 +23,7 @@ import com.todaysoft.cpa.domain.entity.DrugClinicalTrial;
 import com.todaysoft.cpa.domain.entity.DrugClinicalTrialPK;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
-import com.todaysoft.cpa.param.MergeInfo;
+import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.*;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
@@ -36,7 +36,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -158,6 +157,18 @@ public class ClinicalTrialService extends BaseService {
         return true;
     }
 
+    /**
+     * 已弃用
+     * @param en
+     * @param cn
+     * @param dependenceKey
+     * @param status
+     *    0 表示如果与老库有重合的话就终止运行并并写入待审核列表
+     *    1 表示如果与老库有重合的话就与老库合并
+     *    2 表示如果与老库有重合的话也不与老库合并
+     * @return
+     * @throws InterruptedException
+     */
     @Override
     @Transactional
     public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey,int status) throws InterruptedException {

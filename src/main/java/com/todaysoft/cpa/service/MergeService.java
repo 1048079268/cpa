@@ -1,21 +1,18 @@
 package com.todaysoft.cpa.service;
 
-import com.todaysoft.cpa.domain.entity.Drug;
+import com.todaysoft.cpa.merge.MergeSheetOperator;
 import com.todaysoft.cpa.param.CPA;
-import com.todaysoft.cpa.param.MergeInfo;
+import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.service.main.ClinicalTrialService;
 import com.todaysoft.cpa.service.main.DrugService;
 import com.todaysoft.cpa.service.main.GeneService;
 import com.todaysoft.cpa.utils.DateUtil;
 import com.todaysoft.cpa.utils.ExceptionInfo;
-import com.todaysoft.cpa.utils.FileUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
@@ -28,13 +25,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.activation.DataSource;
-import javax.activation.FileDataSource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.*;
-import java.security.PrivateKey;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -69,7 +64,7 @@ public class MergeService {
      */
     public void createExcelAndSend() throws IOException {
         Workbook wb = new XSSFWorkbook();
-        SimpleCreateSheet simpleCreateSheet = mergeInfo -> {
+        MergeSheetOperator operator = mergeInfo -> {
             if (mergeInfo.checkList != null && mergeInfo.checkList.size() > 1) {
                 Sheet sheet = wb.createSheet(mergeInfo.name().toLowerCase());
                 List<List<String>> lists = mergeInfo.checkList;
@@ -84,21 +79,16 @@ public class MergeService {
             }
             return false;
         };
-        boolean isCreateAndSend = simpleCreateSheet.createSheet(MergeInfo.DRUG);
-        isCreateAndSend = isCreateAndSend || simpleCreateSheet.createSheet(MergeInfo.DRUG_PRODUCT);
-        isCreateAndSend = isCreateAndSend || simpleCreateSheet.createSheet(MergeInfo.KEGG_PATHWAY);
-        isCreateAndSend = isCreateAndSend || simpleCreateSheet.createSheet(MergeInfo.CLINICAL_TRIAL);
-        isCreateAndSend = isCreateAndSend || simpleCreateSheet.createSheet(MergeInfo.GENE);
+        boolean isCreateAndSend = operator.operate(MergeInfo.DRUG);
+        isCreateAndSend = operator.operate(MergeInfo.DRUG_PRODUCT)||isCreateAndSend;
+        isCreateAndSend = operator.operate(MergeInfo.KEGG_PATHWAY)||isCreateAndSend;
+        isCreateAndSend = operator.operate(MergeInfo.CLINICAL_TRIAL)||isCreateAndSend;
+        isCreateAndSend = operator.operate(MergeInfo.GENE)||isCreateAndSend;
         if (!isCreateAndSend) {
             wb.close();
             return;
         }
         logger.info("【MergeService】CPA与老库有重合数据，开始发送邮件...");
-//        String path=mergeScanDir+"/check.xlsx";
-//        FileOutputStream fos = new FileOutputStream(path);
-//        wb.write(fos);
-//        fos.close();
-//        wb.close();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         wb.write(baos);
         baos.flush();
@@ -137,7 +127,7 @@ public class MergeService {
      * @desc:  定时扫描合并文件并保存相应数据到数据库
      * @author: 鱼唇的人类
      */
-//    @Scheduled(cron = "0 * * * * ?")
+    @Scheduled(cron = "0 * * * * ?")
     public void scanAndSave() throws IOException, InvalidFormatException {
         if (isScan.get()){
             return;
@@ -156,7 +146,7 @@ public class MergeService {
             }
             for (File file : files) {
                 XSSFWorkbook workbook = new XSSFWorkbook(file);
-                SimpleReadSheet readSheet=(mergeInfo)->{
+                MergeSheetOperator readSheet=(mergeInfo)->{
                     XSSFSheet sheet=workbook.getSheet(mergeInfo.name().toLowerCase());
                     if (sheet!=null){
                         for (Row row : sheet) {
@@ -178,12 +168,13 @@ public class MergeService {
                             mergeInfo.mergeList.add(list);
                         }
                     }
+                    return true;
                 };
-                readSheet.read(MergeInfo.DRUG);
-                readSheet.read(MergeInfo.DRUG_PRODUCT);
-                readSheet.read(MergeInfo.KEGG_PATHWAY);
-                readSheet.read(MergeInfo.CLINICAL_TRIAL);
-                readSheet.read(MergeInfo.GENE);
+                readSheet.operate(MergeInfo.DRUG);
+                readSheet.operate(MergeInfo.DRUG_PRODUCT);
+                readSheet.operate(MergeInfo.KEGG_PATHWAY);
+                readSheet.operate(MergeInfo.CLINICAL_TRIAL);
+                readSheet.operate(MergeInfo.GENE);
                 workbook.close();
             }
             //合并药物的审核结果
@@ -222,7 +213,7 @@ public class MergeService {
             });
             //执行入库完成后如果有未完成的数据就写入文件等待下一次扫描
             Workbook wb = new XSSFWorkbook();
-            SimpleCreateSheet simpleCreateSheet=mergeInfo -> {
+            MergeSheetOperator operator=mergeInfo -> {
                 if (mergeInfo.mergeList!=null&&mergeInfo.mergeList.size()>0){
                     Sheet sheet = wb.createSheet(mergeInfo.name().toLowerCase());
                     Set<List<String>> set = mergeInfo.mergeList;
@@ -240,11 +231,11 @@ public class MergeService {
                 }
                 return false;
             };
-            boolean isSave= simpleCreateSheet.createSheet(MergeInfo.DRUG);
-            isSave=isSave||simpleCreateSheet.createSheet(MergeInfo.DRUG_PRODUCT);
-            isSave=isSave||simpleCreateSheet.createSheet(MergeInfo.KEGG_PATHWAY);
-            isSave=isSave||simpleCreateSheet.createSheet(MergeInfo.CLINICAL_TRIAL);
-            isSave=isSave||simpleCreateSheet.createSheet(MergeInfo.GENE);
+            boolean isSave= operator.operate(MergeInfo.DRUG);
+            isSave= operator.operate(MergeInfo.DRUG_PRODUCT)||isSave;
+            isSave= operator.operate(MergeInfo.KEGG_PATHWAY)||isSave;
+            isSave= operator.operate(MergeInfo.CLINICAL_TRIAL)||isSave;
+            isSave= operator.operate(MergeInfo.GENE)||isSave;
             //删除已处理的文件
             for (File file : files) {
                 if (file.exists()) {
@@ -317,16 +308,5 @@ public class MergeService {
         if (file.exists()){
             file.delete();
         }
-    }
-
-
-    @FunctionalInterface
-    private interface SimpleCreateSheet{
-        boolean createSheet(MergeInfo mergeInfo);
-    }
-
-    @FunctionalInterface
-    private interface SimpleReadSheet{
-        void read(MergeInfo mergeInfo);
     }
 }

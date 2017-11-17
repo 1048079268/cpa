@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.service;
 
+import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.param.*;
 import com.todaysoft.cpa.service.main.*;
@@ -224,8 +225,8 @@ public class MainService {
             }
             //执行CPA与老库重合数据审核流程
             mergeService.createExcelAndSend();
-            logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()/60000+"】分钟...");
-            Thread.sleep(cpaProperties.getHeartbeat());
+            logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()+"】分钟...");
+            Thread.sleep(cpaProperties.getHeartbeat()*60000);
             logger.info("【manager】休眠结束，开始重启各线程...");
         }
     }
@@ -236,6 +237,7 @@ public class MainService {
      */
     @Async
     public void test() throws InterruptedException, IOException, InvalidFormatException {
+        System.out.println(cpaProperties.getHeartbeat());
         if (logger.isDebugEnabled()){
             //每次重新运行要清除重合信息
             System.out.println(MergeInfo.GENE.mergeList.size());

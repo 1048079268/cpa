@@ -31,11 +31,8 @@ public class Start implements CommandLineRunner {
     @Override
     public void run(String... strings) throws IOException, InterruptedException, InvalidFormatException {
         mainService.init();
-        if (logger.isDebugEnabled()){
-            mainService.test();
-        }else {
-            mainService.manager();
-        }
+        mainService.manager();
+//        mainService.test();
 //        statisticsService.init();
 //        statisticsService.statistics();
         logger.info("<<<<<<<<<启动完成>>>>>>>>>");

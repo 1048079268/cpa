@@ -1,10 +1,8 @@
 package com.todaysoft.cpa.service;
 
-import com.alibaba.druid.util.StringUtils;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.param.CPA;
-import com.todaysoft.cpa.param.MergeInfo;
+import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.ExceptionInfo;
 import com.todaysoft.cpa.utils.JsoupUtil;
@@ -13,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * @desc:

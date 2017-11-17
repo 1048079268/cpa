@@ -122,7 +122,7 @@ public class Drug implements Serializable{
     }
 
     @Basic
-    @Column(name = "name_chinese", nullable = true, length = 64)
+    @Column(name = "name_chinese", nullable = true, length = 500)
     public String getNameChinese() {
         return nameChinese;
     }
