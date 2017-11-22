@@ -19,9 +19,11 @@ public class PlanStudy {
     private Integer pmid;
     @JSONField(name = "study")
     private String theStudy;
+    @JSONField(name = "efficacy")
     private String theEfficacy;
     @JSONField(name = "evidence")
     private String theEvidence;
+    @JSONField(name = "comparator")
     private String theComparator;
 
     @Id

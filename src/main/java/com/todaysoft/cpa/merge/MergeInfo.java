@@ -13,7 +13,7 @@ public enum  MergeInfo {
     public Set<List<String>> mergeList;
     //待审核的列表
     public List<List<String>> checkList;
-    //标识该项重合的信息集合，防止重复写入待审核列表，当处理返回的数据后删除。
+    //标识该项重合的信息集合，防止重复写入待审核列表，当处理返回的数据成功后删除。
     public Set<String> sign;
     MergeInfo(){
         mergeList=new HashSet<>();

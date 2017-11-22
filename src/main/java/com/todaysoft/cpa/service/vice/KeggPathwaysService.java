@@ -2,6 +2,7 @@ package com.todaysoft.cpa.service.vice;
 
 import com.todaysoft.cpa.domain.cn.drug.CnKeggPathwayRepository;
 import com.todaysoft.cpa.domain.en.drug.KeggPathwayRepository;
+import com.todaysoft.cpa.domain.entity.Drug;
 import com.todaysoft.cpa.domain.entity.KeggPathway;
 import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.utils.MergeException;
@@ -77,7 +78,7 @@ public class KeggPathwaysService{
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public KeggPathway save(KeggPathway cnKeggPathway,KeggPathway enKeggPathway,String drugId,Map<String,Integer> status){
+    public KeggPathway save(KeggPathway cnKeggPathway, KeggPathway enKeggPathway, Drug drug, Map<String,Integer> status){
         String key= PkGenerator.generator(KeggPathway.class);
         cnKeggPathway.setPathwayKey(key);
         enKeggPathway.setPathwayKey(key);
@@ -88,12 +89,13 @@ public class KeggPathwaysService{
             if (MergeInfo.KEGG_PATHWAY.sign.add(enKeggPathway.getKeggId())){
                 KeggPathway pathway = pathwayMap.get(compareKey);
                 List<String> list=new ArrayList<>();
-                list.set(0,drugId);
-                list.set(1,enKeggPathway.getKeggId());
-                list.set(2,enKeggPathway.getPathwayName());
-                list.set(3,pathway.getPathwayKey());
-                list.set(4,pathway.getKeggId());
-                list.set(5,pathway.getPathwayName());
+                list.add(0, String.valueOf(drug.getDrugId()));
+                list.add(1,drug.getNameEn());
+                list.add(2,enKeggPathway.getKeggId());
+                list.add(3,enKeggPathway.getPathwayName());
+                list.add(4,pathway.getPathwayKey());
+                list.add(5,pathway.getKeggId());
+                list.add(6,pathway.getPathwayName());
                 MergeInfo.KEGG_PATHWAY.checkList.add(list);
             }
             throw new MergeException("【KeggPathway】等待审核->id="+enKeggPathway.getKeggId());

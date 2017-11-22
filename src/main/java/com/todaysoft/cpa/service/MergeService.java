@@ -127,7 +127,7 @@ public class MergeService {
      * @desc:  定时扫描合并文件并保存相应数据到数据库
      * @author: 鱼唇的人类
      */
-    @Scheduled(cron = "0 * * * * ?")
+    @Scheduled(cron = "0 0 * * * ?")
     public void scanAndSave() throws IOException, InvalidFormatException {
         if (isScan.get()){
             return;
@@ -187,6 +187,17 @@ public class MergeService {
             //合并药品的审核结果
             MergeInfo.DRUG_PRODUCT.mergeList.forEach(list->{
                 if (map.containsKey(list.get(0))){
+                    //解释：<-->是拼接符:药品名<-->药品剂型 作为标识主键
+                    map.get(list.get(0)).put(list.get(1)+"<-->"+list.get(2), Integer.valueOf(list.get(3)));
+                }else {
+                    Map<String,Integer> value=new HashMap<>();
+                    value.put(list.get(1)+"<-->"+list.get(2), Integer.valueOf(list.get(3)));
+                    map.put(list.get(0),value);
+                }
+            });
+            //合并通路的审核结果
+            MergeInfo.KEGG_PATHWAY.mergeList.forEach(list->{
+                if (map.containsKey(list.get(0))){
                     map.get(list.get(0)).put(list.get(1), Integer.valueOf(list.get(2)));
                 }else {
                     Map<String,Integer> value=new HashMap<>();
@@ -216,8 +227,7 @@ public class MergeService {
             MergeSheetOperator operator=mergeInfo -> {
                 if (mergeInfo.mergeList!=null&&mergeInfo.mergeList.size()>0){
                     Sheet sheet = wb.createSheet(mergeInfo.name().toLowerCase());
-                    Set<List<String>> set = mergeInfo.mergeList;
-                    Iterator<List<String>> iterator = set.iterator();
+                    Iterator<List<String>> iterator = mergeInfo.mergeList.iterator();
                     int i=0;
                     while (iterator.hasNext()){
                         List<String> next = iterator.next();
@@ -273,19 +283,23 @@ public class MergeService {
         MergeInfo.DRUG_PRODUCT.checkList.clear();
         List<String> drugProduct=new ArrayList<>();
         drugProduct.add(0,"cpa_drug_id");
-        drugProduct.add(1,"cpa_drug_product_name");
-        drugProduct.add(2,"old_drug_product_key");
-        drugProduct.add(3,"old_drug_product_name");
+        drugProduct.add(1,"cpa_drug_name");
+        drugProduct.add(2,"cpa_drug_product_name");
+        drugProduct.add(3,"cpa_drug_product_dosage_form");
+        drugProduct.add(4,"old_drug_product_key");
+        drugProduct.add(5,"old_drug_product_dosage_form");
+        drugProduct.add(6,"old_drug_product_name");
         MergeInfo.DRUG_PRODUCT.checkList.add(0,drugProduct);
         //keggPathway
         MergeInfo.KEGG_PATHWAY.checkList.clear();
         List<String> keggPathway=new ArrayList<>();
         keggPathway.add(0,"cpa_drug_id");
-        keggPathway.add(1,"cpa_kegg_pathway_id");
-        keggPathway.add(2,"cpa_kegg_pathway_name");
-        keggPathway.add(3,"old_kegg_pathway_key");
-        keggPathway.add(4,"old_kegg_pathway_id");
-        keggPathway.add(5,"old_kegg_pathway_name");
+        keggPathway.add(1,"cpa_drug_name");
+        keggPathway.add(2,"cpa_kegg_pathway_id");
+        keggPathway.add(3,"cpa_kegg_pathway_name");
+        keggPathway.add(4,"old_kegg_pathway_key");
+        keggPathway.add(5,"old_kegg_pathway_id");
+        keggPathway.add(6,"old_kegg_pathway_name");
         MergeInfo.KEGG_PATHWAY.checkList.add(0,keggPathway);
         //clinicalTrial
         MergeInfo.CLINICAL_TRIAL.checkList.clear();
