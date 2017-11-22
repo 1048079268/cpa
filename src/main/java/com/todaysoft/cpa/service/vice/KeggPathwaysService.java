@@ -41,7 +41,7 @@ public class KeggPathwaysService{
             String idKey=keggPathway.getKeggId().replace("hsa|map","").trim();
             pathwayMap.put(idKey,keggPathway);
         });
-        keggPathwayRepository.findByCPA().stream().forEach(keggPathway -> {
+        keggPathwayRepository.findByCPA().forEach(keggPathway -> {
             KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),keggPathway);
         });
     }

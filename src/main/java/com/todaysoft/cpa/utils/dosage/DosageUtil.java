@@ -127,7 +127,23 @@ public class DosageUtil {
      * @return
      */
     public static String acquireUnit(String dosageForm){
-        return "unknown";
+        if (dosageForm==null||dosageForm.length()==0){
+            return null;
+        }
+        dosageForm=dosageForm.trim();
+        if (dosageForm.matches("^Aerosol.*$|^Implant.*$|^Lotion.*$|^糖浆剂$")){
+            return "瓶";
+        }else if (dosageForm.matches("^Capsule.*$|^胶囊剂$")){
+            return "粒";
+        }else if (dosageForm.matches("^Injection.*$")){
+            return "支";
+        }else if (dosageForm.matches("^Tablet.*$|^片剂$|^中国药典剂型：片剂$")){
+            return "片";
+        }else if (dosageForm.matches("^原料药$")){
+            return "无";
+        }else {
+            return "未知";
+        }
     }
 
     /**
