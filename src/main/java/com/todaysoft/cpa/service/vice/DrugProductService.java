@@ -72,7 +72,7 @@ public class DrugProductService {
             DrugProduct drugProduct = OLD_DRUG_PRODUCT.get(product.getProductNameEn());
             Integer integer = status.get(compareItem);
             if (integer==null||integer==0){
-                if (MergeInfo.DRUG_PRODUCT.sign.add(product.getProductNameEn())){
+                if (MergeInfo.DRUG_PRODUCT.sign.add(compareItem)){
                     List<String> list=new ArrayList<>();
                     list.add(0,String.valueOf(drug.getDrugId()));
                     list.add(1,drug.getNameEn());
@@ -86,6 +86,7 @@ public class DrugProductService {
                 throw new MergeException("【DrugProduct】等待审核->name="+product.getProductNameEn());
             }else if (integer==1){
                 productKey=drugProduct.getProductKey();
+                OLD_DRUG_PRODUCT.remove(product.getProductNameEn());
             }
         }
         String finalProductKey = productKey;

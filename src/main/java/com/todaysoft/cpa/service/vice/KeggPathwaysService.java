@@ -101,6 +101,9 @@ public class KeggPathwaysService{
             throw new MergeException("【KeggPathway】等待审核->id="+enKeggPathway.getKeggId());
         }
         boolean merge=pathwayMap.containsKey(compareKey)&&s!=null&&s==1;
+        if (pathwayMap.containsKey(compareKey)&&s!=null&&s==2){
+            pathwayMap.remove(compareKey);
+        }
         //中文老库已有该记录
         if (merge) {
             //中文的状态与英文状态一致
