@@ -25,13 +25,11 @@
     
 **二、启动**
 1. 指定内部配置文件启动
-   
    启动命令：`java -jar knowtion-spider-0.0.1.jar --spring.profiles.active=dev`
    该命令启动使用的是`knowtion-spider-0.0.1.jar`包内部的`src\main\resources\application-dev.properties`配置文件
    需要在代码打包前修改好要用的配置文件，`application-dev.properties`会覆盖`application.properties`的配置，前者没有的配置会使用后者的即默认配置。
 
 2. 指定外部配置文件启动
- 
    启动命令：`java -jar knowtion-spider-0.0.1.jar --spring.config.location=application.properties`
    该命令使用的是文件目录中的`application.properties`作为配置文件，该配置文件必须包含全部的必须的配置。修改配置后，重新以此命令启动即可。
    
