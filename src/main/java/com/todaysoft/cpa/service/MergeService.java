@@ -88,7 +88,7 @@ public class MergeService {
         File dir=new File(mergeScanDir);
         File[] files=null;
         if (dir.exists()){
-            files = dir.listFiles(pathname -> pathname.getName().matches("^CoincideData-\\d*\\.xlsx$"));
+            files = dir.listFiles(pathname -> pathname.getName().matches("^superposition-\\d*\\.xlsx$"));
         }
         if (!isCreateAndSend&&(files==null||files.length==0)) {
             wb.close();
@@ -112,7 +112,7 @@ public class MergeService {
             helper.setTo(mergeCheckSendTo);
             helper.setSubject("CPA与老库重合数据" + DateUtil.today());
             helper.setText("你好：这是CPA与老库重合的数据，详情请查看附件！谢谢！");
-            String fileName = "CoincideData-" + DateUtil.today() + ".xlsx";
+            String fileName = "superposition-" + DateUtil.today() + ".xlsx";
             if (isCreateAndSend){
                 helper.addAttachment(MimeUtility.encodeText(fileName), source);
             }
@@ -127,7 +127,7 @@ public class MergeService {
         } catch (MessagingException e) {
             isSendSuccess=false;
             //发生异常后保存在本地，以免丢失
-            String path = mergeScanDir + "/CoincideData-" + System.currentTimeMillis() + ".xlsx";
+            String path = mergeScanDir + "/superposition-" + System.currentTimeMillis() + ".xlsx";
             FileOutputStream fos = new FileOutputStream(path);
             wb.write(fos);
             fos.close();
