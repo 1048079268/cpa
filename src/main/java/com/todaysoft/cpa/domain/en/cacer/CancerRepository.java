@@ -3,6 +3,7 @@ package com.todaysoft.cpa.domain.en.cacer;
 import com.todaysoft.cpa.domain.entity.Cancer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * @desc:

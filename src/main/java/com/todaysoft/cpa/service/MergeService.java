@@ -84,7 +84,13 @@ public class MergeService {
         isCreateAndSend = operator.operate(MergeInfo.KEGG_PATHWAY)||isCreateAndSend;
         isCreateAndSend = operator.operate(MergeInfo.CLINICAL_TRIAL)||isCreateAndSend;
         isCreateAndSend = operator.operate(MergeInfo.GENE)||isCreateAndSend;
-        if (!isCreateAndSend) {
+        //扫描以前发送失败的邮件的附件，如果有，在本次发送时一起发送，发送成功后删除
+        File dir=new File(mergeScanDir);
+        File[] files=null;
+        if (dir.exists()){
+            files = dir.listFiles(pathname -> pathname.getName().matches("^CoincideData-\\d*\\.xlsx$"));
+        }
+        if (!isCreateAndSend&&(files==null||files.length==0)) {
             wb.close();
             return;
         }
@@ -99,6 +105,7 @@ public class MergeService {
         is.close();
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper;
+        boolean isSendSuccess=true;
         try {
             helper = new MimeMessageHelper(mimeMessage, true, "utf-8");
             helper.setFrom(sendFrom);
@@ -106,12 +113,21 @@ public class MergeService {
             helper.setSubject("CPA与老库重合数据" + DateUtil.today());
             helper.setText("你好：这是CPA与老库重合的数据，详情请查看附件！谢谢！");
             String fileName = "CoincideData-" + DateUtil.today() + ".xlsx";
-            helper.addAttachment(MimeUtility.encodeText(fileName), source);
+            if (isCreateAndSend){
+                helper.addAttachment(MimeUtility.encodeText(fileName), source);
+            }
+            //发送上次发送失败的
+            if (files!=null&&files.length>0){
+                for (File file : files) {
+                    helper.addAttachment(MimeUtility.encodeText(file.getName()),file);
+                }
+            }
             mailSender.send(mimeMessage);
             logger.info("【MergeService】邮件发送成功！");
         } catch (MessagingException e) {
+            isSendSuccess=false;
             //发生异常后保存在本地，以免丢失
-            String path = mergeScanDir + "/CoincideData" + System.currentTimeMillis() + ".xlsx";
+            String path = mergeScanDir + "/CoincideData-" + System.currentTimeMillis() + ".xlsx";
             FileOutputStream fos = new FileOutputStream(path);
             wb.write(fos);
             fos.close();
@@ -120,13 +136,20 @@ public class MergeService {
             logger.error("【MergeService】附件保存在：" + path);
             logger.error("【MergeService】" + ExceptionInfo.getErrorInfo(e));
         }
+        if (isSendSuccess&&files!=null&&files.length>0){
+            for (File file : files) {
+                if (file.exists()) {
+                    file.delete();
+                }
+            }
+        }
     }
 
     /**
      * @desc:  定时扫描合并文件并保存相应数据到数据库
      * @author: 鱼唇的人类
      */
-    @Scheduled(cron = "0 0 * * * ?")
+    @Scheduled(cron = "0 0 1 * * ?")
     public void scanAndSave() throws IOException, InvalidFormatException {
         if (isScan.get()){
             return;
@@ -139,10 +162,11 @@ public class MergeService {
                 return;
             }
             //文件名规则：merge[数字].xlsx
-            File[] files = dir.listFiles(pathname -> pathname.getName().matches("merge\\d*\\.xlsx"));
+            File[] files = dir.listFiles(pathname -> pathname.getName().matches("^merge\\d*\\.xlsx$"));
             if (files==null||files.length==0){
                 return;
             }
+            //扫描文件并转换为相应的审核结果数据
             for (File file : files) {
                 XSSFWorkbook workbook = new XSSFWorkbook(file);
                 MergeSheetOperator readSheet=(mergeInfo)->{
@@ -240,6 +264,7 @@ public class MergeService {
                 }
                 return false;
             };
+            //判断是否有未保存成功的
             boolean isSave= operator.operate(MergeInfo.DRUG);
             isSave= operator.operate(MergeInfo.DRUG_PRODUCT)||isSave;
             isSave= operator.operate(MergeInfo.KEGG_PATHWAY)||isSave;

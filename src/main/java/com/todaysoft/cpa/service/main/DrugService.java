@@ -475,7 +475,7 @@ public class DrugService{
         cnDrugInteractionRepository.save(interactionConverter.convert(cn));
         //12.药品
         JSONArray productsEn=en.getJSONArray("products");
-        JSONArray productsCn=en.getJSONArray("products");
+        JSONArray productsCn=cn.getJSONArray("products");
         if (productsEn!=null&&productsEn.size()>0){
             for (int i=0;i<productsEn.size();i++){
                 JSONObject objectEn = productsEn.getJSONObject(i);
@@ -524,13 +524,13 @@ public class DrugService{
                     drugProductIngredientContentRepository.save(contentConverter.convert(objectEn));
                 }
                 if (cnDrugProductIngredientContentRepository.findOne(contentPK)==null){
-                    cnDrugProductIngredientContentRepository.save(contentConverter.convert(objectEn));
+                    cnDrugProductIngredientContentRepository.save(contentConverter.convert(objectCn));
                 }
             }
         }
         //13.药物分类
         JSONArray categoriesEn = en.getJSONArray("categories");
-        JSONArray categoriesCn = en.getJSONArray("categories");
+        JSONArray categoriesCn = cn.getJSONArray("categories");
         if (categoriesEn!=null&&categoriesEn.size()>0){
             JsonObjectConverter<MeshCategory> meshCategoryConverter=(json)->{
                 MeshCategory meshCategory=json.toJavaObject(MeshCategory.class);

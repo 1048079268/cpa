@@ -1,7 +1,6 @@
 package com.todaysoft.cpa.domain.cn.drug;
 
 import com.todaysoft.cpa.domain.entity.DrugProductRoute;
-import com.todaysoft.cpa.domain.entity.DrugProductRoutePK;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -9,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author: 鱼唇的人类
  * @date: 2017/11/20 11:42
  */
-public interface CnDrugProductRouteRepository extends JpaRepository<DrugProductRoute,DrugProductRoutePK> {
+public interface CnDrugProductRouteRepository extends JpaRepository<DrugProductRoute,String> {
 }

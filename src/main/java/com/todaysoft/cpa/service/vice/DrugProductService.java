@@ -121,6 +121,9 @@ public class DrugProductService {
             cnRoute.setProductRoute(cn.getString("route"));
             List<DrugProductRoute> routes = drugProductRouteRepository.findAll(Example.of(enRoute));
             if (routes==null||routes.size()==0){
+                String generator = PkGenerator.generator(DrugProductRoute.class);
+                enRoute.setRouteKey(generator);
+                cnRoute.setRouteKey(generator);
                 drugProductRouteRepository.save(enRoute);
                 cnDrugProductRouteRepository.save(cnRoute);
             }
