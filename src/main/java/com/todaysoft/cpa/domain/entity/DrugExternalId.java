@@ -21,7 +21,7 @@ public class DrugExternalId implements Serializable {
     private String externalIdSource;
     @JSONField(name = "externalId")
     private String externalId;
-
+    private Boolean isPrimary;
     @Id
     @Column(name = "external_id_key", nullable = false, length = 64)
     public String getExternalIdKey() {
@@ -70,6 +70,16 @@ public class DrugExternalId implements Serializable {
 
     public void setExternalId(String externalId) {
         this.externalId = externalId;
+    }
+
+    @Basic
+    @Column(name = "is_primary", nullable = true)
+    public Boolean getPrimary() {
+        return isPrimary;
+    }
+
+    public void setPrimary(Boolean primary) {
+        isPrimary = primary;
     }
 
     @Override

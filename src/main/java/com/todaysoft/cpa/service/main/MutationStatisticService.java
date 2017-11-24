@@ -69,7 +69,6 @@ public class MutationStatisticService extends BaseService {
         }
     }
 
-    @Async
     @Override
     public void initDB() throws FileNotFoundException {
         CPA.MUTATION_STATISTICS.name=cpaProperties.getMutationStatisticsName();

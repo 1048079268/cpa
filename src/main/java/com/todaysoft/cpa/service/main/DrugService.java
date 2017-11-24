@@ -65,8 +65,6 @@ public class DrugService{
     @Autowired
     private CnDrugStructuredIndicationRepository cnDrugStructuredIndicationRepository;
     @Autowired
-    private CnDrugSynonymRepository cnDrugSynonymRepository;
-    @Autowired
     private DrugAdverseReactionRepository drugAdverseReactionRepository;
     @Autowired
     private DrugCategoryRepository drugCategoryRepository;
@@ -88,8 +86,6 @@ public class DrugService{
     private DrugSequenceRepository drugSequenceRepository;
     @Autowired
     private DrugStructuredIndicationRepository drugStructuredIndicationRepository;
-    @Autowired
-    private DrugSynonymRepository drugSynonymRepository;
     @Autowired
     private KeggPathwaysService keggPathwaysService;
     @Autowired
@@ -226,53 +222,61 @@ public class DrugService{
             if (!StringUtils.isEmpty(checkDrugCn.getPharmacodynamics())){
                 drugCn.setPharmacodynamics(checkDrugCn.getPharmacodynamics());
             }
-            if (!StringUtils.isEmpty(checkDrugCn.getPrimaryExternalId())){
-                drugCn.setPrimaryExternalId(checkDrugCn.getPrimaryExternalId());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getPrimaryExternalSource())){
-                drugCn.setPrimaryExternalSource(checkDrugCn.getPrimaryExternalSource());
-            }
         }
         cnDrugRepository.save(drugCn);
         //remove 2.判断插入是否成功
-        //3.药物别名
-        String synonymKey=PkGenerator.generator(DrugSynonym.class);
-        Map<Integer,String> synonymKeys=new HashMap<>();
-        JsonArrayLangConverter<DrugSynonym> synonymConverter=(json, lang)->{
-            JSONArray synonyms=json.getJSONArray("synonyms");
-            List<DrugSynonym> synonymList=new ArrayList<>();
-            if (synonyms!=null&&synonyms.size() > 0){
-                for (int i=0;i<synonyms.size();i++){
-                    DrugSynonym synonym=new DrugSynonym();
-                    synonym.setSynonymKey(PkGenerator.md5(synonymKey+i));
-                    if (finalMerge){
-                        if (lang==1){
-                            if (synonymKeys.containsKey(i)){
-                                synonym.setSynonymKey(synonymKeys.get(i));
-                            }
-                        }
-                        if (lang==2){
-                            DrugSynonym drugSynonym = cnDrugSynonymRepository.findByDrugKeyAndSynonym(drug.getDrugKey(), synonyms.getString(i));
-                            if (drugSynonym!=null){
-                                synonym.setSynonymKey(drugSynonym.getSynonymKey());
-                                synonymKeys.put(i,drugSynonym.getSynonymKey());
-                                continue;
-                            }
-                        }
-                    }
-                    synonym.setDrugId(drug.getDrugId());
-                    synonym.setDrugKey(drug.getDrugKey());
-                    synonym.setDrugSynonym(synonyms.getString(i));
-                    synonymList.add(synonym);
-                }
-            }
-            return synonymList;
-        };
-        //顺序不能变，必须先处理中文再处理英文
-        cnDrugSynonymRepository.save(synonymConverter.convert(cn,2));
-        drugSynonymRepository.save(synonymConverter.convert(en,1));
+        //3.药物别名 与其他名称合并
+//        String synonymKey=PkGenerator.generator(DrugSynonym.class);
+//        Map<Integer,String> synonymKeys=new HashMap<>();
+//        JsonArrayLangConverter<DrugSynonym> synonymConverter=(json, lang)->{
+//            JSONArray synonyms=json.getJSONArray("synonyms");
+//            List<DrugSynonym> synonymList=new ArrayList<>();
+//            if (synonyms!=null&&synonyms.size() > 0){
+//                for (int i=0;i<synonyms.size();i++){
+//                    DrugSynonym synonym=new DrugSynonym();
+//                    synonym.setSynonymKey(PkGenerator.md5(synonymKey+i));
+//                    if (finalMerge){
+//                        if (lang==1){
+//                            if (synonymKeys.containsKey(i)){
+//                                synonym.setSynonymKey(synonymKeys.get(i));
+//                            }
+//                        }
+//                        if (lang==2){
+//                            DrugSynonym drugSynonym = cnDrugSynonymRepository.findByDrugKeyAndSynonym(drug.getDrugKey(), synonyms.getString(i));
+//                            if (drugSynonym!=null){
+//                                synonym.setSynonymKey(drugSynonym.getSynonymKey());
+//                                synonymKeys.put(i,drugSynonym.getSynonymKey());
+//                                continue;
+//                            }
+//                        }
+//                    }
+//                    synonym.setDrugId(drug.getDrugId());
+//                    synonym.setDrugKey(drug.getDrugKey());
+//                    synonym.setDrugSynonym(synonyms.getString(i));
+//                    synonymList.add(synonym);
+//                }
+//            }
+//            return synonymList;
+//        };
+//        cnDrugSynonymRepository.save(synonymConverter.convert(cn,2));
+//        drugSynonymRepository.save(synonymConverter.convert(en,1));
         //4.药物外部id
-        String externalIdKey=PkGenerator.generator(DrugSynonym.class);
+        //保存主要外部数据库id
+        String pExternalIdKey=PkGenerator.generator(DrugExternalId.class);
+        JsonObjectConverter<DrugExternalId> pExternalIdConverter=(json)->{
+            DrugExternalId externalId=new DrugExternalId();
+            externalId.setPrimary(true);
+            externalId.setDrugId(drug.getDrugId());
+            externalId.setDrugKey(drug.getDrugKey());
+            externalId.setExternalIdKey(pExternalIdKey);
+            externalId.setExternalId(json.getString("primaryExternalId"));
+            externalId.setExternalIdSource(json.getString("primaryExternalSource"));
+            return externalId;
+        };
+        drugExternalIdRepository.save(pExternalIdConverter.convert(en));
+        cnDrugExternalIdRepository.save(pExternalIdConverter.convert(cn));
+        //外部数据库id
+        String externalIdKey=PkGenerator.generator(DrugExternalId.class);
         JsonArrayConverter<DrugExternalId> externalIdConverter=(json)->{
             JSONArray externalIds=json.getJSONArray("externalIds");
             List<DrugExternalId> externalIdList=new ArrayList<>();
@@ -282,6 +286,7 @@ public class DrugService{
                     externalId.setExternalIdKey(PkGenerator.md5(externalIdKey+i));
                     externalId.setDrugId(drug.getDrugId());
                     externalId.setDrugKey(drug.getDrugKey());
+                    externalId.setPrimary(false);
                     externalIdList.add(externalId);
                 }
             }
@@ -290,14 +295,42 @@ public class DrugService{
         drugExternalIdRepository.save(externalIdConverter.convert(en));
         cnDrugExternalIdRepository.save(externalIdConverter.convert(cn));
         //5.药物其他名称
+        Map<Integer,String> otherNameKeys=new HashMap<>();
         String otherNameKey=PkGenerator.generator(DrugOtherName.class);
-        JsonArrayConverter<DrugOtherName> otherNameConverter=(json)->{
+        JsonArrayLangConverter<DrugOtherName> otherNameConverter=(json,lang)->{
             JSONArray otherNames=json.getJSONArray("otherNames");
+            JSONArray synonyms=json.getJSONArray("synonyms");
+            if (otherNames==null){
+                otherNames=new JSONArray();
+            }
+            if (synonyms!=null&&synonyms.size()>0){
+                otherNames.addAll(synonyms);
+            }
             List<DrugOtherName> otherNameList=new ArrayList<>();
-            if (otherNames!=null&&otherNames.size()>0){
+            if (otherNames.size()>0){
+                Set<String> mergeOtherName=new HashSet<>();
                 for (int i=0;i<otherNames.size();i++){
+                    //转大写去重
+                    if (!mergeOtherName.add(otherNames.getString(i).toUpperCase())){
+                        continue;
+                    }
                     DrugOtherName otherName=new DrugOtherName();
                     otherName.setOtherNameKey(PkGenerator.md5(otherNameKey+i));
+                    if (finalMerge){
+                        if (lang==1){
+                            if (otherNameKeys.containsKey(i)){
+                                otherName.setOtherNameKey(otherNameKeys.get(i));
+                            }
+                        }
+                        if (lang==2){
+                            DrugOtherName drugOtherName = cnDrugOtherNameRepository.findByDrugKeyAndOtherName(drug.getDrugKey(), otherNames.getString(i));
+                            if (drugOtherName!=null){
+                                otherName.setOtherNameKey(drugOtherName.getOtherNameKey());
+                                otherNameKeys.put(i,drugOtherName.getOtherNameKey());
+                                continue;
+                            }
+                        }
+                    }
                     otherName.setDrugId(drug.getDrugId());
                     otherName.setDrugKey(drug.getDrugKey());
                     otherName.setOtherName(otherNames.getString(i));
@@ -306,8 +339,9 @@ public class DrugService{
             }
             return otherNameList;
         };
-        drugOtherNameRepository.save(otherNameConverter.convert(en));
-        cnDrugOtherNameRepository.save(otherNameConverter.convert(cn));
+        //顺序不能变，必须先处理中文再处理英文
+        cnDrugOtherNameRepository.save(otherNameConverter.convert(cn,2));
+        drugOtherNameRepository.save(otherNameConverter.convert(en,1));
         //6.药物商品
         String internationalBrandKey=PkGenerator.generator(DrugInternationalBrand.class);
         JsonArrayConverter<DrugInternationalBrand> brandConverter=(json)->{
@@ -451,11 +485,11 @@ public class DrugService{
         }
         //11.药物相互作用
         String interactionKey=PkGenerator.generator(DrugInteraction.class);
-        Set<Integer> interactionId=new HashSet<>();
         JsonArrayConverter<DrugInteraction> interactionConverter=(json)->{
             List<DrugInteraction> interactionList=new ArrayList<>();
             JSONArray interactions=json.getJSONArray("interactions");
             if (interactions!=null&&interactions.size()>0){
+                Set<Integer> interactionId=new HashSet<>();
                 for (int i=0;i<interactions.size();i++){
                     DrugInteraction interaction=interactions.getObject(i,DrugInteraction.class);
                     //去重
@@ -547,11 +581,8 @@ public class DrugService{
                     DrugCategory drugCategory=new DrugCategory();
                     drugCategory.setDrugKey(drug.getDrugKey());
                     drugCategory.setDrugId(drug.getDrugId());
-                    drugCategory.setMeshId(meshCategory.getMeshId());
                     drugCategory.setMeshCategoryKey(meshCategory.getMeshCategoryKey());
-                    drugCategory.setCategoryName(meshCategory.getCategoryName());
                     drugCategory=drugCategoryRepository.save(drugCategory);
-                    drugCategory.setCategoryName(meshCategoryCn.getCategoryName());
                     cnDrugCategoryRepository.save(drugCategory);
                 }
             }
@@ -580,7 +611,6 @@ public class DrugService{
         return true;
     }
 
-    @Async
     public void initDB() throws FileNotFoundException {
         CPA.DRUG.name=cpaProperties.getDrugName();
         CPA.DRUG.contentUrl=cpaProperties.getDrugUrl();

@@ -61,10 +61,6 @@ public class Drug implements Serializable{
     private String summary;
     private Integer researchPhase;
     private Integer secondPhase;
-    @JSONField(name = "primaryExternalId")
-    private String primaryExternalId;
-    @JSONField(name = "primaryExternalSource")
-    private String primaryExternalSource;
     private Integer checkState;
     @JSONField(name = "unParse")
     private Long createdAt;
@@ -385,25 +381,6 @@ public class Drug implements Serializable{
         this.secondPhase = secondPhase;
     }
 
-    @Basic
-    @Column(name = "primary_external_id", nullable = true, length = 64)
-    public String getPrimaryExternalId() {
-        return primaryExternalId;
-    }
-
-    public void setPrimaryExternalId(String primaryExternalId) {
-        this.primaryExternalId = primaryExternalId;
-    }
-
-    @Basic
-    @Column(name = "primary_external_source", nullable = true, length = 200)
-    public String getPrimaryExternalSource() {
-        return primaryExternalSource;
-    }
-
-    public void setPrimaryExternalSource(String primaryExternalSource) {
-        this.primaryExternalSource = primaryExternalSource;
-    }
 
     @Basic
     @Column(name = "check_state", nullable = false, length = 200)
@@ -496,10 +473,6 @@ public class Drug implements Serializable{
             return false;
         if (getSecondPhase() != null ? !getSecondPhase().equals(drug.getSecondPhase()) : drug.getSecondPhase() != null)
             return false;
-        if (getPrimaryExternalId() != null ? !getPrimaryExternalId().equals(drug.getPrimaryExternalId()) : drug.getPrimaryExternalId() != null)
-            return false;
-        if (getPrimaryExternalSource() != null ? !getPrimaryExternalSource().equals(drug.getPrimaryExternalSource()) : drug.getPrimaryExternalSource() != null)
-            return false;
         if (getCheckState() != null ? !getCheckState().equals(drug.getCheckState()) : drug.getCheckState() != null)
             return false;
         return getCreatedAt() != null ? getCreatedAt().equals(drug.getCreatedAt()) : drug.getCreatedAt() == null;
@@ -536,8 +509,6 @@ public class Drug implements Serializable{
         result = 31 * result + (getSummary() != null ? getSummary().hashCode() : 0);
         result = 31 * result + (getResearchPhase() != null ? getResearchPhase().hashCode() : 0);
         result = 31 * result + (getSecondPhase() != null ? getSecondPhase().hashCode() : 0);
-        result = 31 * result + (getPrimaryExternalId() != null ? getPrimaryExternalId().hashCode() : 0);
-        result = 31 * result + (getPrimaryExternalSource() != null ? getPrimaryExternalSource().hashCode() : 0);
         result = 31 * result + (getCheckState() != null ? getCheckState().hashCode() : 0);
         result = 31 * result + (getCreatedAt() != null ? getCreatedAt().hashCode() : 0);
         return result;

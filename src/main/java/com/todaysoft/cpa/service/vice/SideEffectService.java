@@ -34,7 +34,6 @@ public class SideEffectService{
     private SideEffectRepository sideEffectRepository;
     @Autowired
     private CnSideEffectRepository cnSideEffectRepository;
-    @Async
     public void init() {
         sideEffectRepository.findByCreatedWay(2).stream().forEach(sideEffect -> {
             SIDE_EFFECT_MAP.put(sideEffect.getSideEffectName(),sideEffect);

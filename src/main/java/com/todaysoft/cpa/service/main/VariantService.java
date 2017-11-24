@@ -162,7 +162,6 @@ public class VariantService extends BaseService {
         return true;
     }
 
-    @Async
     @Override
     public void initDB() throws FileNotFoundException {
         CPA.VARIANT.name=cpaProperties.getVariantName();

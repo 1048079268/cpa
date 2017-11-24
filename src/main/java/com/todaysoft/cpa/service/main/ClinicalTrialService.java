@@ -286,7 +286,6 @@ public class ClinicalTrialService extends BaseService {
     }
 
     @Override
-    @Async
     public void initDB() throws FileNotFoundException {
         CPA.CLINICAL_TRIAL.name=cpaProperties.getClinicalTrialName();
         CPA.CLINICAL_TRIAL.contentUrl=cpaProperties.getClinicalTrialUrl();

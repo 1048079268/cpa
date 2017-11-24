@@ -14,8 +14,6 @@ public class DrugCategory {
     private String drugKey;
     private String meshCategoryKey;
     private Integer drugId;
-    private String meshId;
-    private String categoryName;
 
     @Id
     @Column(name = "drug_key", nullable = false, length = 64)
@@ -47,25 +45,6 @@ public class DrugCategory {
         this.drugId = drugId;
     }
 
-    @Basic
-    @Column(name = "mesh_id", nullable = true, length = 64)
-    public String getMeshId() {
-        return meshId;
-    }
-
-    public void setMeshId(String meshId) {
-        this.meshId = meshId;
-    }
-
-    @Basic
-    @Column(name = "category_name", nullable = true, length = 200)
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -78,9 +57,6 @@ public class DrugCategory {
         if (meshCategoryKey != null ? !meshCategoryKey.equals(category.meshCategoryKey) : category.meshCategoryKey != null)
             return false;
         if (drugId != null ? !drugId.equals(category.drugId) : category.drugId != null) return false;
-        if (meshId != null ? !meshId.equals(category.meshId) : category.meshId != null) return false;
-        if (categoryName != null ? !categoryName.equals(category.categoryName) : category.categoryName != null)
-            return false;
 
         return true;
     }
@@ -90,19 +66,6 @@ public class DrugCategory {
         int result = drugKey != null ? drugKey.hashCode() : 0;
         result = 31 * result + (meshCategoryKey != null ? meshCategoryKey.hashCode() : 0);
         result = 31 * result + (drugId != null ? drugId.hashCode() : 0);
-        result = 31 * result + (meshId != null ? meshId.hashCode() : 0);
-        result = 31 * result + (categoryName != null ? categoryName.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return "DrugCategory{" +
-                "drugKey='" + drugKey + '\'' +
-                ", meshCategoryKey='" + meshCategoryKey + '\'' +
-                ", drugId=" + drugId +
-                ", meshId='" + meshId + '\'' +
-                ", categoryName='" + categoryName + '\'' +
-                '}';
     }
 }

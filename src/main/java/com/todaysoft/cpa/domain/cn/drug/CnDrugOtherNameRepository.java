@@ -9,4 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @date: 2017/8/9 10:10
  */
 public interface CnDrugOtherNameRepository extends JpaRepository<DrugOtherName,String> {
+    DrugOtherName findByDrugKeyAndOtherName(String drugKey,String otherName);
 }

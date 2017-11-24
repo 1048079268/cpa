@@ -221,7 +221,6 @@ public class GeneService extends BaseService {
         return false;
     }
 
-    @Async
     @Override
     public void initDB () throws FileNotFoundException {
         CPA.GENE.name=cpaProperties.getGeneName();

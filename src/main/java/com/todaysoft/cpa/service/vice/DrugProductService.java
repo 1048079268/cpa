@@ -53,7 +53,6 @@ public class DrugProductService {
     @Autowired
     CnDrugProductApprovalRepository cnDrugProductApprovalRepository;
 
-    @Async
     public void init(){
         drugProductRepository.findByCreatedWay(2).forEach(drugProduct -> {
             CPA_DRUG_PRODUCT.put(drugProduct.getProductNameEn()+"<-->"+drugProduct.getDosageForm(),drugProduct);

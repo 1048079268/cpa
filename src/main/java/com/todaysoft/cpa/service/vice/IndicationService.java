@@ -31,7 +31,6 @@ public class IndicationService{
     @Autowired
     private CnIndicationRepository cnIndicationRepository;
 
-    @Async
     public void init() {
         indicationRepository.findByCreatedWay(2).stream().forEach(indication -> {
             String key=indication.getMeddraConceptName();

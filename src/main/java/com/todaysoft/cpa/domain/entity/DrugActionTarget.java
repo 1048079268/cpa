@@ -48,7 +48,7 @@ public class DrugActionTarget implements Serializable {
     }
 
     @Basic
-    @Column(name = "action_target", nullable = true, length = 128)
+    @Column(name = "gene_key", nullable = true, length = 128)
     public String getActionTarget() {
         return actionTarget;
     }

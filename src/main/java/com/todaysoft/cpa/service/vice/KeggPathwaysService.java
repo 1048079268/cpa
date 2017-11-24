@@ -35,7 +35,6 @@ public class KeggPathwaysService{
     @Autowired
     private CnKeggPathwayRepository cnKeggPathwayRepository;
 
-    @Async
     public void init(){
         cnKeggPathwayRepository.findByCreateWay(3).forEach(keggPathway -> {
             String idKey=keggPathway.getKeggId().replace("hsa|map","").trim();

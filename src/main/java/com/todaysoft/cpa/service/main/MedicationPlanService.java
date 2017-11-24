@@ -236,7 +236,6 @@ public class MedicationPlanService extends BaseService {
         return false;
     }
 
-    @Async
     @Override
     public void initDB() throws FileNotFoundException {
         CPA.REGIMEN.name=cpaProperties.getRegimenName();

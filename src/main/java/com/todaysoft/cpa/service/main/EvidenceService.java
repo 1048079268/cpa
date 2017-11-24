@@ -142,7 +142,6 @@ public class EvidenceService extends BaseService {
     }
 
     @Override
-    @Async
     public void initDB() throws FileNotFoundException {
         CPA.EVIDENCE.name=cpaProperties.getEvidenceName();
         CPA.EVIDENCE.contentUrl=cpaProperties.getEvidenceUrl();

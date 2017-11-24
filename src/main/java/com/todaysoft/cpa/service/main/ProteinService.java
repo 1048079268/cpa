@@ -99,7 +99,6 @@ public class ProteinService extends BaseService {
         return true;
     }
 
-    @Async
     @Override
     public void initDB() throws FileNotFoundException {
         CPA.PROTEIN.name=cpaProperties.getProteinName();

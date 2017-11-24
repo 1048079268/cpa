@@ -36,7 +36,6 @@ public class MeshCategoryService {
     @Autowired
     private CnMeshCategoryRepository cnMeshCategoryRepository;
 
-    @Async
     public void init(){
         meshCategoryRepository.findByCPA().stream().forEach(meshCategory->{
             MESH_CATEGORY_MAP.put(meshCategory.getMeshId(),meshCategory);
