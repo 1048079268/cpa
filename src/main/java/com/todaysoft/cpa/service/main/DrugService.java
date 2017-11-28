@@ -55,8 +55,6 @@ public class DrugService{
     @Autowired
     private CnDrugKeggPathwayRepository cnDrugKeggPathwayRepository;
     @Autowired
-    private CnDrugOtherNameRepository cnDrugOtherNameRepository;
-    @Autowired
     private CnDrugProductRepository cnDrugProductRepository;
     @Autowired
     private CnDrugRepository cnDrugRepository;
@@ -76,8 +74,6 @@ public class DrugService{
     private DrugInternationalBrandRepository drugInternationalBrandRepository;
     @Autowired
     private DrugKeggPathwayRepository drugKeggPathwayRepository;
-    @Autowired
-    private DrugOtherNameRepository drugOtherNameRepository;
     @Autowired
     private DrugProductRepository drugProductRepository;
     @Autowired
@@ -175,6 +171,33 @@ public class DrugService{
         Drug drugCn=drugConverter.convert(cn);
         drugCn.setNameChinese(drugCn.getNameEn());
         drugCn.setNameEn(drugEn.getNameEn());
+        //5.药物其他名称
+        JsonObjectConverter<Drug> otherNameConverter=(json)->{
+            JSONArray otherNames=json.getJSONArray("otherNames");
+            JSONArray synonyms=json.getJSONArray("synonyms");
+            Drug drug = new Drug();
+            if (otherNames==null){
+                otherNames=new JSONArray();
+            }
+            if (synonyms!=null&&synonyms.size()>0){
+                otherNames.addAll(synonyms);
+            }
+            JSONArray jsonArray=new JSONArray();
+            if (otherNames.size()>0){
+                Set<String> mergeOtherName=new HashSet<>();
+                for (int i=0;i<otherNames.size();i++){
+                    //转大写去重
+                    if (!mergeOtherName.add(otherNames.getString(i).toUpperCase())){
+                        continue;
+                    }
+                    jsonArray.add(otherNames.getString(i));
+                }
+            }
+            drug.setOtherNames(JsonUtil.jsonArrayToString(jsonArray,";"));
+            return drug;
+        };
+        drugCn.setOtherNames(otherNameConverter.convert(cn).getOtherNames());
+        drugEn.setOtherNames(otherNameConverter.convert(en).getOtherNames());
         Drug drug=drugRepository.save(drugEn);
         if (checkDrugCn!=null&&finalMerge){
             if (!StringUtils.isEmpty(checkDrugCn.getNameEn())){
@@ -294,54 +317,6 @@ public class DrugService{
         };
         drugExternalIdRepository.save(externalIdConverter.convert(en));
         cnDrugExternalIdRepository.save(externalIdConverter.convert(cn));
-        //5.药物其他名称
-        Map<Integer,String> otherNameKeys=new HashMap<>();
-        String otherNameKey=PkGenerator.generator(DrugOtherName.class);
-        JsonArrayLangConverter<DrugOtherName> otherNameConverter=(json,lang)->{
-            JSONArray otherNames=json.getJSONArray("otherNames");
-            JSONArray synonyms=json.getJSONArray("synonyms");
-            if (otherNames==null){
-                otherNames=new JSONArray();
-            }
-            if (synonyms!=null&&synonyms.size()>0){
-                otherNames.addAll(synonyms);
-            }
-            List<DrugOtherName> otherNameList=new ArrayList<>();
-            if (otherNames.size()>0){
-                Set<String> mergeOtherName=new HashSet<>();
-                for (int i=0;i<otherNames.size();i++){
-                    //转大写去重
-                    if (!mergeOtherName.add(otherNames.getString(i).toUpperCase())){
-                        continue;
-                    }
-                    DrugOtherName otherName=new DrugOtherName();
-                    otherName.setOtherNameKey(PkGenerator.md5(otherNameKey+i));
-                    if (finalMerge){
-                        if (lang==1){
-                            if (otherNameKeys.containsKey(i)){
-                                otherName.setOtherNameKey(otherNameKeys.get(i));
-                            }
-                        }
-                        if (lang==2){
-                            DrugOtherName drugOtherName = cnDrugOtherNameRepository.findByDrugKeyAndOtherName(drug.getDrugKey(), otherNames.getString(i));
-                            if (drugOtherName!=null){
-                                otherName.setOtherNameKey(drugOtherName.getOtherNameKey());
-                                otherNameKeys.put(i,drugOtherName.getOtherNameKey());
-                                continue;
-                            }
-                        }
-                    }
-                    otherName.setDrugId(drug.getDrugId());
-                    otherName.setDrugKey(drug.getDrugKey());
-                    otherName.setOtherName(otherNames.getString(i));
-                    otherNameList.add(otherName);
-                }
-            }
-            return otherNameList;
-        };
-        //顺序不能变，必须先处理中文再处理英文
-        cnDrugOtherNameRepository.save(otherNameConverter.convert(cn,2));
-        drugOtherNameRepository.save(otherNameConverter.convert(en,1));
         //6.药物商品
         String internationalBrandKey=PkGenerator.generator(DrugInternationalBrand.class);
         JsonArrayConverter<DrugInternationalBrand> brandConverter=(json)->{

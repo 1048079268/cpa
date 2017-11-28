@@ -30,6 +30,8 @@ public class Drug implements Serializable{
     @JSONField(name = "unParse")
     private String chemicalFormula;
     @JSONField(name = "unParse")
+    private String otherNames;
+    @JSONField(name = "unParse")
     private String molecularWeight;
     @JSONField(name = "mechanismOfAction")
     private String mechanismOfAction;
@@ -369,6 +371,17 @@ public class Drug implements Serializable{
 
     public void setResearchPhase(Integer researchPhase) {
         this.researchPhase = researchPhase;
+    }
+
+    @Basic
+    @Column(name = "other_names", nullable = true ,length = -1)
+    @Type(type = "text")
+    public String getOtherNames() {
+        return otherNames;
+    }
+
+    public void setOtherNames(String otherNames) {
+        this.otherNames = otherNames;
     }
 
     @Basic
