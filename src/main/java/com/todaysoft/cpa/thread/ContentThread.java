@@ -40,7 +40,7 @@ public class ContentThread implements Runnable{
                 baseService =contentParam.getBaseService();
                 String url=contentParam.getCpa().contentUrl + "/" + contentParam.getId();
                 String enJson= JsoupUtil.getBody(url,"en");
-                String cnJson= JsoupUtil.getBody(url,"zn");
+                String cnJson= JsoupUtil.getBody(url,"zh");
                 //结构变化检测
                 try {
                     JSONObject checkBody=JSON.parseObject(enJson);

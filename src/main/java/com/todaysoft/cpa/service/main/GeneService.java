@@ -203,16 +203,16 @@ public class GeneService extends BaseService {
         if (status!=0){
             return true;
         }
-        //插入与该id关联的蛋白质
-        logger.info("【" + CPA.GENE.name() + "】开始插入关联的蛋白质");
-        Page proteinPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.PROTEIN.name+"s");
-        ContentParam proteinParam=new ContentParam(CPA.PROTEIN,proteinService,true,gene.getGeneKey());
-        MainService.childrenTreadPool.execute(new IdThread(proteinPage,proteinParam));
-        //插入与该id关联的突变
-        logger.info("【" + CPA.GENE.name() + "】开始插入关联的突变");
-        Page variantPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.VARIANT.name+"s");
-        ContentParam variantParam=new ContentParam(CPA.VARIANT,variantService,true,gene.getGeneKey());
-        MainService.childrenTreadPool.execute(new IdThread(variantPage,variantParam));
+//        //插入与该id关联的蛋白质
+//        logger.info("【" + CPA.GENE.name() + "】开始插入关联的蛋白质");
+//        Page proteinPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.PROTEIN.name+"s");
+//        ContentParam proteinParam=new ContentParam(CPA.PROTEIN,proteinService,true,gene.getGeneKey());
+//        MainService.childrenTreadPool.execute(new IdThread(proteinPage,proteinParam));
+//        //插入与该id关联的突变
+//        logger.info("【" + CPA.GENE.name() + "】开始插入关联的突变");
+//        Page variantPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.VARIANT.name+"s");
+//        ContentParam variantParam=new ContentParam(CPA.VARIANT,variantService,true,gene.getGeneKey());
+//        MainService.childrenTreadPool.execute(new IdThread(variantPage,variantParam));
         return true;
     }
 
