@@ -12,7 +12,6 @@ import com.todaysoft.cpa.domain.en.gene.GeneRepository;
 import com.todaysoft.cpa.domain.en.medicationPlan.MedicationPlanRepository;
 import com.todaysoft.cpa.domain.en.medicationPlan.PlanInstructionMessageRepository;
 import com.todaysoft.cpa.domain.en.proteins.ProteinRepository;
-import com.todaysoft.cpa.domain.en.proteins.ProteinSynonymRepository;
 import com.todaysoft.cpa.domain.entity.*;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.Page;
@@ -43,8 +42,6 @@ public class StatisticsService {
     private GeneRepository geneRepository;
     @Autowired
     private ProteinRepository proteinRepository;
-    @Autowired
-    private ProteinSynonymRepository proteinSynonymRepository;
     @Autowired
     private MedicationPlanRepository medicationPlanRepository;
     @Autowired
@@ -201,25 +198,19 @@ public class StatisticsService {
 
     @Async
     private void statisticsProtein(List<Protein> proteinList){
-        List<ProteinSynonym> synonymList=new ArrayList<>();
-        final long[] proteinCount={0L,0L};
+        final long[] proteinCount={0L,0L,0L};
         proteinList.forEach(protein -> {
-            ProteinSynonym proteinSynonym=new ProteinSynonym();
-            proteinSynonym.setProteinKey(protein.getProteinKey());
-            Example<ProteinSynonym> proteinSynonymExample=Example.of(proteinSynonym);
-            synonymList.addAll(proteinSynonymRepository.findAll(proteinSynonymExample));
             String functionDescription = protein.getFunctionDescription();
             proteinCount[0]+=WordCountUtil.count(functionDescription);
             String tissueSpecificity = protein.getTissueSpecificity();
             proteinCount[1]+=WordCountUtil.count(tissueSpecificity);
+            proteinCount[2]+=WordCountUtil.count(protein.getOtherNames());
         });
-        final long[] synonym = {0L};
-        synonymList.stream().filter(s -> !StringUtils.isEmpty(s.getSynonym())).forEach(s -> synonym[0] +=WordCountUtil.count(s.getSynonym()));
         logger.info("--protein:");
         logger.info("functionDescription:"+proteinCount[0]);
         logger.info("tissueSpecificity:"+proteinCount[1]);
-        logger.info("synonym:"+synonym[0]);
-        logger.info("sub:"+(proteinCount[0]+proteinCount[1]+synonym[0]));
+        logger.info("synonym:"+proteinCount[2]);
+        logger.info("sub:"+(proteinCount[0]+proteinCount[1]+proteinCount[2]));
     }
 
     @Async

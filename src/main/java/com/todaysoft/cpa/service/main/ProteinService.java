@@ -1,35 +1,27 @@
 package com.todaysoft.cpa.service.main;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.compare.AcquireJsonStructure;
 import com.todaysoft.cpa.domain.cn.proteins.CnProteinRepository;
-import com.todaysoft.cpa.domain.cn.proteins.CnProteinSynonymRepository;
 import com.todaysoft.cpa.domain.en.gene.GeneRepository;
 import com.todaysoft.cpa.domain.entity.Gene;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.domain.en.proteins.ProteinRepository;
-import com.todaysoft.cpa.domain.en.proteins.ProteinSynonymRepository;
 import com.todaysoft.cpa.domain.entity.Protein;
-import com.todaysoft.cpa.domain.entity.ProteinSynonym;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.DataException;
-import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
+import com.todaysoft.cpa.utils.JsonUtil;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,11 +35,7 @@ public class ProteinService extends BaseService {
     @Autowired
     private CnProteinRepository cnProteinRepository;
     @Autowired
-    private CnProteinSynonymRepository cnProteinSynonymRepository;
-    @Autowired
     private ProteinRepository proteinRepository;
-    @Autowired
-    private ProteinSynonymRepository proteinSynonymRepository;
     @Autowired
     private CPAProperties cpaProperties;
     @Autowired
@@ -70,6 +58,7 @@ public class ProteinService extends BaseService {
         JsonObjectConverter<Protein> proteinConverter=(json)->{
             Protein protein=json.toJavaObject(Protein.class);
             protein.setProteinKey(proteinKey);
+            protein.setOtherNames(JsonUtil.jsonArrayToString(json.getJSONArray("synonyms"),"<=>"));
             protein.setCreatedAt(System.currentTimeMillis());
             protein.setGeneKey(dependenceKey);
             protein.setCreateWay(2);
@@ -77,25 +66,6 @@ public class ProteinService extends BaseService {
         };
         Protein protein = proteinRepository.save(proteinConverter.convert(en));
         cnProteinRepository.save(proteinConverter.convert(cn));
-        //3.别名
-        String synonymKey=PkGenerator.generator(ProteinSynonym.class);
-        JsonArrayConverter<ProteinSynonym> synonymConverter=(json)->{
-            JSONArray synonyms=json.getJSONArray("synonyms");
-            List<ProteinSynonym> synonymList=new ArrayList<>();
-            if (synonyms!=null&&synonyms.size()>0){
-                for (int i=0;i<synonyms.size();i++){
-                    ProteinSynonym synonym=new ProteinSynonym();
-                    synonym.setProteinSynonymKey(PkGenerator.md5(synonymKey+i));
-                    synonym.setProteinId(protein.getProteinId());
-                    synonym.setProteinKey(protein.getProteinKey());
-                    synonym.setSynonym(synonyms.getString(i));
-                    synonymList.add(synonym);
-                }
-            }
-            return synonymList;
-        };
-        proteinSynonymRepository.save(synonymConverter.convert(en));
-        cnProteinSynonymRepository.save(synonymConverter.convert(cn));
         return true;
     }
 

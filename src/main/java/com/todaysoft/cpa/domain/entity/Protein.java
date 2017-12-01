@@ -33,6 +33,8 @@ public class Protein {
     private String tissueSpecificity;
     @JSONField(name = "tissueSpecificityEvidenceId")
     private Integer tissueSpecificityEvidenceId;
+    @JSONField(name = "noParse")
+    private String otherNames;
     private Long createdAt;
     private Integer createWay;
     private String createdByName="CPA";
@@ -177,6 +179,17 @@ public class Protein {
 
     public void setCreateWay(Integer createWay) {
         this.createWay = createWay;
+    }
+
+    @Basic
+    @Column(name = "other_names",nullable = true)
+    @Type(type = "text")
+    public String getOtherNames() {
+        return otherNames;
+    }
+
+    public void setOtherNames(String otherNames) {
+        this.otherNames = otherNames;
     }
 
     @Override
