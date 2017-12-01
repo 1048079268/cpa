@@ -8,7 +8,6 @@ import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrailRepository;
 import com.todaysoft.cpa.domain.en.clinicalTrail.ClinicalTrialOutcomeRepository;
 import com.todaysoft.cpa.domain.en.drug.DrugInteractionRepository;
 import com.todaysoft.cpa.domain.en.drug.DrugRepository;
-import com.todaysoft.cpa.domain.en.gene.GeneOtherNameRepository;
 import com.todaysoft.cpa.domain.en.gene.GeneRepository;
 import com.todaysoft.cpa.domain.en.medicationPlan.MedicationPlanRepository;
 import com.todaysoft.cpa.domain.en.medicationPlan.PlanInstructionMessageRepository;
@@ -42,8 +41,6 @@ public class StatisticsService {
     private DrugInteractionRepository drugInteractionRepository;
     @Autowired
     private GeneRepository geneRepository;
-    @Autowired
-    private GeneOtherNameRepository geneOtherNameRepository;
     @Autowired
     private ProteinRepository proteinRepository;
     @Autowired
@@ -143,17 +140,12 @@ public class StatisticsService {
 
     @Async
     private void statisticsGene(List<Gene> geneList){
-        List<GeneOtherName> otherNameList=new ArrayList<>();
         final long[] entrezGeneSummary = {0L};
+        final long[] otherName = {0L};
         geneList.forEach(gene ->{
             entrezGeneSummary[0] +=WordCountUtil.count(gene.getEntrezGeneSummary());
-            GeneOtherName otherName=new GeneOtherName();
-            otherName.setGeneKey(gene.getGeneKey());
-            Example<GeneOtherName> otherNameExample=Example.of(otherName);
-            otherNameList.addAll(geneOtherNameRepository.findAll(otherNameExample));
+            otherName[0]+=WordCountUtil.count(gene.getOtherNames());
         });
-        final long[] otherName = {0L};
-        otherNameList.forEach(geneOtherName-> otherName[0] +=WordCountUtil.count(geneOtherName.getOtherName()));
         logger.info("gene:");
         logger.info("entrezGeneSummary:"+entrezGeneSummary[0]);
         logger.info("otherName:"+otherName[0]);
