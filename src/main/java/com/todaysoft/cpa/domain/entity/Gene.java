@@ -30,6 +30,10 @@ public class Gene {
     private Boolean hasCosmicMutations;
     @JSONField(name = "cancerGene")
     private String cancerGene;
+    @JSONField(name = "notParse")
+    private String otherNames;
+    @JSONField(name = "notParse")
+    private String theAlias;
     private Long createAt;
     private Integer createWay;
     private String createdByName="CPA";
@@ -154,6 +158,28 @@ public class Gene {
 
     public void setCreateWay(Integer createWay) {
         this.createWay = createWay;
+    }
+
+    @Basic
+    @Column(name = "other_names",nullable = true,length = -1)
+    @Type(type = "text")
+    public String getOtherNames() {
+        return otherNames;
+    }
+
+    public void setOtherNames(String otherNames) {
+        this.otherNames = otherNames;
+    }
+
+    @Basic
+    @Column(name = "the_alias",nullable = true,length = -1)
+    @Type(type = "text")
+    public String getTheAlias() {
+        return theAlias;
+    }
+
+    public void setTheAlias(String theAlias) {
+        this.theAlias = theAlias;
     }
 
     @Override

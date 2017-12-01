@@ -154,28 +154,9 @@ public class DrugService{
         JsonObjectConverter<Drug> drugConverter=(json)->{
             Drug drug=json.toJavaObject(Drug.class);
             drug.setDrugKey(finalDrugKey);
-            drug.setMolecularWeight(JsonUtil.jsonArrayToString(json.getJSONArray("molecularWeight")));
-            drug.setChemicalFormula(JsonUtil.jsonArrayToString(json.getJSONArray("chemicalFormula")));
-            Date createdAt=json.getDate("createdAt");
-            Long createTime=System.currentTimeMillis();
-            if (createdAt!=null){
-                createTime=createdAt.getTime();
-            }
-            drug.setCreatedAt(createTime);
-            drug.setCheckState(1);
-            drug.setCreateWay(2);
-            drug.setCreatedByName("CPA");
-            return drug;
-        };
-        Drug drugEn=drugConverter.convert(en);
-        Drug drugCn=drugConverter.convert(cn);
-        drugCn.setNameChinese(drugCn.getNameEn());
-        drugCn.setNameEn(drugEn.getNameEn());
-        //5.药物其他名称
-        JsonObjectConverter<Drug> otherNameConverter=(json)->{
+            //别名
             JSONArray otherNames=json.getJSONArray("otherNames");
             JSONArray synonyms=json.getJSONArray("synonyms");
-            Drug drug = new Drug();
             if (otherNames==null){
                 otherNames=new JSONArray();
             }
@@ -193,11 +174,24 @@ public class DrugService{
                     jsonArray.add(otherNames.getString(i));
                 }
             }
-            drug.setOtherNames(JsonUtil.jsonArrayToString(jsonArray,";"));
+            drug.setOtherNames(JsonUtil.jsonArrayToString(jsonArray,"<=>"));
+            drug.setMolecularWeight(JsonUtil.jsonArrayToString(json.getJSONArray("molecularWeight")));
+            drug.setChemicalFormula(JsonUtil.jsonArrayToString(json.getJSONArray("chemicalFormula")));
+            Date createdAt=json.getDate("createdAt");
+            Long createTime=System.currentTimeMillis();
+            if (createdAt!=null){
+                createTime=createdAt.getTime();
+            }
+            drug.setCreatedAt(createTime);
+            drug.setCheckState(1);
+            drug.setCreateWay(2);
+            drug.setCreatedByName("CPA");
             return drug;
         };
-        drugCn.setOtherNames(otherNameConverter.convert(cn).getOtherNames());
-        drugEn.setOtherNames(otherNameConverter.convert(en).getOtherNames());
+        Drug drugEn=drugConverter.convert(en);
+        Drug drugCn=drugConverter.convert(cn);
+        drugCn.setNameChinese(drugCn.getNameEn());
+        drugCn.setNameEn(drugEn.getNameEn());
         Drug drug=drugRepository.save(drugEn);
         if (checkDrugCn!=null&&finalMerge){
             if (!StringUtils.isEmpty(checkDrugCn.getNameEn())){

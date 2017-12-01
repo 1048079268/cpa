@@ -7,8 +7,8 @@ import javax.persistence.*;
  * @author: 鱼唇的人类
  * @date: 2017/8/14 11:39
  */
-@Entity
-@Table(name = "kt_gene_alias")
+//@Entity
+//@Table(name = "kt_gene_alias")
 public class GeneAlias {
     private String geneAliasKey;
     private String geneKey;
