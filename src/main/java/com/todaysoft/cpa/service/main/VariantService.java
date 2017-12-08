@@ -128,7 +128,6 @@ public class VariantService extends BaseService {
                             throw new DataException("未找到相应的疾病，info->doid="+cancerDoid);
                         }
                         VariantTumorTypeDoid tumorTypeDoid=new VariantTumorTypeDoid();
-                        tumorTypeDoid.setName(cancer.getCancerName());
                         tumorTypeDoid.setDoid(Integer.valueOf(cancer.getDoid()));
                         tumorTypeDoid.setTypeKey(variantTumorTypeEn.getTypeKey());
                         tumorTypeDoid.setVariantId(variant.getVariantId());

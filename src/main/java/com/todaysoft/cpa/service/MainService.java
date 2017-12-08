@@ -115,38 +115,38 @@ public class MainService {
             //每次重新运行要清除重合信息
             mergeService.mergeInit();
             //一线id抓取线程池（主）
-//            ExecutorService mainPool = Executors.newFixedThreadPool(2);
-//            //启动一级线程（暂时不去除线程池，以便以后扩展）
-//            mainPool.execute(drug());
-//            Thread drugContentThread=new Thread(new DrugThread(contentService,drugService));
-//            drugContentThread.start();
-//            logger.info("【manager】一级主线程全部启动完成");
-//            mainPool.shutdown();
-//            //检测一级线程
-//            while (true) {
-//                if (!GlobalVar.SEND_STRUCTURE_EMAIL.get()){
-//                    drugContentThread.interrupt();
-//                    mainManager.stopAll();
-//                    mainPool.shutdownNow();
-//                    childrenTreadPool.shutdownNow();
-//                    return;
-//                }
-//                //因为被依赖，所以要检测内容线程是否执行完成
-//                if (mainPool.isTerminated()&&drugContentThread.getState().equals(Thread.State.WAITING)) {
-//                    drugContentThread.interrupt();
-//                    logger.info("【manager】一级线程执行完成");
-//                    break;
-//                }
-//                if (GlobalVar.SEND_STRUCTURE_EMAIL.get()){
-//                    //监控内容抓取线程，如果挂掉则重启
-//                    if (!drugContentThread.isAlive()){
-//                        drugContentThread=new Thread(new DrugThread(contentService,drugService));
-//                        drugContentThread.start();
-//                    }
-//                    mainManager.checkAndRestart();
-//                }
-//                Thread.sleep(10000);
-//            }
+            ExecutorService mainPool = Executors.newFixedThreadPool(2);
+            //启动一级线程（暂时不去除线程池，以便以后扩展）
+            mainPool.execute(drug());
+            Thread drugContentThread=new Thread(new DrugThread(contentService,drugService));
+            drugContentThread.start();
+            logger.info("【manager】一级主线程全部启动完成");
+            mainPool.shutdown();
+            //检测一级线程
+            while (true) {
+                if (!GlobalVar.SEND_STRUCTURE_EMAIL.get()){
+                    drugContentThread.interrupt();
+                    mainManager.stopAll();
+                    mainPool.shutdownNow();
+                    childrenTreadPool.shutdownNow();
+                    return;
+                }
+                //因为被依赖，所以要检测内容线程是否执行完成
+                if (mainPool.isTerminated()&&drugContentThread.getState().equals(Thread.State.WAITING)) {
+                    drugContentThread.interrupt();
+                    logger.info("【manager】一级线程执行完成");
+                    break;
+                }
+                if (GlobalVar.SEND_STRUCTURE_EMAIL.get()){
+                    //监控内容抓取线程，如果挂掉则重启
+                    if (!drugContentThread.isAlive()){
+                        drugContentThread=new Thread(new DrugThread(contentService,drugService));
+                        drugContentThread.start();
+                    }
+                    mainManager.checkAndRestart();
+                }
+                Thread.sleep(10000);
+            }
             //二级id抓取线程池（依赖于一级线程）
             ExecutorService secondPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
             //启动二级线程

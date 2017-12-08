@@ -17,18 +17,26 @@ public class Variant {
     private String geneKey;
     @JSONField(name = "id")
     private Integer variantId;
+    @JSONField(name = "geneId")
     private Integer geneId;
+    @JSONField(name = "grch")
     private Integer grch;
+    @JSONField(name = "genomicPosition")
     private String genomicPosition;
+    @JSONField(name = "aaMutation")
     private String aaMutation;
+    @JSONField(name = "cdsMutation")
     private String cdsMutation;
+    @JSONField(name = "variantType")
     private String variantType;
+    @JSONField(name = "cosmicId")
     private String cosmicId;
+    @JSONField(name = "dbsnpId")
     private String dbsnpId;
+    @JSONField(name = "mutationEffect")
     private String mutationEffect;
+    @JSONField(name = "oncogenicity")
     private String oncogenicity;
-    private String remark;
-    private String mutationDetection;
     private Long createdAt;
     private Integer createdWay;
     private String createdByKey;
@@ -171,26 +179,6 @@ public class Variant {
         this.oncogenicity = oncogenicity;
     }
 
-    @Basic
-    @Column(name = "remark", nullable = true, length = 200)
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
-    @Basic
-    @Column(name = "mutation_detection", nullable = true, length = -1)
-    @Type(type = "text")
-    public String getMutationDetection() {
-        return mutationDetection;
-    }
-
-    public void setMutationDetection(String mutationDetection) {
-        this.mutationDetection = mutationDetection;
-    }
 
     @Basic
     @Column(name = "created_at", nullable = true)
@@ -319,9 +307,6 @@ public class Variant {
             return false;
         if (oncogenicity != null ? !oncogenicity.equals(variant.oncogenicity) : variant.oncogenicity != null)
             return false;
-        if (remark != null ? !remark.equals(variant.remark) : variant.remark != null) return false;
-        if (mutationDetection != null ? !mutationDetection.equals(variant.mutationDetection) : variant.mutationDetection != null)
-            return false;
         if (createdAt != null ? !createdAt.equals(variant.createdAt) : variant.createdAt != null) return false;
         if (createdWay != null ? !createdWay.equals(variant.createdWay) : variant.createdWay != null) return false;
         if (createdByKey != null ? !createdByKey.equals(variant.createdByKey) : variant.createdByKey != null)
@@ -357,8 +342,6 @@ public class Variant {
         result = 31 * result + (dbsnpId != null ? dbsnpId.hashCode() : 0);
         result = 31 * result + (mutationEffect != null ? mutationEffect.hashCode() : 0);
         result = 31 * result + (oncogenicity != null ? oncogenicity.hashCode() : 0);
-        result = 31 * result + (remark != null ? remark.hashCode() : 0);
-        result = 31 * result + (mutationDetection != null ? mutationDetection.hashCode() : 0);
         result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
         result = 31 * result + (createdWay != null ? createdWay.hashCode() : 0);
         result = 31 * result + (createdByKey != null ? createdByKey.hashCode() : 0);

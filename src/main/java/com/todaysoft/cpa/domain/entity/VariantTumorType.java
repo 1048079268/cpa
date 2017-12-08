@@ -1,5 +1,7 @@
 package com.todaysoft.cpa.domain.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import javax.persistence.*;
 
 /**
@@ -13,14 +15,23 @@ public class VariantTumorType {
     private String typeKey;
     private String variantKey;
     private Integer variantId;
+    @JSONField(name = "site1")
     private String site1;
+    @JSONField(name = "site2")
     private String site2;
+    @JSONField(name = "site3")
     private String site3;
+    @JSONField(name = "site4")
     private String site4;
+    @JSONField(name = "hist1")
     private String hist1;
+    @JSONField(name = "hist2")
     private String hist2;
+    @JSONField(name = "hist3")
     private String hist3;
+    @JSONField(name = "hist4")
     private String hist4;
+    private Integer numOfSamples;
 
     @Id
     @Column(name = "type_key", nullable = false, length = 64)
@@ -132,41 +143,53 @@ public class VariantTumorType {
         this.hist4 = hist4;
     }
 
+    @Basic
+    @Column(name = "num_of_samples")
+    public Integer getNumOfSamples() {
+        return numOfSamples;
+    }
+
+    public void setNumOfSamples(Integer numOfSamples) {
+        this.numOfSamples = numOfSamples;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof VariantTumorType)) return false;
 
         VariantTumorType that = (VariantTumorType) o;
 
-        if (variantId != null ? !variantId.equals(that.variantId) : that.variantId != null) return false;
-        if (typeKey != null ? !typeKey.equals(that.typeKey) : that.typeKey != null) return false;
-        if (variantKey != null ? !variantKey.equals(that.variantKey) : that.variantKey != null) return false;
-        if (site1 != null ? !site1.equals(that.site1) : that.site1 != null) return false;
-        if (site2 != null ? !site2.equals(that.site2) : that.site2 != null) return false;
-        if (site3 != null ? !site3.equals(that.site3) : that.site3 != null) return false;
-        if (site4 != null ? !site4.equals(that.site4) : that.site4 != null) return false;
-        if (hist1 != null ? !hist1.equals(that.hist1) : that.hist1 != null) return false;
-        if (hist2 != null ? !hist2.equals(that.hist2) : that.hist2 != null) return false;
-        if (hist3 != null ? !hist3.equals(that.hist3) : that.hist3 != null) return false;
-        if (hist4 != null ? !hist4.equals(that.hist4) : that.hist4 != null) return false;
-
-        return true;
+        if (getTypeKey() != null ? !getTypeKey().equals(that.getTypeKey()) : that.getTypeKey() != null) return false;
+        if (getVariantKey() != null ? !getVariantKey().equals(that.getVariantKey()) : that.getVariantKey() != null)
+            return false;
+        if (getVariantId() != null ? !getVariantId().equals(that.getVariantId()) : that.getVariantId() != null)
+            return false;
+        if (getSite1() != null ? !getSite1().equals(that.getSite1()) : that.getSite1() != null) return false;
+        if (getSite2() != null ? !getSite2().equals(that.getSite2()) : that.getSite2() != null) return false;
+        if (getSite3() != null ? !getSite3().equals(that.getSite3()) : that.getSite3() != null) return false;
+        if (getSite4() != null ? !getSite4().equals(that.getSite4()) : that.getSite4() != null) return false;
+        if (getHist1() != null ? !getHist1().equals(that.getHist1()) : that.getHist1() != null) return false;
+        if (getHist2() != null ? !getHist2().equals(that.getHist2()) : that.getHist2() != null) return false;
+        if (getHist3() != null ? !getHist3().equals(that.getHist3()) : that.getHist3() != null) return false;
+        if (getHist4() != null ? !getHist4().equals(that.getHist4()) : that.getHist4() != null) return false;
+        return getNumOfSamples() != null ? getNumOfSamples().equals(that.getNumOfSamples()) : that.getNumOfSamples() == null;
     }
 
     @Override
     public int hashCode() {
-        int result = typeKey != null ? typeKey.hashCode() : 0;
-        result = 31 * result + (variantKey != null ? variantKey.hashCode() : 0);
-        result = 31 * result + variantId;
-        result = 31 * result + (site1 != null ? site1.hashCode() : 0);
-        result = 31 * result + (site2 != null ? site2.hashCode() : 0);
-        result = 31 * result + (site3 != null ? site3.hashCode() : 0);
-        result = 31 * result + (site4 != null ? site4.hashCode() : 0);
-        result = 31 * result + (hist1 != null ? hist1.hashCode() : 0);
-        result = 31 * result + (hist2 != null ? hist2.hashCode() : 0);
-        result = 31 * result + (hist3 != null ? hist3.hashCode() : 0);
-        result = 31 * result + (hist4 != null ? hist4.hashCode() : 0);
+        int result = getTypeKey() != null ? getTypeKey().hashCode() : 0;
+        result = 31 * result + (getVariantKey() != null ? getVariantKey().hashCode() : 0);
+        result = 31 * result + (getVariantId() != null ? getVariantId().hashCode() : 0);
+        result = 31 * result + (getSite1() != null ? getSite1().hashCode() : 0);
+        result = 31 * result + (getSite2() != null ? getSite2().hashCode() : 0);
+        result = 31 * result + (getSite3() != null ? getSite3().hashCode() : 0);
+        result = 31 * result + (getSite4() != null ? getSite4().hashCode() : 0);
+        result = 31 * result + (getHist1() != null ? getHist1().hashCode() : 0);
+        result = 31 * result + (getHist2() != null ? getHist2().hashCode() : 0);
+        result = 31 * result + (getHist3() != null ? getHist3().hashCode() : 0);
+        result = 31 * result + (getHist4() != null ? getHist4().hashCode() : 0);
+        result = 31 * result + (getNumOfSamples() != null ? getNumOfSamples().hashCode() : 0);
         return result;
     }
 }

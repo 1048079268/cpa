@@ -3,24 +3,23 @@ package com.todaysoft.cpa.service.main;
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.todaysoft.cpa.compare.AcquireJsonStructure;
-import com.todaysoft.cpa.domain.cn.variants.CnVariantMutationStatisticRepository;
+import com.todaysoft.cpa.domain.cn.variants.CnVariantTumorTypeRepository;
+import com.todaysoft.cpa.domain.en.variants.VariantTumorTypeRepository;
 import com.todaysoft.cpa.domain.entity.Cancer;
 import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
-import com.todaysoft.cpa.domain.en.variants.VariantMutationStatisticRepository;
 import com.todaysoft.cpa.domain.en.variants.VariantRepository;
 import com.todaysoft.cpa.domain.entity.Variant;
 import com.todaysoft.cpa.domain.entity.VariantMutationStatistic;
+import com.todaysoft.cpa.domain.entity.VariantTumorType;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.utils.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 
 /**
  * @desc:
@@ -30,22 +29,20 @@ import java.io.IOException;
 @Service
 public class MutationStatisticService extends BaseService {
     @Autowired
-    private VariantMutationStatisticRepository variantMutationStatisticRepository;
+    private CnVariantTumorTypeRepository cnVariantTumorTypeRepository;
     @Autowired
-    private CnVariantMutationStatisticRepository cnVariantMutationStatisticRepository;
+    private VariantTumorTypeRepository variantTumorTypeRepository;
     @Autowired
     private CPAProperties cpaProperties;
-    @Autowired
-    private CancerRepository cancerRepository;
     @Autowired
     private VariantRepository variantRepository;
 
     @Override
     public boolean save(JSONObject object,JSONObject cn,int status) {
         VariantMutationStatistic statistic=object.toJavaObject(VariantMutationStatistic.class);
-        Variant variant=variantRepository.findByCosmicIdAndCreatedWay(statistic.getMutationId(),2);
+        Variant variant=variantRepository.findByCosmicIdAndCreatedWay(statistic.getCosmicId(),2);
         if (variant==null){
-            throw new DataException("未找到相应的突变，info->cosmicId="+statistic.getMutationId());
+            throw new DataException("未找到相应的突变，info->cosmicId="+statistic.getCosmicId());
         }
         return saveByDependence(object,cn,variant.getVariantKey(),status);
     }
@@ -57,16 +54,17 @@ public class MutationStatisticService extends BaseService {
         if (statistic.getDoid()==null){
             return false;
         }
-        Cancer cancer=cancerRepository.findByDoid(String.valueOf(statistic.getDoid()));
-        if (cancer!=null&&!StringUtils.isEmpty(cancer.getCancerKey())){
-                statistic.setCancerKey(cancer.getCancerKey());
-                statistic.setVariantKey(dependenceKey);
-                variantMutationStatisticRepository.save(statistic);
-                cnVariantMutationStatisticRepository.save(statistic);
-                return true;
+        VariantTumorType variantTumorType = variantTumorTypeRepository.findByDoidAndVariantKey(statistic.getDoid(), dependenceKey);
+        if (variantTumorType!=null){
+            variantTumorType.setNumOfSamples(statistic.getNumOfSamples());
+            variantTumorTypeRepository.save(variantTumorType);
+            VariantTumorType tumorType = cnVariantTumorTypeRepository.findOne(variantTumorType.getTypeKey());
+            tumorType.setNumOfSamples(statistic.getNumOfSamples());
+            cnVariantTumorTypeRepository.save(tumorType);
         }else {
-            throw new DataException("未找到相应的疾病，info->doid="+statistic.getDoid());
+            throw new DataException("未找到相应的突变肿瘤类型记录，info->doid="+statistic.getDoid());
         }
+        return true;
     }
 
     @Override
@@ -74,8 +72,8 @@ public class MutationStatisticService extends BaseService {
         CPA.MUTATION_STATISTICS.name=cpaProperties.getMutationStatisticsName();
         CPA.MUTATION_STATISTICS.contentUrl=cpaProperties.getMutationStatisticsUrl();
         CPA.MUTATION_STATISTICS.tempStructureMap= AcquireJsonStructure.getJsonKeyMap(cpaProperties.getMutationStatisticsTempPath());
-        variantMutationStatisticRepository.findAll().stream().forEach(variantMutationStatistic -> {
-            String id=variantMutationStatistic.getDoid()+"-"+variantMutationStatistic.getMutationId();
+        variantTumorTypeRepository.findMutationStatistics().forEach(variantMutationStatistic -> {
+            String id=variantMutationStatistic.getDoid()+"-"+variantMutationStatistic.getCosmicId();
             CPA.MUTATION_STATISTICS.dbId.add(id);
         });
     }
