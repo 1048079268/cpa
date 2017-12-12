@@ -3,7 +3,7 @@ package com.todaysoft.cpa.merge;
 import java.util.*;
 
 /**
- * @desc:
+ * @desc: 合并信息记录
  * @author: 鱼唇的人类
  * @date: 2017/11/15 10:15
  */

@@ -9,6 +9,7 @@ import com.todaysoft.cpa.param.Page;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.utils.ExceptionInfo;
 import org.jsoup.Connection;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -113,7 +114,7 @@ public class IdThread implements Runnable {
                         retryTimes=3;
                         logger.warn("【"+cpa.name()+"】【error:重试无效】开始执行下一次偏移");
                     }
-                    continue;
+                    e.printStackTrace();
                 }
             }
         }finally {

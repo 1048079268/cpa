@@ -340,11 +340,5 @@ public class MergeService {
         gene.add(2,"old_gene_key");
         gene.add(3,"old_gene_symbol");
         MergeInfo.GENE.checkList.add(0,gene);
-//        //删除重合数据（待审核文件）
-//        String mergeCheckPath=mergeScanDir+"/check.xlsx";
-//        File file=new File(mergeCheckPath);
-//        if (file.exists()){
-//            file.delete();
-//        }
     }
 }

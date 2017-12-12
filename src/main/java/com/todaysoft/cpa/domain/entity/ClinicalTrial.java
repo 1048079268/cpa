@@ -33,7 +33,6 @@ public class ClinicalTrial {
     private String groupCase;
     private String pathologicalState;
     private String existTreatment;
-    private String relatedGene;
     private Boolean random;
     private String doubleBlind;
     private String treatmentType;
@@ -42,7 +41,6 @@ public class ClinicalTrial {
     private String organization;
     @JSONField(name = "url")
     private String theUrl;
-    private String geneDetection;
     private String contract;
     private Long createdAt;
     private Integer createdWay;
@@ -192,16 +190,6 @@ public class ClinicalTrial {
     }
 
     @Basic
-    @Column(name = "related_gene", nullable = true, length = 200)
-    public String getRelatedGene() {
-        return relatedGene;
-    }
-
-    public void setRelatedGene(String relatedGene) {
-        this.relatedGene = relatedGene;
-    }
-
-    @Basic
     @Column(name = "random", nullable = true)
     public Boolean getRandom() {
         return random;
@@ -272,16 +260,6 @@ public class ClinicalTrial {
     }
 
     @Basic
-    @Column(name = "gene_detection", nullable = true, length = 200)
-    public String getGeneDetection() {
-        return geneDetection;
-    }
-
-    public void setGeneDetection(String geneDetection) {
-        this.geneDetection = geneDetection;
-    }
-
-    @Basic
     @Column(name = "contract", nullable = true, length = 255)
     public String getContract() {
         return contract;
@@ -345,7 +323,6 @@ public class ClinicalTrial {
             return false;
         if (existTreatment != null ? !existTreatment.equals(that.existTreatment) : that.existTreatment != null)
             return false;
-        if (relatedGene != null ? !relatedGene.equals(that.relatedGene) : that.relatedGene != null) return false;
         if (random != null ? !random.equals(that.random) : that.random != null) return false;
         if (doubleBlind != null ? !doubleBlind.equals(that.doubleBlind) : that.doubleBlind != null) return false;
         if (treatmentType != null ? !treatmentType.equals(that.treatmentType) : that.treatmentType != null)
@@ -354,8 +331,6 @@ public class ClinicalTrial {
         if (testCenter != null ? !testCenter.equals(that.testCenter) : that.testCenter != null) return false;
         if (organization != null ? !organization.equals(that.organization) : that.organization != null) return false;
         if (theUrl != null ? !theUrl.equals(that.theUrl) : that.theUrl != null) return false;
-        if (geneDetection != null ? !geneDetection.equals(that.geneDetection) : that.geneDetection != null)
-            return false;
         if (contract != null ? !contract.equals(that.contract) : that.contract != null) return false;
         if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
         if (createdWay != null ? !createdWay.equals(that.createdWay) : that.createdWay != null) return false;
@@ -379,7 +354,6 @@ public class ClinicalTrial {
         result = 31 * result + (groupCase != null ? groupCase.hashCode() : 0);
         result = 31 * result + (pathologicalState != null ? pathologicalState.hashCode() : 0);
         result = 31 * result + (existTreatment != null ? existTreatment.hashCode() : 0);
-        result = 31 * result + (relatedGene != null ? relatedGene.hashCode() : 0);
         result = 31 * result + (random != null ? random.hashCode() : 0);
         result = 31 * result + (doubleBlind != null ? doubleBlind.hashCode() : 0);
         result = 31 * result + (treatmentType != null ? treatmentType.hashCode() : 0);
@@ -387,7 +361,6 @@ public class ClinicalTrial {
         result = 31 * result + (testCenter != null ? testCenter.hashCode() : 0);
         result = 31 * result + (organization != null ? organization.hashCode() : 0);
         result = 31 * result + (theUrl != null ? theUrl.hashCode() : 0);
-        result = 31 * result + (geneDetection != null ? geneDetection.hashCode() : 0);
         result = 31 * result + (contract != null ? contract.hashCode() : 0);
         result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
         result = 31 * result + (createdWay != null ? createdWay.hashCode() : 0);
