@@ -3,9 +3,9 @@ package com.todaysoft.cpa.domain.entity;
 import javax.persistence.*;
 
 /**
- * @desc:
- * @author: 鱼唇的人类
- * @date: 2017/11/22 18:11
+ * @author lichy
+ * @version 2018/3/6
+ * @desc
  */
 @Entity
 @Table(name = "kt_drug_product_route")
@@ -15,7 +15,7 @@ public class DrugProductRoute {
     private String productRoute;
 
     @Id
-    @Column(name = "route_key", nullable = false, length = 64)
+    @Column(name = "route_key")
     public String getRouteKey() {
         return routeKey;
     }
@@ -25,7 +25,7 @@ public class DrugProductRoute {
     }
 
     @Basic
-    @Column(name = "product_key", nullable = false, length = 64)
+    @Column(name = "product_key")
     public String getProductKey() {
         return productKey;
     }
@@ -35,7 +35,7 @@ public class DrugProductRoute {
     }
 
     @Basic
-    @Column(name = "product_route", nullable = false, length = 200)
+    @Column(name = "product_route")
     public String getProductRoute() {
         return productRoute;
     }

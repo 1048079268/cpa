@@ -210,11 +210,11 @@ public class MergeService {
             //合并药品的审核结果
             MergeInfo.DRUG_PRODUCT.mergeList.forEach(list->{
                 if (map.containsKey(list.get(0))){
-                    //解释：<-->是拼接符:药品名<-->药品剂型 作为标识主键
-                    map.get(list.get(0)).put(list.get(1)+"<-->"+list.get(2), Integer.valueOf(list.get(3)));
+                    //解释：<-->是拼接符:药品批准号 作为标识主键
+                    map.get(list.get(0)).put(list.get(2), Integer.valueOf(list.get(3)));
                 }else {
                     Map<String,Integer> value=new HashMap<>();
-                    value.put(list.get(1)+"<-->"+list.get(2), Integer.valueOf(list.get(3)));
+                    value.put(list.get(2), Integer.valueOf(list.get(3)));
                     map.put(list.get(0),value);
                 }
             });
@@ -309,10 +309,10 @@ public class MergeService {
         drugProduct.add(0,"cpa_drug_id");
         drugProduct.add(1,"cpa_drug_name");
         drugProduct.add(2,"cpa_drug_product_name");
-        drugProduct.add(3,"cpa_drug_product_dosage_form");
+        drugProduct.add(3,"cpa_drug_product_approval_number");
         drugProduct.add(4,"old_drug_product_key");
-        drugProduct.add(5,"old_drug_product_dosage_form");
-        drugProduct.add(6,"old_drug_product_name");
+        drugProduct.add(5,"old_drug_product_name");
+        drugProduct.add(6,"old_drug_product_approval_number");
         MergeInfo.DRUG_PRODUCT.checkList.add(0,drugProduct);
         //keggPathway
         MergeInfo.KEGG_PATHWAY.checkList.clear();

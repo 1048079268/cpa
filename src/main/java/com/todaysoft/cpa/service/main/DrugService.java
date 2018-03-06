@@ -105,11 +105,7 @@ public class DrugService{
     @Autowired
     private DrugProductIngredientRepository drugProductIngredientRepository;
     @Autowired
-    private DrugProductIngredientContentRepository drugProductIngredientContentRepository;
-    @Autowired
     private CnDrugProductIngredientRepository cnDrugProductIngredientRepository;
-    @Autowired
-    private CnDrugProductIngredientContentRepository cnDrugProductIngredientContentRepository;
 
     /**
      * @param en
@@ -483,52 +479,67 @@ public class DrugService{
             for (int i=0;i<productsEn.size();i++){
                 JSONObject objectEn = productsEn.getJSONObject(i);
                 JSONObject objectCn = productsCn.getJSONObject(i);
-                DrugProductApproval productApproval = drugProductService.save(objectEn, objectCn, drug, status);
-                //药物药品
-                DrugProductIngredientPK pk=new DrugProductIngredientPK();
-                pk.setDrugKey(drug.getDrugKey());
-                pk.setProductKey(productApproval.getProductKey());
-                DrugProductIngredient ingredient=new DrugProductIngredient();
-                ingredient.setDrugKey(drug.getDrugKey());
-                ingredient.setProductKey(productApproval.getProductKey());
-                if (drugProductIngredientRepository.findOne(pk)==null){
-                    drugProductIngredientRepository.save(ingredient);
-                }
-                if (cnDrugProductIngredientRepository.findOne(pk)==null){
-                    cnDrugProductIngredientRepository.save(ingredient);
-                }
-                JsonObjectConverter<DrugProductIngredientContent> contentConverter=(json)->{
-                    DrugProductIngredientContent content=new DrugProductIngredientContent();
-                    content.setDrugKey(drug.getDrugKey());
-                    content.setProductKey(productApproval.getProductKey());
-                    content.setApprovalKey(productApproval.getApprovalKey());
-                    String dosageForm = json.getString("dosageForm");
-                    String dosageStrength = json.getString("dosageStrength");
-                    Dosage dosage = DosageUtil.splitDosage(dosageStrength, dosageForm);
-                    content.setContentExplain(dosage.getOriginal());
-                    if (dosage.getState()==2){
-                        content.setContentUnit(dosage.getContentUnit());
-                        content.setContentValue(Double.valueOf(dosage.getContentValue()));
-                    }else if (dosage.getState()==3){
-                        content.setContentConcentration(Double.valueOf(dosage.getConcentration()));
-                    }else if(dosage.getState()==4){
-                        content.setContentUnit(dosage.getContentUnit());
-                        content.setContentValue(Double.valueOf(dosage.getContentValue()));
-                        content.setContentConcentration(Double.valueOf(dosage.getConcentration()));
+                DrugProduct product = drugProductService.save(objectEn, objectCn, drug, status);
+                if (product!=null){
+                    DrugProductIngredientPK pk=new DrugProductIngredientPK();
+                    pk.setDrugKey(drug.getDrugKey());
+                    pk.setProductKey(product.getProductKey());
+                    DrugProductIngredient ingredient=new DrugProductIngredient();
+                    ingredient.setDrugKey(drug.getDrugKey());
+                    ingredient.setProductKey(product.getProductKey());
+                    if (drugProductIngredientRepository.findOne(pk)==null){
+                        drugProductIngredientRepository.save(ingredient);
                     }
-                    return content;
-                };
-                //成分含量
-                DrugProductIngredientContentPK contentPK=new DrugProductIngredientContentPK();
-                contentPK.setDrugKey(drug.getDrugKey());
-                contentPK.setProductKey(productApproval.getProductKey());
-                contentPK.setApprovalKey(productApproval.getApprovalKey());
-                if (drugProductIngredientContentRepository.findOne(contentPK)==null){
-                    drugProductIngredientContentRepository.save(contentConverter.convert(objectEn));
+                    if (cnDrugProductIngredientRepository.findOne(pk)==null){
+                        cnDrugProductIngredientRepository.save(ingredient);
+                    }
                 }
-                if (cnDrugProductIngredientContentRepository.findOne(contentPK)==null){
-                    cnDrugProductIngredientContentRepository.save(contentConverter.convert(objectCn));
-                }
+//                DrugProductApproval productApproval = drugProductService.save(objectEn, objectCn, drug, status);
+//                //药物药品
+//                DrugProductIngredientPK pk=new DrugProductIngredientPK();
+//                pk.setDrugKey(drug.getDrugKey());
+//                pk.setProductKey(productApproval.getProductKey());
+//                DrugProductIngredient ingredient=new DrugProductIngredient();
+//                ingredient.setDrugKey(drug.getDrugKey());
+//                ingredient.setProductKey(productApproval.getProductKey());
+//                if (drugProductIngredientRepository.findOne(pk)==null){
+//                    drugProductIngredientRepository.save(ingredient);
+//                }
+//                if (cnDrugProductIngredientRepository.findOne(pk)==null){
+//                    cnDrugProductIngredientRepository.save(ingredient);
+//                }
+//                JsonObjectConverter<DrugProductIngredientContent> contentConverter=(json)->{
+//                    DrugProductIngredientContent content=new DrugProductIngredientContent();
+//                    content.setDrugKey(drug.getDrugKey());
+//                    content.setProductKey(productApproval.getProductKey());
+//                    content.setApprovalKey(productApproval.getApprovalKey());
+//                    String dosageForm = json.getString("dosageForm");
+//                    String dosageStrength = json.getString("dosageStrength");
+//                    Dosage dosage = DosageUtil.splitDosage(dosageStrength, dosageForm);
+//                    content.setContentExplain(dosage.getOriginal());
+//                    if (dosage.getState()==2){
+//                        content.setContentUnit(dosage.getContentUnit());
+//                        content.setContentValue(Double.valueOf(dosage.getContentValue()));
+//                    }else if (dosage.getState()==3){
+//                        content.setContentConcentration(Double.valueOf(dosage.getConcentration()));
+//                    }else if(dosage.getState()==4){
+//                        content.setContentUnit(dosage.getContentUnit());
+//                        content.setContentValue(Double.valueOf(dosage.getContentValue()));
+//                        content.setContentConcentration(Double.valueOf(dosage.getConcentration()));
+//                    }
+//                    return content;
+//                };
+//                //成分含量
+//                DrugProductIngredientContentPK contentPK=new DrugProductIngredientContentPK();
+//                contentPK.setDrugKey(drug.getDrugKey());
+//                contentPK.setProductKey(productApproval.getProductKey());
+//                contentPK.setApprovalKey(productApproval.getApprovalKey());
+//                if (drugProductIngredientContentRepository.findOne(contentPK)==null){
+//                    drugProductIngredientContentRepository.save(contentConverter.convert(objectEn));
+//                }
+//                if (cnDrugProductIngredientContentRepository.findOne(contentPK)==null){
+//                    cnDrugProductIngredientContentRepository.save(contentConverter.convert(objectCn));
+//                }
             }
         }
         //13.药物分类

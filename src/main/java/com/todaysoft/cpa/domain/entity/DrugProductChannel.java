@@ -5,15 +5,15 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 
 /**
- * @desc:
- * @author: 鱼唇的人类
- * @date: 2017/11/20 11:34
+ * @author lichy
+ * @version 2018/3/6
+ * @desc
  */
 @Entity
-@Table(name = "kt_drug_product_channel")
+@Table(name = "kt_drug_product_channel", schema = "project_kb_en", catalog = "")
 public class DrugProductChannel {
     private String channelKey;
-    private String approvalKey;
+    private String packageKey;
     private String channelName;
     private String channelUrl;
     private String channelPhone;
@@ -23,7 +23,7 @@ public class DrugProductChannel {
     private String channelPriceExplain;
 
     @Id
-    @Column(name = "channel_key", nullable = false, length = 64)
+    @Column(name = "channel_key")
     public String getChannelKey() {
         return channelKey;
     }
@@ -33,17 +33,17 @@ public class DrugProductChannel {
     }
 
     @Basic
-    @Column(name = "approval_key", nullable = true, length = 64)
-    public String getApprovalKey() {
-        return approvalKey;
+    @Column(name = "package_key")
+    public String getPackageKey() {
+        return packageKey;
     }
 
-    public void setApprovalKey(String approvalKey) {
-        this.approvalKey = approvalKey;
+    public void setPackageKey(String packageKey) {
+        this.packageKey = packageKey;
     }
 
     @Basic
-    @Column(name = "channel_name", nullable = true, length = 500)
+    @Column(name = "channel_name")
     public String getChannelName() {
         return channelName;
     }
@@ -53,7 +53,7 @@ public class DrugProductChannel {
     }
 
     @Basic
-    @Column(name = "channel_url", nullable = true, length = -1)
+    @Column(name = "channel_url")
     @Type(type = "text")
     public String getChannelUrl() {
         return channelUrl;
@@ -64,7 +64,7 @@ public class DrugProductChannel {
     }
 
     @Basic
-    @Column(name = "channel_phone", nullable = true, length = 50)
+    @Column(name = "channel_phone")
     public String getChannelPhone() {
         return channelPhone;
     }
@@ -74,7 +74,7 @@ public class DrugProductChannel {
     }
 
     @Basic
-    @Column(name = "channel_price_min", nullable = true, precision = 3)
+    @Column(name = "channel_price_min")
     public Double getChannelPriceMin() {
         return channelPriceMin;
     }
@@ -84,7 +84,7 @@ public class DrugProductChannel {
     }
 
     @Basic
-    @Column(name = "channel_price_max", nullable = true, precision = 3)
+    @Column(name = "channel_price_max")
     public Double getChannelPriceMax() {
         return channelPriceMax;
     }
@@ -94,7 +94,7 @@ public class DrugProductChannel {
     }
 
     @Basic
-    @Column(name = "channel_price_currency", nullable = true, length = 20)
+    @Column(name = "channel_price_currency")
     public String getChannelPriceCurrency() {
         return channelPriceCurrency;
     }
@@ -104,7 +104,7 @@ public class DrugProductChannel {
     }
 
     @Basic
-    @Column(name = "channel_price_explain", nullable = true, length = 100)
+    @Column(name = "channel_price_explain")
     public String getChannelPriceExplain() {
         return channelPriceExplain;
     }
@@ -121,7 +121,7 @@ public class DrugProductChannel {
         DrugProductChannel that = (DrugProductChannel) o;
 
         if (channelKey != null ? !channelKey.equals(that.channelKey) : that.channelKey != null) return false;
-        if (approvalKey != null ? !approvalKey.equals(that.approvalKey) : that.approvalKey != null) return false;
+        if (packageKey != null ? !packageKey.equals(that.packageKey) : that.packageKey != null) return false;
         if (channelName != null ? !channelName.equals(that.channelName) : that.channelName != null) return false;
         if (channelUrl != null ? !channelUrl.equals(that.channelUrl) : that.channelUrl != null) return false;
         if (channelPhone != null ? !channelPhone.equals(that.channelPhone) : that.channelPhone != null) return false;
@@ -140,7 +140,7 @@ public class DrugProductChannel {
     @Override
     public int hashCode() {
         int result = channelKey != null ? channelKey.hashCode() : 0;
-        result = 31 * result + (approvalKey != null ? approvalKey.hashCode() : 0);
+        result = 31 * result + (packageKey != null ? packageKey.hashCode() : 0);
         result = 31 * result + (channelName != null ? channelName.hashCode() : 0);
         result = 31 * result + (channelUrl != null ? channelUrl.hashCode() : 0);
         result = 31 * result + (channelPhone != null ? channelPhone.hashCode() : 0);

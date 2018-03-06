@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @desc:
+ * @desc: 内容抓取线程管理类
  * @author: 鱼唇的人类
  * @date: 2017/8/15 12:52
  */
@@ -29,7 +29,7 @@ public class ContentManagerThread extends Thread {
 
     @Override
     public void run() {
-        contentThreads.stream().forEach((thread -> thread.start()));
+        contentThreads.forEach((Thread::start));
         exceptionThread.start();
     }
 
@@ -68,7 +68,7 @@ public class ContentManagerThread extends Thread {
      */
     public void stopAll(){
         logger.info("【contentManager】关闭所有线程...");
-        contentThreads.stream().forEach(thread -> thread.interrupt());
+        contentThreads.forEach(Thread::interrupt);
         exceptionThread.interrupt();
     }
 }

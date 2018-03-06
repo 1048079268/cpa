@@ -19,7 +19,7 @@ public class ExceptionInfo {
         StringBuffer error=new StringBuffer();
         error.append(e.getMessage());
         Arrays.stream(elements).forEach((element)->{
-            error.append("\n\t"+element.toString());
+            error.append("\n\t").append(element.toString());
         });
         return error;
     }

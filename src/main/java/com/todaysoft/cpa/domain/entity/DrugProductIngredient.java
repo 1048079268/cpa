@@ -3,9 +3,9 @@ package com.todaysoft.cpa.domain.entity;
 import javax.persistence.*;
 
 /**
- * @desc:
- * @author: 鱼唇的人类
- * @date: 2017/11/20 11:34
+ * @author lichy
+ * @version 2018/3/6
+ * @desc
  */
 @Entity
 @Table(name = "kt_drug_product_ingredient")
@@ -15,7 +15,7 @@ public class DrugProductIngredient {
     private String productKey;
 
     @Id
-    @Column(name = "drug_key", nullable = false, length = 64)
+    @Column(name = "drug_key")
     public String getDrugKey() {
         return drugKey;
     }
@@ -25,7 +25,7 @@ public class DrugProductIngredient {
     }
 
     @Id
-    @Column(name = "product_key", nullable = false, length = 64)
+    @Column(name = "product_key")
     public String getProductKey() {
         return productKey;
     }

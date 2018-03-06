@@ -5,15 +5,15 @@ import javax.persistence.Id;
 import java.io.Serializable;
 
 /**
- * @desc:
- * @author: 鱼唇的人类
- * @date: 2017/11/20 11:34
+ * @author lichy
+ * @version 2018/3/6
+ * @desc
  */
 public class DrugProductIngredientPK implements Serializable {
     private String drugKey;
     private String productKey;
 
-    @Column(name = "drug_key", nullable = false, length = 64)
+    @Column(name = "drug_key")
     @Id
     public String getDrugKey() {
         return drugKey;
@@ -23,7 +23,7 @@ public class DrugProductIngredientPK implements Serializable {
         this.drugKey = drugKey;
     }
 
-    @Column(name = "product_key", nullable = false, length = 64)
+    @Column(name = "product_key")
     @Id
     public String getProductKey() {
         return productKey;
@@ -38,10 +38,10 @@ public class DrugProductIngredientPK implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        DrugProductIngredientPK that = (DrugProductIngredientPK) o;
+        DrugProductIngredientPK pk = (DrugProductIngredientPK) o;
 
-        if (drugKey != null ? !drugKey.equals(that.drugKey) : that.drugKey != null) return false;
-        if (productKey != null ? !productKey.equals(that.productKey) : that.productKey != null) return false;
+        if (drugKey != null ? !drugKey.equals(pk.drugKey) : pk.drugKey != null) return false;
+        if (productKey != null ? !productKey.equals(pk.productKey) : pk.productKey != null) return false;
 
         return true;
     }

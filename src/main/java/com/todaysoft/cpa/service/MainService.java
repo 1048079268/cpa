@@ -1,6 +1,5 @@
 package com.todaysoft.cpa.service;
 
-import com.todaysoft.cpa.domain.entity.DrugProduct;
 import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.param.*;
@@ -115,7 +114,7 @@ public class MainService {
             //每次重新运行要清除重合信息
             mergeService.mergeInit();
             //一线id抓取线程池（主）
-            ExecutorService mainPool = Executors.newFixedThreadPool(2);
+            ExecutorService mainPool = Executors.newFixedThreadPool(1);
             //启动一级线程（暂时不去除线程池，以便以后扩展）
             mainPool.execute(drug());
             Thread drugContentThread=new Thread(new DrugThread(contentService,drugService));
@@ -147,31 +146,31 @@ public class MainService {
                 }
                 Thread.sleep(10000);
             }
-            //二级id抓取线程池（依赖于一级线程）
-            ExecutorService secondPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
-            //启动二级线程
-            secondPool.execute(gene());
-//            secondPool.execute(clinicalTrail());
-//            secondPool.execute(regimen());
-            logger.info("【manager】二级主线程全部启动完成");
-            secondPool.shutdown();
-            while (true) {
-                if (!GlobalVar.SEND_STRUCTURE_EMAIL.get()){
-                    mainManager.stopAll();
-                    secondPool.shutdownNow();
-                    childrenTreadPool.shutdownNow();
-                    return;
-                }
-                if (secondPool.isTerminated()) {
-                    logger.info("【manager】二级线程执行完成");
-                    break;
-                }
-                if (GlobalVar.SEND_STRUCTURE_EMAIL.get()){
-                    //监控内容抓取线程
-                    mainManager.checkAndRestart();
-                }
-                Thread.sleep(10000);
-            }
+//            //二级id抓取线程池（依赖于一级线程）
+//            ExecutorService secondPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
+//            //启动二级线程
+//            secondPool.execute(gene());
+////            secondPool.execute(clinicalTrail());
+////            secondPool.execute(regimen());
+//            logger.info("【manager】二级主线程全部启动完成");
+//            secondPool.shutdown();
+//            while (true) {
+//                if (!GlobalVar.SEND_STRUCTURE_EMAIL.get()){
+//                    mainManager.stopAll();
+//                    secondPool.shutdownNow();
+//                    childrenTreadPool.shutdownNow();
+//                    return;
+//                }
+//                if (secondPool.isTerminated()) {
+//                    logger.info("【manager】二级线程执行完成");
+//                    break;
+//                }
+//                if (GlobalVar.SEND_STRUCTURE_EMAIL.get()){
+//                    //监控内容抓取线程
+//                    mainManager.checkAndRestart();
+//                }
+//                Thread.sleep(10000);
+//            }
 //            //三级线程池
 //            ExecutorService thirdPool = Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
 //            //启动三级线程
@@ -201,9 +200,7 @@ public class MainService {
 //            //启动三级线程
 //            fourthPool.execute(evidence());
 //            //测试环境屏蔽突变样本量抓取
-//            if (!logger.isDebugEnabled()){
-//                fourthPool.execute(mutationStatistic());
-//            }
+//            fourthPool.execute(mutationStatistic());
 //            logger.info("【manager】四级主线程全部启动完成");
 //            fourthPool.shutdown();
 //            while (true) {

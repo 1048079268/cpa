@@ -59,8 +59,7 @@ public class DateUtil {
                 e.printStackTrace();
                 return null;
             }
-            Timestamp timestamp=new Timestamp(date.getTime());
-            return timestamp;
+            return new Timestamp(date.getTime());
         }
         return null;
     }
