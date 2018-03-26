@@ -78,7 +78,7 @@ public class MutationStatisticThread implements Runnable {
                         CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
                     }catch (StructureChangeException e){
                         contentService.sendStructureChangeInfo(e.getMessage(),contentParam);
-                        logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
+                        logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化", e);
                         return;
                     }
                     if (jsonStr!=null&&jsonStr.length()>0){
@@ -116,12 +116,11 @@ public class MutationStatisticThread implements Runnable {
                                                 cpa.dbId.remove(id);
                                                 saveRetryTimes=3;
                                                 if (e instanceof DataException){
-                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+id+",cause:"+e.getMessage());
+                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+id+",cause:",e);
                                                 }else if (e instanceof MergeException){
-                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+e.getMessage());
+                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:",e);
                                                 }else {
-                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+id);
-                                                    logger.error("【exception】"+ ExceptionInfo.getErrorInfo(e));
+                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+id,e);
                                                 }
                                                 reSave=false;
                                             }
@@ -152,8 +151,7 @@ public class MutationStatisticThread implements Runnable {
                         page=savePage;
                         retryTimes--;
                     }else {
-                        logger.error("【"+cpa.name()+"】【error:重试无效】--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit());
-                        logger.error("【"+cpa.name()+"】"+ ExceptionInfo.getErrorInfo(e));
+                        logger.error("【"+cpa.name()+"】【error:重试无效】--param:offset="+savePage.getOffset()+"&limit="+savePage.getLimit(),e);
                         logger.warn("【"+cpa.name()+"】【error:重试无效】开始执行下一次偏移");
                         page.offset();//执行偏移操作
                         retryTimes=3;

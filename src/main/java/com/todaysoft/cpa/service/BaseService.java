@@ -84,10 +84,9 @@ public abstract class BaseService {
         }catch (Exception e){
             cpa.dbId.remove(id);
             if (e instanceof DataException){
-                logger.error("【MergeException】存入数据异常，info:["+cpa.name()+"]-->"+id+",cause:"+e.getMessage());
+                logger.error("【MergeException】存入数据异常，info:["+cpa.name()+"]-->"+id+",cause:",e);
             } else {
-                logger.error("【MergeException】存入数据异常，info:["+cpa.name()+"]-->"+id);
-                logger.error("【MergeException】"+ ExceptionInfo.getErrorInfo(e));
+                logger.error("【MergeException】存入数据异常，info:["+cpa.name()+"]-->"+id,e);
             }
         }
         if (success){

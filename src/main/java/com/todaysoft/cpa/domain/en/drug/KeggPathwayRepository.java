@@ -16,4 +16,6 @@ public interface KeggPathwayRepository extends JpaRepository<KeggPathway,String>
     List<KeggPathway>findByCPA();
 
     KeggPathway findByKeggId(String keggId);
+
+    KeggPathway findByKeggIdAndCreateWay(String keggId, Integer createWay);
 }

@@ -132,9 +132,8 @@ public class MergeService {
             wb.write(fos);
             fos.close();
             wb.close();
-            logger.error("【MergeService】邮件发送失败！");
+            logger.error("【MergeService】邮件发送失败！",e);
             logger.error("【MergeService】附件保存在：" + path);
-            logger.error("【MergeService】" + ExceptionInfo.getErrorInfo(e));
         }
         if (isSendSuccess&&files!=null&&files.length>0){
             for (File file : files) {

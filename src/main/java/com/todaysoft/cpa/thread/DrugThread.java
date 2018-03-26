@@ -57,7 +57,7 @@ public class DrugThread implements Runnable {
                             CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
                         }catch (StructureChangeException e){
                             contentService.sendStructureChangeInfo(e.getMessage(),contentParam);
-                            logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
+                            logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化",e);
                             return;
                         }
                         if (enJson != null && enJson.length() > 0) {
@@ -90,12 +90,11 @@ public class DrugThread implements Runnable {
                         }else {
                             contentParam.getCpa().dbId.remove(contentParam.getId());
                             if (ex instanceof DataException){
-                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+ex.getMessage());
+                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:",ex);
                             }else if (ex instanceof MergeException){
-                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+ex.getMessage());
+                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:",ex);
                             }else {
-                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId());
-                                logger.error("【exception】"+ ExceptionInfo.getErrorInfo(ex));
+                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId(),ex);
                             }
                             break;
                         }
@@ -106,7 +105,7 @@ public class DrugThread implements Runnable {
                     logger.info("【drug】结束...");
                 }else{
                     contentParam.getCpa().dbId.remove(contentParam.getId());
-                    logger.error("【drug】意外结束，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
+                    logger.error("【drug】意外结束，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId(),e);
                 }
                 isRun=false;
             }

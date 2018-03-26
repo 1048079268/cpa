@@ -35,15 +35,16 @@ public class SideEffectService{
     @Autowired
     private CnSideEffectRepository cnSideEffectRepository;
     public void init() {
-        sideEffectRepository.findByCreatedWay(2).stream().forEach(sideEffect -> {
-            SIDE_EFFECT_MAP.put(sideEffect.getSideEffectName(),sideEffect);
-        });
-        sideEffectRepository.findByCreatedWay(3).forEach(sideEffect -> {
-            SIDE_EFFECT_MAP_OLD.put(sideEffect.getSideEffectName(),sideEffect);
-        });
+//        sideEffectRepository.findByCreatedWay(2).stream().forEach(sideEffect -> {
+//            SIDE_EFFECT_MAP.put(sideEffect.getSideEffectName(),sideEffect);
+//        });
+//        cnSideEffectRepository.findByCreatedWay(3).forEach(sideEffect -> {
+//            SIDE_EFFECT_MAP_OLD.put(sideEffect.getSideEffectName(),sideEffect);
+//        });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Deprecated
     public List<SideEffect> saveList(List<SideEffect> sideEffectList) throws InterruptedException {
         List<SideEffect> resultList=new ArrayList<>();
         for (SideEffect sideEffect:sideEffectList){
@@ -66,6 +67,12 @@ public class SideEffectService{
         String generator = PkGenerator.generator(SideEffect.class);
         cnSideEffect.setSideEffectKey(generator);
         enSideEffect.setSideEffectKey(generator);
+        SideEffect sideEffect = sideEffectRepository.findByCreatedWayAndSideEffectNameAndKindOfTerm(2, enSideEffect.getSideEffectName(),enSideEffect.getKindOfTerm());
+        if (sideEffect==null){
+            sideEffect=sideEffectRepository.save(enSideEffect);
+            cnSideEffectRepository.save(cnSideEffect);
+        }
+        return sideEffect;
         //TODO 暂时屏蔽与老库合并
 //        String compareName=cnSideEffect.getSideEffectName();
 //        if (SIDE_EFFECT_MAP_OLD.containsKey(compareName)){
@@ -81,14 +88,14 @@ public class SideEffectService{
 //            logger.info("【SideEffect】与老库合并->key="+enSideEffect.getSideEffectKey());
 //            return enSideEffect;
 //        }else {
-            if (SIDE_EFFECT_MAP.containsKey(enSideEffect.getSideEffectName())){
-                return SIDE_EFFECT_MAP.get(enSideEffect.getSideEffectName());
-            }else {
-                enSideEffect=sideEffectRepository.save(enSideEffect);
-                cnSideEffectRepository.save(cnSideEffect);
-                SIDE_EFFECT_MAP_OLD.put(enSideEffect.getSideEffectName(),enSideEffect);
-                return enSideEffect;
-            }
+//            if (SIDE_EFFECT_MAP.containsKey(enSideEffect.getSideEffectName())){
+//                return SIDE_EFFECT_MAP.get(enSideEffect.getSideEffectName());
+//            }else {
+//                enSideEffect=sideEffectRepository.save(enSideEffect);
+//                cnSideEffectRepository.save(cnSideEffect);
+//                SIDE_EFFECT_MAP_OLD.put(enSideEffect.getSideEffectName(),enSideEffect);
+//                return enSideEffect;
+//            }
 //        }
     }
 }

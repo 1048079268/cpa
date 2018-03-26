@@ -40,12 +40,13 @@ public class KeggPathwaysService{
             String idKey=keggPathway.getKeggId().replace("hsa|map","").trim();
             pathwayMap.put(idKey,keggPathway);
         });
-        keggPathwayRepository.findByCPA().forEach(keggPathway -> {
-            KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),keggPathway);
-        });
+//        keggPathwayRepository.findByCPA().forEach(keggPathway -> {
+//            KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),keggPathway);
+//        });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Deprecated
     public List<KeggPathway> saveList(List<KeggPathway> keggPathwayList) throws InterruptedException {
         List<KeggPathway> resultList=new ArrayList<>();
         for (KeggPathway pathway:keggPathwayList){
@@ -84,7 +85,7 @@ public class KeggPathwaysService{
         //此处使用en的做比较是因为老库的数据也是英文的
         String compareKey=enKeggPathway.getKeggId().replaceAll("path:hsa","").trim();
         Integer s = status.get(enKeggPathway.getKeggId());
-        if (pathwayMap.containsKey(compareKey)&&s==null){
+        if (MergeInfo.KEGG_PATHWAY.isNeedArtificialCheck&&pathwayMap.containsKey(compareKey)&&s==null){
             if (MergeInfo.KEGG_PATHWAY.sign.add(enKeggPathway.getKeggId())){
                 KeggPathway pathway = pathwayMap.get(compareKey);
                 List<String> list=new ArrayList<>();
@@ -99,10 +100,7 @@ public class KeggPathwaysService{
             }
             throw new MergeException("【KeggPathway】等待审核->id="+enKeggPathway.getKeggId());
         }
-        boolean merge=pathwayMap.containsKey(compareKey)&&s!=null&&s==1;
-        if (pathwayMap.containsKey(compareKey)&&s!=null&&s==2){
-            pathwayMap.remove(compareKey);
-        }
+        boolean merge=pathwayMap.containsKey(compareKey)&&(!MergeInfo.KEGG_PATHWAY.isNeedArtificialCheck||(s!=null&&s==1));
         //中文老库已有该记录
         if (merge) {
             //中文的状态与英文状态一致
@@ -120,16 +118,22 @@ public class KeggPathwaysService{
             logger.info("【KeggPathway】与老库合并->id="+enKeggPathway.getKeggId());
             return enKeggPathway;
         } else {
-            //老库没有记录的话查询keggId有没有重的
-            if (KEGG_PATHWAY_MAP.containsKey(enKeggPathway.getKeggId())){
-                return KEGG_PATHWAY_MAP.get(enKeggPathway.getKeggId());
-            }else {
-                KeggPathway keggPathway = keggPathwayRepository.save(enKeggPathway);
+            KeggPathway pathway = keggPathwayRepository.findByKeggIdAndCreateWay(enKeggPathway.getKeggId(), 2);
+            if (pathway==null){
+                pathway = keggPathwayRepository.save(enKeggPathway);
                 cnKeggPathwayRepository.save(cnKeggPathway);
-                KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),keggPathway);
-                //返回英文库数据
-                return keggPathway;
             }
+            return pathway;
+//            //老库没有记录的话查询keggId有没有重的
+//            if (KEGG_PATHWAY_MAP.containsKey(enKeggPathway.getKeggId())){
+//                return KEGG_PATHWAY_MAP.get(enKeggPathway.getKeggId());
+//            }else {
+//                KeggPathway keggPathway = keggPathwayRepository.save(enKeggPathway);
+//                cnKeggPathwayRepository.save(cnKeggPathway);
+//                KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),keggPathway);
+//                //返回英文库数据
+//                return keggPathway;
+//            }
         }
     }
 }

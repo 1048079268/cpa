@@ -71,7 +71,7 @@ public class ContentService {
                 mailSender.send(message);
                 logger.info("已发送结构改变通知邮件");
             } catch (MessagingException e) {
-                logger.error("发送结构改变通知邮件时发生异常！\n", ExceptionInfo.getErrorInfo(e));
+                logger.error("发送结构改变通知邮件时发生异常！", e);
             }
         }else {
             logger.info("已发送结构改变通知，不再发送邮件："+changeInfo.trim());

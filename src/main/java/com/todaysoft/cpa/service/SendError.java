@@ -70,8 +70,7 @@ public class SendError {
                 logger.info("【定时任务】--邮件发送成功");
             }
         }catch (Exception e){
-            logger.error("【定时邮件任务】--发送邮件失败");
-            logger.error("【定时邮件任务】--"+ ExceptionInfo.getErrorInfo(e).toString());
+            logger.error("【定时邮件任务】--发送邮件失败",e);
         }finally {
             logger.info("【定时任务】--CPA错误信息邮件发送完成");
         }

@@ -20,6 +20,8 @@ public interface MeshCategoryRepository extends JpaRepository<MeshCategory,Strin
 
     MeshCategory findByMeshId(String meshId);
 
+    MeshCategory findByMeshIdAndCreatedWay(String meshId, Integer createdWay);
+
     @Transactional
     @Procedure(name = "proc_mesh_category")
     void saveRel(@Param("meshKey") String meshKey,@Param("meshId") String meshId,

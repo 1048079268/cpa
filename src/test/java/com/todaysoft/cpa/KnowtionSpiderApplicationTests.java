@@ -1,8 +1,15 @@
 package com.todaysoft.cpa;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.todaysoft.cpa.compare.ReadJson;
+import com.todaysoft.cpa.domain.entity.DrugProduct;
+import com.todaysoft.cpa.service.vice.DrugProductService;
 import com.todaysoft.cpa.utils.DateUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,14 +24,13 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class KnowtionSpiderApplicationTests {
+    private static Logger logger= LoggerFactory.getLogger(KnowtionSpiderApplicationTests.class);
 	@Value("${spring.mail.username}")
 	private String sendFrom;
 	@Value("${exception.mail.username}")
@@ -33,6 +39,8 @@ public class KnowtionSpiderApplicationTests {
 	private String errorPath;
 	@Autowired
 	private JavaMailSender mailSender;
+	@Autowired
+	DrugProductService drugProductService;
 	@Test
 	public void contextLoads() throws MessagingException, UnsupportedEncodingException {
 //		MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -61,5 +69,23 @@ public class KnowtionSpiderApplicationTests {
 //			System.out.println("不发送邮件");
 //		}
 	}
+
+    @Test
+	public void test() throws FileNotFoundException {
+        JSONObject temp= ReadJson.read("test/drugproduct-122.json");
+        JSONArray products = temp.getJSONArray("products");
+        Set<String> keys=new HashSet<>();
+        for (int i = 0; i < products.size(); i++) {
+            JSONObject product=products.getJSONObject(i);
+            DrugProduct drugProduct = drugProductService.save(product, product, null, new HashMap<>());
+            if (drugProduct==null){
+                logger.info("null:"+product.toJSONString());
+            }else if (keys.contains(drugProduct.getProductKey())){
+                logger.info(product.toJSONString());
+            }else {
+                keys.add(drugProduct.getProductKey());
+            }
+        }
+    }
 
 }

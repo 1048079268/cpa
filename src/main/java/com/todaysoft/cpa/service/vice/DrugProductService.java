@@ -47,12 +47,12 @@ public class DrugProductService {
     CnDrugProductRouteRepository cnDrugProductRouteRepository;
 
     public void init(){
-        drugProductRepository.findByCreatedWay(2).forEach(drugProduct -> {
-            CPA_DRUG_PRODUCT.put(drugProduct.getApprovalNumber(),drugProduct);
-        });
-        drugProductRepository.findByCreatedWay(3).forEach(drugProduct -> {
-            OLD_DRUG_PRODUCT.put(drugProduct.getApprovalNumber(),drugProduct);
-        });
+//        drugProductRepository.findByCreatedWay(2).forEach(drugProduct -> {
+//            CPA_DRUG_PRODUCT.put(drugProduct.getApprovalNumber(),drugProduct);
+//        });
+//        drugProductRepository.findByCreatedWay(3).forEach(drugProduct -> {
+//            OLD_DRUG_PRODUCT.put(drugProduct.getApprovalNumber(),drugProduct);
+//        });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -61,25 +61,26 @@ public class DrugProductService {
         DrugProduct product = en.toJavaObject(DrugProduct.class);
         product.setApprovalNumber(approvalNumber(en));
         String approvalNumber = product.getApprovalNumber();
-        if (OLD_DRUG_PRODUCT.containsKey(approvalNumber)){
-            DrugProduct drugProduct = OLD_DRUG_PRODUCT.get(approvalNumber);
+        DrugProduct oldProduct = drugProductRepository.findByApprovalNumberAndCreatedWay(approvalNumber, 3);
+        if (oldProduct!=null){
             Integer integer = status.get(approvalNumber);
-            if (integer==null||integer==0){
+            if (!MergeInfo.DRUG_PRODUCT.isNeedArtificialCheck){
+                productKey=oldProduct.getProductKey();
+            }else if (integer==null||integer==0){
                 if (MergeInfo.DRUG_PRODUCT.sign.add(approvalNumber)){
                     List<String> list=new ArrayList<>();
                     list.add(0,String.valueOf(drug.getDrugId()));
                     list.add(1,drug.getNameEn());
                     list.add(2,product.getProductNameEn());
                     list.add(3,product.getApprovalNumber());
-                    list.add(4,drugProduct.getProductKey());
-                    list.add(5,drugProduct.getProductNameEn());
-                    list.add(6,drugProduct.getApprovalNumber());
+                    list.add(4,oldProduct.getProductKey());
+                    list.add(5,oldProduct.getProductNameEn());
+                    list.add(6,oldProduct.getApprovalNumber());
                     MergeInfo.DRUG_PRODUCT.checkList.add(list);
                 }
                 throw new MergeException("【DrugProduct】等待审核->name="+product.getProductNameEn()+",no="+approvalNumber);
             }else if (integer==1){
-                productKey=drugProduct.getProductKey();
-                OLD_DRUG_PRODUCT.remove(approvalNumber);
+                productKey=oldProduct.getProductKey();
             }
         }
         String finalProductKey = productKey;
@@ -103,83 +104,32 @@ public class DrugProductService {
         DrugProduct cnDrugProduct=productConverter.convert(cn);
         cnDrugProduct.setProductName(cnDrugProduct.getProductNameEn());
         cnDrugProduct.setProductNameEn(enDrugProduct.getProductNameEn());
-        DrugProduct drugProduct;
-        if (CPA_DRUG_PRODUCT.containsKey(approvalNumber)){
-            drugProduct= CPA_DRUG_PRODUCT.get(approvalNumber);
-        }else {
+        DrugProduct drugProduct=drugProductRepository.findByApprovalNumberAndCreatedWay(approvalNumber,2);
+        if (drugProduct==null){
             drugProduct = drugProductRepository.save(enDrugProduct);
             cnDrugProductRepository.save(cnDrugProduct);
-            CPA_DRUG_PRODUCT.put(approvalNumber,drugProduct);
         }
         //给药方式
         if (!StringUtils.isEmpty(en.getString("route"))&&!StringUtils.isEmpty(cn.getString("route"))){
+            String generator = PkGenerator.generator(DrugProductRoute.class);
             DrugProductRoute enRoute=new DrugProductRoute();
             enRoute.setProductKey(drugProduct.getProductKey());
             enRoute.setProductRoute(en.getString("route"));
             DrugProductRoute cnRoute=new DrugProductRoute();
             cnRoute.setProductKey(drugProduct.getProductKey());
             cnRoute.setProductRoute(cn.getString("route"));
-            List<DrugProductRoute> routes = drugProductRouteRepository.findAll(Example.of(enRoute));
-            if (routes==null||routes.size()==0){
-                String generator = PkGenerator.generator(DrugProductRoute.class);
+            List<DrugProductRoute> enRoutes = drugProductRouteRepository.findAll(Example.of(enRoute));
+            if (enRoutes==null||enRoutes.size()==0){
                 enRoute.setRouteKey(generator);
-                cnRoute.setRouteKey(generator);
                 drugProductRouteRepository.save(enRoute);
+            }
+            List<DrugProductRoute> cnRoutes = cnDrugProductRouteRepository.findAll(Example.of(cnRoute));
+            if (cnRoutes==null||cnRoutes.size()==0){
+                cnRoute.setRouteKey(generator);
                 cnDrugProductRouteRepository.save(cnRoute);
             }
         }
         return drugProduct;
-//        //批准
-//        JsonObjectConverter<DrugProductApproval> productApprovalConverter=(json)->{
-//            DrugProductApproval approval=json.toJavaObject(DrugProductApproval.class);
-//            approval.setProductKey(drugProduct.getProductKey());
-//            String marketingEnd=json.getString("marketingEnd");
-//            String marketingStart=json.getString("marketingStart");
-//            approval.setMarketingEnd(DateUtil.stringToTimestamp(marketingEnd));
-//            approval.setMarketingStart(DateUtil.stringToTimestamp(marketingStart));
-//            JSONObject externalIds = json.getJSONObject("externalIds");
-//            if (externalIds!=null){
-//                String approvalNO;
-//                String dpdId = externalIds.getString("dpd_id");
-//                String ndcId = externalIds.getString("ndc_id");
-//                String ndcProductCode = externalIds.getString("ndc_product_code");
-//                String cfdaId = externalIds.getString("cfda_id");
-//                approvalNO= StringUtils.isEmpty(dpdId)? null :dpdId;
-//                approvalNO= StringUtils.isEmpty(ndcId)?approvalNO:ndcId;
-//                approvalNO= StringUtils.isEmpty(ndcProductCode)?approvalNO:ndcProductCode;
-//                approvalNO= StringUtils.isEmpty(cfdaId)?approvalNO:cfdaId;
-//                approval.setApprovalNumber(approvalNO);
-//            }
-//            String dosageForm = json.getString("dosageForm");
-//            String dosageStrength = json.getString("dosageStrength");
-//            Dosage dosage = DosageUtil.splitDosage(dosageStrength, dosageForm);
-//            if (dosage.getState()==2||dosage.getState()==4){
-//                approval.setDosageStrengthValue(Double.valueOf(dosage.getDosageValue()));
-//                approval.setDosageStrengthUnit(dosage.getDosageUnit());
-//            }
-//            return approval;
-//        };
-//        DrugProductApproval enApproval = productApprovalConverter.convert(en);
-//        DrugProductApproval cnApproval = productApprovalConverter.convert(cn);
-//        DrugProductApproval drugProductApproval;
-//        //先查英文库有没有该批准(药品主键和药品批准号)
-//        DrugProductApproval checkApprovalEn = drugProductApprovalRepository.findByProductKeyAndApprovalNumber(drugProduct.getProductKey(),enApproval.getApprovalNumber());
-//        if (checkApprovalEn==null){
-//            String approvalKey=PkGenerator.generator(DrugProductApproval.class);
-//            //再查中文库有没有该批准
-//            DrugProductApproval checkApprovalCn = cnDrugProductApprovalRepository.findByProductKeyAndApprovalNumber(drugProduct.getProductKey(),cnApproval.getApprovalNumber());
-//            if (checkApprovalCn!=null){
-//                approvalKey=checkApprovalCn.getApprovalKey();
-//            }else {
-//                cnApproval.setApprovalKey(approvalKey);
-//                cnDrugProductApprovalRepository.save(cnApproval);
-//            }
-//            enApproval.setApprovalKey(approvalKey);
-//            drugProductApproval=drugProductApprovalRepository.save(enApproval);
-//        }else {
-//            drugProductApproval=checkApprovalEn;
-//        }
-//        return drugProductApproval;
     }
 
     private String approvalNumber(JSONObject json){

@@ -15,9 +15,12 @@ public enum  MergeInfo {
     public List<List<String>> checkList;
     //标识该项重合的信息集合，防止重复写入待审核列表，当处理返回的数据成功后删除。
     public Set<String> sign;
+    //是否需要人工审核
+    public boolean isNeedArtificialCheck;
     MergeInfo(){
         mergeList=new HashSet<>();
         checkList=new ArrayList<>();
+        isNeedArtificialCheck=false;//TODO 暂时不需要人工审核
         sign= Collections.synchronizedSet(new HashSet<>());
     }
 }

@@ -18,8 +18,6 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Service
 public class CancerService {
-    private final ReentrantLock lock=new ReentrantLock();
-    private static Map<String,Cancer> CANCER_MAP=new HashMap<>();
     @Autowired
     private CancerRepository cancerRepository;
 }

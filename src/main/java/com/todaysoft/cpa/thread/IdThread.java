@@ -108,8 +108,7 @@ public class IdThread implements Runnable {
                         page=savePage;//还原偏移参数
                         retryTimes--;
                     }else {
-                        logger.error("【"+cpa.name()+"】【error:重试无效】url:"+page.getUrl()+"?offset="+savePage.getOffset()+"&limit="+savePage.getLimit()+"&other="+page.getParam());
-                        logger.error("【"+cpa.name()+"】"+ ExceptionInfo.getErrorInfo(e));
+                        logger.error("【"+cpa.name()+"】【error:重试无效】url:"+page.getUrl()+"?offset="+savePage.getOffset()+"&limit="+savePage.getLimit()+"&other="+page.getParam(),e);
                         page.offset();
                         retryTimes=3;
                         logger.warn("【"+cpa.name()+"】【error:重试无效】开始执行下一次偏移");

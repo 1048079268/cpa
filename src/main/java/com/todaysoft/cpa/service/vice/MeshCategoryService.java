@@ -37,15 +37,16 @@ public class MeshCategoryService {
     private CnMeshCategoryRepository cnMeshCategoryRepository;
 
     public void init(){
-        meshCategoryRepository.findByCPA().stream().forEach(meshCategory->{
-            MESH_CATEGORY_MAP.put(meshCategory.getMeshId(),meshCategory);
-        });
-        cnMeshCategoryRepository.findByCreatedWay(3).forEach(meshCategory -> {
-            meshCategoryMapOldDB.put(meshCategory.getCategoryName(),meshCategory);
-        });
+//        meshCategoryRepository.findByCPA().stream().forEach(meshCategory->{
+//            MESH_CATEGORY_MAP.put(meshCategory.getMeshId(),meshCategory);
+//        });
+//        cnMeshCategoryRepository.findByCreatedWay(3).forEach(meshCategory -> {
+//            meshCategoryMapOldDB.put(meshCategory.getCategoryName(),meshCategory);
+//        });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Deprecated
     public List<MeshCategory> saveList(List<MeshCategory> meshCategoryList) throws InterruptedException {
         List<MeshCategory> resultList=new ArrayList<>();
         for (MeshCategory meshCategory:meshCategoryList){
@@ -67,6 +68,12 @@ public class MeshCategoryService {
         String key= PkGenerator.generator(MeshCategory.class);
         cnMeshCategory.setMeshCategoryKey(key);
         enMeshCategory.setMeshCategoryKey(key);
+        MeshCategory meshCategory = meshCategoryRepository.findByMeshIdAndCreatedWay(enMeshCategory.getMeshId(), 2);
+        if (meshCategory==null){
+            meshCategory=meshCategoryRepository.save(enMeshCategory);
+            cnMeshCategoryRepository.save(cnMeshCategory);
+        }
+        return meshCategory;
         //TODO 暂时屏蔽与老库合并
 //        if (meshCategoryMapOldDB.containsKey(cnMeshCategory.getCategoryName())){
 //            MeshCategory meshCategory = meshCategoryMapOldDB.get(cnMeshCategory.getCategoryName());
@@ -83,14 +90,14 @@ public class MeshCategoryService {
 //            logger.info("【MeshCategory】与老库合并->id="+enMeshCategory.getMeshId());
 //            return enMeshCategory;
 //        }else {
-            if (MESH_CATEGORY_MAP.containsKey(enMeshCategory.getMeshId())){
-                return MESH_CATEGORY_MAP.get(enMeshCategory.getMeshId());
-            }else {
-                enMeshCategory=meshCategoryRepository.save(enMeshCategory);
-                cnMeshCategoryRepository.save(cnMeshCategory);
-                MESH_CATEGORY_MAP.put(enMeshCategory.getMeshId(),enMeshCategory);
-                return enMeshCategory;
-            }
+//        if (MESH_CATEGORY_MAP.containsKey(enMeshCategory.getMeshId())){
+//                return MESH_CATEGORY_MAP.get(enMeshCategory.getMeshId());
+//            }else {
+//                enMeshCategory=meshCategoryRepository.save(enMeshCategory);
+//                cnMeshCategoryRepository.save(cnMeshCategory);
+//                MESH_CATEGORY_MAP.put(enMeshCategory.getMeshId(),enMeshCategory);
+//                return enMeshCategory;
+//            }
 //        }
     }
 }

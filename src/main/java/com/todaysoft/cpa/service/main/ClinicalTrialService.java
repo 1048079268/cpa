@@ -78,7 +78,10 @@ public class ClinicalTrialService extends BaseService {
         ClinicalTrial checkClinicalTrial=cn.toJavaObject(ClinicalTrial.class);
         ClinicalTrial byId= cnClinicalTrailRepository.findById(checkClinicalTrial.getClinicalTrialId());
         if (byId!=null){
-            if (status==0){
+            if (!MergeInfo.CLINICAL_TRIAL.isNeedArtificialCheck){
+                logger.info("【" + CPA.CLINICAL_TRIAL.name() + "】与老库合并->id="+byId.getClinicalTrialId());
+                clinicalTrialKey=byId.getClinicalTrialKey();
+            }else if (status==0){
                 if (MergeInfo.CLINICAL_TRIAL.sign.add(checkClinicalTrial.getClinicalTrialId())){
                     List<String> list=new ArrayList<>(3);
                     list.add(0,checkClinicalTrial.getClinicalTrialId());

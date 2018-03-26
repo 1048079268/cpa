@@ -129,7 +129,11 @@ public class DrugService{
         Drug checkDrugCn = cnDrugRepository.findByName(cnName);
         if (checkDrugCn!=null){
             Integer s=status.get(String.valueOf(checkDrug.getDrugId()));
-            if ( s== null||s==0) {
+            if (!MergeInfo.DRUG.isNeedArtificialCheck){
+                merge=true;
+                logger.info("【" + CPA.DRUG.name() + "】与老库合并->id="+checkDrug.getDrugId());
+                drugKey=checkDrugCn.getDrugKey();
+            }else if ( s== null||s==0) {
                 if (MergeInfo.DRUG.sign.add(String.valueOf(checkDrug.getDrugId()))){
                     List<String> list=new ArrayList<>(4);
                     list.add(0, String.valueOf(checkDrug.getDrugId()));
@@ -393,7 +397,7 @@ public class DrugService{
         // 9.药物临床实验(见底部)
         JsonArrayConverter<DrugClinicalTrial> clinicalTrialConverter=(json)->{
             JSONArray clinicalTrials=json.getJSONArray("clinicalTrials");
-            List<DrugClinicalTrial> drugClinicalTrialList=new DescendableLinkedList<>();
+            List<DrugClinicalTrial> drugClinicalTrialList=new ArrayList<>();
             if (clinicalTrials!=null&&clinicalTrials.size()>0){
                 for (int i=0;i<clinicalTrials.size();i++){
                     String clinicalTrialId=clinicalTrials.getString(i);
@@ -430,13 +434,14 @@ public class DrugService{
                 sideEffect.setSideEffectName(adverseReaction.getAdressName());
                 return sideEffect;
             };
+            Set<String> uniqueSet=new HashSet<>();
             for (int i = 0; i < reactionsEn.size(); i++) {
                 DrugAdverseReaction adverseReactionEn=reactionsEn.getObject(i,DrugAdverseReaction.class);
                 DrugAdverseReaction adverseReactionCn=reactionsCn.getObject(i,DrugAdverseReaction.class);
                 SideEffect sideEffectEn = sideEffectConverter.convert(reactionsEn.getJSONObject(i));
                 SideEffect sideEffectCn = sideEffectConverter.convert(reactionsCn.getJSONObject(i));
                 SideEffect sideEffect = sideEffectService.save(sideEffectCn, sideEffectEn);
-                if (sideEffect!=null){
+                if (sideEffect!=null&&uniqueSet.add(sideEffect.getSideEffectKey())){
                     adverseReactionEn.setDrugId(drug.getDrugId());
                     adverseReactionEn.setDrugKey(drug.getDrugKey());
                     adverseReactionEn.setSideEffectKey(sideEffect.getSideEffectKey());
@@ -476,11 +481,12 @@ public class DrugService{
         JSONArray productsEn=en.getJSONArray("products");
         JSONArray productsCn=cn.getJSONArray("products");
         if (productsEn!=null&&productsEn.size()>0){
+            Set<String> uniqSet=new HashSet<>();
             for (int i=0;i<productsEn.size();i++){
                 JSONObject objectEn = productsEn.getJSONObject(i);
                 JSONObject objectCn = productsCn.getJSONObject(i);
                 DrugProduct product = drugProductService.save(objectEn, objectCn, drug, status);
-                if (product!=null){
+                if (product!=null&&uniqSet.add(product.getProductKey())){
                     DrugProductIngredientPK pk=new DrugProductIngredientPK();
                     pk.setDrugKey(drug.getDrugKey());
                     pk.setProductKey(product.getProductKey());
@@ -494,52 +500,6 @@ public class DrugService{
                         cnDrugProductIngredientRepository.save(ingredient);
                     }
                 }
-//                DrugProductApproval productApproval = drugProductService.save(objectEn, objectCn, drug, status);
-//                //药物药品
-//                DrugProductIngredientPK pk=new DrugProductIngredientPK();
-//                pk.setDrugKey(drug.getDrugKey());
-//                pk.setProductKey(productApproval.getProductKey());
-//                DrugProductIngredient ingredient=new DrugProductIngredient();
-//                ingredient.setDrugKey(drug.getDrugKey());
-//                ingredient.setProductKey(productApproval.getProductKey());
-//                if (drugProductIngredientRepository.findOne(pk)==null){
-//                    drugProductIngredientRepository.save(ingredient);
-//                }
-//                if (cnDrugProductIngredientRepository.findOne(pk)==null){
-//                    cnDrugProductIngredientRepository.save(ingredient);
-//                }
-//                JsonObjectConverter<DrugProductIngredientContent> contentConverter=(json)->{
-//                    DrugProductIngredientContent content=new DrugProductIngredientContent();
-//                    content.setDrugKey(drug.getDrugKey());
-//                    content.setProductKey(productApproval.getProductKey());
-//                    content.setApprovalKey(productApproval.getApprovalKey());
-//                    String dosageForm = json.getString("dosageForm");
-//                    String dosageStrength = json.getString("dosageStrength");
-//                    Dosage dosage = DosageUtil.splitDosage(dosageStrength, dosageForm);
-//                    content.setContentExplain(dosage.getOriginal());
-//                    if (dosage.getState()==2){
-//                        content.setContentUnit(dosage.getContentUnit());
-//                        content.setContentValue(Double.valueOf(dosage.getContentValue()));
-//                    }else if (dosage.getState()==3){
-//                        content.setContentConcentration(Double.valueOf(dosage.getConcentration()));
-//                    }else if(dosage.getState()==4){
-//                        content.setContentUnit(dosage.getContentUnit());
-//                        content.setContentValue(Double.valueOf(dosage.getContentValue()));
-//                        content.setContentConcentration(Double.valueOf(dosage.getConcentration()));
-//                    }
-//                    return content;
-//                };
-//                //成分含量
-//                DrugProductIngredientContentPK contentPK=new DrugProductIngredientContentPK();
-//                contentPK.setDrugKey(drug.getDrugKey());
-//                contentPK.setProductKey(productApproval.getProductKey());
-//                contentPK.setApprovalKey(productApproval.getApprovalKey());
-//                if (drugProductIngredientContentRepository.findOne(contentPK)==null){
-//                    drugProductIngredientContentRepository.save(contentConverter.convert(objectEn));
-//                }
-//                if (cnDrugProductIngredientContentRepository.findOne(contentPK)==null){
-//                    cnDrugProductIngredientContentRepository.save(contentConverter.convert(objectCn));
-//                }
             }
         }
         //13.药物分类
@@ -631,8 +591,7 @@ public class DrugService{
             if (e instanceof DataException||e instanceof MergeException){
                 logger.error("【MergeException】存入数据异常，info:["+CPA.DRUG.name()+"]-->"+id+",cause:"+e.getMessage());
             } else {
-                logger.error("【MergeException】存入数据异常，info:["+CPA.DRUG.name()+"]-->"+id);
-                logger.error("【MergeException】"+ ExceptionInfo.getErrorInfo(e));
+                logger.error("【MergeException】存入数据异常，info:["+CPA.DRUG.name()+"]-->"+id,e);
             }
         }
         if (success){

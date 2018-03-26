@@ -48,7 +48,7 @@ public class ExceptionThread implements Runnable {
                     CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
                 }catch (StructureChangeException e){
                     contentService.sendStructureChangeInfo(e.getMessage(),contentParam);
-                    logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
+                    logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化",e);
                     return;
                 }
                 if (enJson != null && enJson.length() > 0) {
@@ -76,12 +76,11 @@ public class ExceptionThread implements Runnable {
                     }catch (Exception e){
                         contentParam.getCpa().dbId.remove(contentParam.getId());
                         if (e instanceof DataException){
-                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+e.getMessage());
+                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:",e);
                         }else if (e instanceof MergeException){
-                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+e.getMessage());
+                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:",e);
                         }else {
-                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId());
-                            logger.error("【exception】"+ ExceptionInfo.getErrorInfo(e));
+                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId(),e);
                         }
                     }
                 }
@@ -91,16 +90,14 @@ public class ExceptionThread implements Runnable {
                     logger.warn("【exception】结束...");
                 }else{
                     contentParam.getCpa().dbId.remove(contentParam.getId());
-                    logger.error("【exception】意外结束，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
-                    logger.error("【exception】"+ ExceptionInfo.getErrorInfo(e));
+                    logger.error("【exception】意外结束，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId(),e);
                 }
             } catch (Exception e) {
                 if (contentParam==null){
                     logger.warn("【exception】异常结束，未获取到队列内容，等待父线程重启");
                 }else{
                     contentParam.getCpa().dbId.remove(contentParam.getId());
-                    logger.error("【exception】抓取异常，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
-                    logger.error("【exception】"+ ExceptionInfo.getErrorInfo(e));
+                    logger.error("【exception】抓取异常，info:"+contentParam.getCpa().name()+"-->"+contentParam.getId(),e);
                 }
             }
         }

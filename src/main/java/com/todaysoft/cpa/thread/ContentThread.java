@@ -48,7 +48,7 @@ public class ContentThread implements Runnable{
                     CompareJsonStructure.compare(contentParam.getCpa().tempStructureMap,map);
                 }catch (StructureChangeException e){
                     contentService.sendStructureChangeInfo(e.getMessage(),contentParam);
-                    logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化"+ ExceptionInfo.getErrorInfo(e));
+                    logger.error("【" + contentParam.getCpa().name() + "】JSON结构变化",e);
                     return;
                 }
                 if (enJson != null && enJson.length() > 0) {
@@ -101,8 +101,7 @@ public class ContentThread implements Runnable{
             GlobalVar.getFailureQueue().put(contentParam);
         } catch (InterruptedException e) {
             contentParam.getCpa().dbId.remove(contentParam.getId());
-            logger.error("写入异常重试队列失败:"+contentParam.getCpa().name()+"-->"+contentParam.getId());
-            logger.error("【"+contentParam.getCpa().name()+"】"+ ExceptionInfo.getErrorInfo(e));
+            logger.error("写入异常重试队列失败:"+contentParam.getCpa().name()+"-->"+contentParam.getId(),e);
         }
     }
 }

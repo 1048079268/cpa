@@ -32,13 +32,14 @@ public class IndicationService{
     private CnIndicationRepository cnIndicationRepository;
 
     public void init() {
-        indicationRepository.findByCreatedWay(2).stream().forEach(indication -> {
-            String key=indication.getMeddraConceptName();
-            INDICATION_MAP.put(key,indication);
-        });
+//        indicationRepository.findByCreatedWay(2).stream().forEach(indication -> {
+//            String key=indication.getMeddraConceptName();
+//            INDICATION_MAP.put(key,indication);
+//        });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Deprecated
     public List<Indication> saveList(List<Indication> indicationList) {
         List<Indication> retList=new ArrayList<>();
         for (Indication indication:indicationList){
@@ -61,14 +62,19 @@ public class IndicationService{
         String key= PkGenerator.generator(Indication.class);
         cnIndication.setIndicationKey(key);
         enIndication.setIndicationKey(key);
-        String mapKey=enIndication.getMeddraConceptName();
-        if (INDICATION_MAP.containsKey(mapKey)){
-            return INDICATION_MAP.get(mapKey);
-        }else {
-            Indication result = indicationRepository.save(enIndication);
+        Indication indication = indicationRepository.findByCreatedWayAndMeddraConceptNameAndMeddraConceptType(2, enIndication.getMeddraConceptName(),enIndication.getMeddraConceptType());
+        if (indication==null){
+            indication = indicationRepository.save(enIndication);
             cnIndicationRepository.save(cnIndication);
-            INDICATION_MAP.put(mapKey,result);
-            return result;
         }
+        return indication;
+//        if (INDICATION_MAP.containsKey(mapKey)){
+//            return INDICATION_MAP.get(mapKey);
+//        }else {
+//            Indication result = indicationRepository.save(enIndication);
+//            cnIndicationRepository.save(cnIndication);
+//            INDICATION_MAP.put(mapKey,result);
+//            return result;
+//        }
     }
 }

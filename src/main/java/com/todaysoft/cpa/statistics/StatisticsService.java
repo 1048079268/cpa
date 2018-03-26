@@ -150,7 +150,7 @@ public class StatisticsService {
     }
 
     @Async
-    private void statisticsDrug(List<Drug> drugList){
+    void statisticsDrug(List<Drug> drugList){
         final long[] drugCount={0L,0L,0L,0L,0L,0L,0L,0L,0L};
         List<DrugInteraction> interactionList=new ArrayList<>();
         drugList.forEach(drug -> {
@@ -197,7 +197,7 @@ public class StatisticsService {
     }
 
     @Async
-    private void statisticsProtein(List<Protein> proteinList){
+    void statisticsProtein(List<Protein> proteinList){
         final long[] proteinCount={0L,0L,0L};
         proteinList.forEach(protein -> {
             String functionDescription = protein.getFunctionDescription();
