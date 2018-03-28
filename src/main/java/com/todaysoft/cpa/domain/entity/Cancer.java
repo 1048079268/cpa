@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @desc:
@@ -16,11 +17,7 @@ public class Cancer {
     private String cancerKey;
     @JSONField(name = "id")
     private String doid;
-    @JSONField(name = "name")
-    private String cancerName;
-    private String parentIds;
     private String cancerDefinition;
-    private String parentKeys;
     private Long createdAt;
     private Integer createdWay;
     private Integer checkState;
@@ -55,39 +52,6 @@ public class Cancer {
     public void setDoid(String doid) {
         this.doid = doid;
     }
-
-    @Basic
-    @Column(name = "cancer_name", nullable = true, length = 200)
-    public String getCancerName() {
-        return cancerName;
-    }
-
-    public void setCancerName(String cancerName) {
-        this.cancerName = cancerName;
-    }
-
-    @Basic
-    @Column(name = "parent_ids")
-    @Type(type = "text")
-    public String getParentIds() {
-        return parentIds;
-    }
-
-    public void setParentIds(String parentId) {
-        this.parentIds = parentId;
-    }
-
-    @Basic
-    @Column(name = "parent_keys")
-    @Type(type = "text")
-    public String getParentKeys() {
-        return parentKeys;
-    }
-
-    public void setParentKeys(String parentKey) {
-        this.parentKeys = parentKey;
-    }
-
 
     @Basic
     @Column(name = "cancer_definition", nullable = true, length = -1)
@@ -135,29 +99,19 @@ public class Cancer {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Cancer)) return false;
-
         Cancer cancer = (Cancer) o;
-
-        if (getCancerKey() != null ? !getCancerKey().equals(cancer.getCancerKey()) : cancer.getCancerKey() != null)
-            return false;
-        if (getDoid() != null ? !getDoid().equals(cancer.getDoid()) : cancer.getDoid() != null) return false;
-        if (getCancerName() != null ? !getCancerName().equals(cancer.getCancerName()) : cancer.getCancerName() != null)
-            return false;
-        if (getParentIds() != null ? !getParentIds().equals(cancer.getParentIds()) : cancer.getParentIds() != null)
-            return false;
-        if (getCancerDefinition() != null ? !getCancerDefinition().equals(cancer.getCancerDefinition()) : cancer.getCancerDefinition() != null)
-            return false;
-        return getParentKeys() != null ? getParentKeys().equals(cancer.getParentKeys()) : cancer.getParentKeys() == null;
+        return Objects.equals(getCancerKey(), cancer.getCancerKey()) &&
+                Objects.equals(getDoid(), cancer.getDoid()) &&
+                Objects.equals(getCancerDefinition(), cancer.getCancerDefinition()) &&
+                Objects.equals(getCreatedAt(), cancer.getCreatedAt()) &&
+                Objects.equals(getCreatedWay(), cancer.getCreatedWay()) &&
+                Objects.equals(getCheckState(), cancer.getCheckState()) &&
+                Objects.equals(getCreatedByName(), cancer.getCreatedByName());
     }
 
     @Override
     public int hashCode() {
-        int result = getCancerKey() != null ? getCancerKey().hashCode() : 0;
-        result = 31 * result + (getDoid() != null ? getDoid().hashCode() : 0);
-        result = 31 * result + (getCancerName() != null ? getCancerName().hashCode() : 0);
-        result = 31 * result + (getParentIds() != null ? getParentIds().hashCode() : 0);
-        result = 31 * result + (getCancerDefinition() != null ? getCancerDefinition().hashCode() : 0);
-        result = 31 * result + (getParentKeys() != null ? getParentKeys().hashCode() : 0);
-        return result;
+
+        return Objects.hash(getCancerKey(), getDoid(),getCancerDefinition(), getCreatedAt(), getCreatedWay(), getCheckState(), getCreatedByName());
     }
 }

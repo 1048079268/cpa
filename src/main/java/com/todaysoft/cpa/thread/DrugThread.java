@@ -90,7 +90,7 @@ public class DrugThread implements Runnable {
                         }else {
                             contentParam.getCpa().dbId.remove(contentParam.getId());
                             if (ex instanceof DataException){
-                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:",ex);
+                                logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+ex.getMessage());
                             }else if (ex instanceof MergeException){
                                 logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:",ex);
                             }else {

@@ -1,5 +1,6 @@
 package com.todaysoft.cpa;
 
+import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
 import com.todaysoft.cpa.service.MainService;
 import com.todaysoft.cpa.statistics.StatisticsService;
 import com.todaysoft.cpa.statistics.CountService;

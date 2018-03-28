@@ -95,7 +95,7 @@ public class IdThread implements Runnable {
                                 break;
                             }
                         }else {
-                            if (insertCount>=20) {
+                            if (insertCount>=100) {
                                 break;
                             }
                         }

@@ -95,7 +95,7 @@ public class EvidenceService extends BaseService {
                 }
                 evidence.setCancerKey(cancer.getCancerKey());
                 evidence.setDoid(Integer.valueOf(cancer.getDoid()));
-                evidence.setDoidName(cancer.getCancerName());
+                evidence.setDoidName(doidObj.getString("name"));
             }
             return evidence;
         };

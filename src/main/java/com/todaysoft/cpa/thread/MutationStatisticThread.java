@@ -116,7 +116,7 @@ public class MutationStatisticThread implements Runnable {
                                                 cpa.dbId.remove(id);
                                                 saveRetryTimes=3;
                                                 if (e instanceof DataException){
-                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+id+",cause:",e);
+                                                    logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+id+",cause:"+e.getMessage());
                                                 }else if (e instanceof MergeException){
                                                     logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:",e);
                                                 }else {

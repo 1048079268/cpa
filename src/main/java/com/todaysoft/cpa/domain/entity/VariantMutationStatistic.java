@@ -16,6 +16,9 @@ public class VariantMutationStatistic {
     @JSONField(name = "numOfSamples")
     private Integer numOfSamples;
 
+    public VariantMutationStatistic() {
+    }
+
     public VariantMutationStatistic(String typeKey, Integer doid, String cosmicId) {
         this.typeKey = typeKey;
         this.doid = String.valueOf(doid);

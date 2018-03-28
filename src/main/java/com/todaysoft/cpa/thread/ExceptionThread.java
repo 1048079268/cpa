@@ -76,7 +76,7 @@ public class ExceptionThread implements Runnable {
                     }catch (Exception e){
                         contentParam.getCpa().dbId.remove(contentParam.getId());
                         if (e instanceof DataException){
-                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:",e);
+                            logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:"+e.getMessage());
                         }else if (e instanceof MergeException){
                             logger.error("【exception】存入数据异常，info:["+contentParam.getCpa().name()+"]-->"+contentParam.getId()+",cause:",e);
                         }else {
