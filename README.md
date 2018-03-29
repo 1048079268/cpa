@@ -3,9 +3,9 @@
 **一、部署目录文件结构**
 
 - `knowtion-spider`
-  - `knowtion-spider-0.0.1.jar`应用程序
-  - `application.properties`启动配置文件
-  - `jsonTemp`json模板文件夹
+  - `knowtion-spider-0.0.1.jar` 应用程序
+  - `application.properties` 启动配置文件
+  - `jsonTemp` json模板文件夹
      - `clinicalTrial.json`
      - `drug.json`
      - `evidence.json`
@@ -14,14 +14,14 @@
      - `protein.json`
      - `regimen.json`
      - `variant.json`
-   - `merge`数据合并文件夹
-   - `doc`文档
+   - `merge` 数据合并文件夹
+   - `doc` 文档
       - `CPA与老库合并返回的结果示例.xlsx`
       - `CPA一次运行流程图.pdf`
       - `CPA泳道图.pdf`
       - `部署说明.md`
-   - `logs`日志文件夹
-   - `atomikos`分布式事务相关，自动生成
+   - `logs` 日志文件夹
+   - `atomikos` 分布式事务相关，自动生成
     
 **二、启动**
 1. 指定内部配置文件启动：
