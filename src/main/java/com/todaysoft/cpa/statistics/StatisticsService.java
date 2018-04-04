@@ -10,7 +10,6 @@ import com.todaysoft.cpa.domain.en.drug.DrugInteractionRepository;
 import com.todaysoft.cpa.domain.en.drug.DrugRepository;
 import com.todaysoft.cpa.domain.en.gene.GeneRepository;
 import com.todaysoft.cpa.domain.en.medicationPlan.MedicationPlanRepository;
-import com.todaysoft.cpa.domain.en.medicationPlan.PlanInstructionMessageRepository;
 import com.todaysoft.cpa.domain.en.proteins.ProteinRepository;
 import com.todaysoft.cpa.domain.entity.*;
 import com.todaysoft.cpa.param.CPA;
@@ -44,8 +43,8 @@ public class StatisticsService {
     private ProteinRepository proteinRepository;
     @Autowired
     private MedicationPlanRepository medicationPlanRepository;
-    @Autowired
-    private PlanInstructionMessageRepository planInstructionMessageRepository;
+//    @Autowired
+//    private PlanInstructionMessageRepository planInstructionMessageRepository;
     @Autowired
     private ClinicalTrailRepository clinicalTrailRepository;
     @Autowired
@@ -215,20 +214,20 @@ public class StatisticsService {
 
     @Async
     public void statisticsRegimen(){
-        final long[] medicationPlanCount={0L,0L};
-        medicationPlanRepository.statistics().forEach(medicationPlan -> {
-            String regimenDescription = medicationPlan.getRegimenDescription();
-            medicationPlanCount[0]+=WordCountUtil.count(regimenDescription);
-            String chemotherapyType = medicationPlan.getChemotherapyType();
-            medicationPlanCount[1]+=WordCountUtil.count(chemotherapyType);
-        });
-        final long[] theText = {0L};
-        planInstructionMessageRepository.statistics().forEach(s -> theText[0] +=WordCountUtil.count(s.getTheText()));
-        logger.info("--medicationPlan:");
-        logger.info("regimenDescription:"+medicationPlanCount[0]);
-        logger.info("chemotherapyType:"+medicationPlanCount[1]);
-        logger.info("theText:"+theText[0]);
-        logger.info("sub:"+(medicationPlanCount[0]+medicationPlanCount[1]+theText[0]));
+//        final long[] medicationPlanCount={0L,0L};
+//        medicationPlanRepository.statistics().forEach(medicationPlan -> {
+//            String regimenDescription = medicationPlan.getRegimenDescription();
+//            medicationPlanCount[0]+=WordCountUtil.count(regimenDescription);
+//            String chemotherapyType = medicationPlan.getChemotherapyType();
+//            medicationPlanCount[1]+=WordCountUtil.count(chemotherapyType);
+//        });
+//        final long[] theText = {0L};
+//        planInstructionMessageRepository.statistics().forEach(s -> theText[0] +=WordCountUtil.count(s.getTheText()));
+//        logger.info("--medicationPlan:");
+//        logger.info("regimenDescription:"+medicationPlanCount[0]);
+//        logger.info("chemotherapyType:"+medicationPlanCount[1]);
+//        logger.info("theText:"+theText[0]);
+//        logger.info("sub:"+(medicationPlanCount[0]+medicationPlanCount[1]+theText[0]));
     }
 
     @Async

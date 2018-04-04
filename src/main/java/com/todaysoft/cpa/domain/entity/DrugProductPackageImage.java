@@ -10,7 +10,7 @@ import javax.persistence.*;
  * @desc
  */
 @Entity
-@Table(name = "kt_drug_product_package_image", schema = "project_kb_en", catalog = "")
+@Table(name = "kt_drug_product_package_image")
 public class DrugProductPackageImage {
     private String packageImageKey;
     private String packageKey;

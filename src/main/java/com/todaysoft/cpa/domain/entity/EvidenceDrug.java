@@ -8,7 +8,7 @@ import javax.persistence.*;
  * @date: 2017/9/14 15:40
  */
 @Entity
-@Table(name = "kt_evidence_drug", schema = "project_kb_en", catalog = "")
+@Table(name = "kt_evidence_drug")
 @IdClass(EvidenceDrugPK.class)
 public class EvidenceDrug {
     private String drugKey;

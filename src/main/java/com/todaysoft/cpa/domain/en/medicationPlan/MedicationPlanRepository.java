@@ -16,7 +16,7 @@ public interface MedicationPlanRepository extends JpaRepository<MedicationPlan,S
     @Query("select m.medicinePlanId from MedicationPlan m where m.createdWay=2")
     Set<Integer> findIdByCPA();
 
-    @Query("select distinct mp from MedicationPlan mp ,PlanDrug pd ,Drug d " +
-            "where mp.medicationPlanKey=pd.medicationPlanKey and d.drugKey=pd.drugKey and d.oncoDrug=true")
-    List<MedicationPlan> statistics();
+//    @Query("select distinct mp from MedicationPlan mp ,PlanDrug pd ,Drug d " +
+//            "where mp.medicationPlanKey=pd.medicationPlanKey and d.drugKey=pd.drugKey and d.oncoDrug=true")
+//    List<MedicationPlan> statistics();
 }
