@@ -47,12 +47,12 @@ public class DrugProductService {
     CnDrugProductRouteRepository cnDrugProductRouteRepository;
 
     public void init(){
-//        drugProductRepository.findByCreatedWay(2).forEach(drugProduct -> {
-//            CPA_DRUG_PRODUCT.put(drugProduct.getApprovalNumber(),drugProduct);
-//        });
-//        drugProductRepository.findByCreatedWay(3).forEach(drugProduct -> {
-//            OLD_DRUG_PRODUCT.put(drugProduct.getApprovalNumber(),drugProduct);
-//        });
+        drugProductRepository.findByCreatedWay(2).forEach(drugProduct -> {
+            CPA_DRUG_PRODUCT.put(drugProduct.getApprovalNumber(),drugProduct);
+        });
+        drugProductRepository.findByCreatedWay(3).forEach(drugProduct -> {
+            OLD_DRUG_PRODUCT.put(drugProduct.getApprovalNumber(),drugProduct);
+        });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -61,7 +61,7 @@ public class DrugProductService {
         DrugProduct product = en.toJavaObject(DrugProduct.class);
         product.setApprovalNumber(approvalNumber(en));
         String approvalNumber = product.getApprovalNumber();
-        DrugProduct oldProduct = drugProductRepository.findByApprovalNumberAndCreatedWay(approvalNumber, 3);
+        DrugProduct oldProduct =OLD_DRUG_PRODUCT.get(approvalNumber); //drugProductRepository.findByApprovalNumberAndCreatedWay(approvalNumber, 3);
         if (oldProduct!=null){
             Integer integer = status.get(approvalNumber);
             if (!MergeInfo.DRUG_PRODUCT.isNeedArtificialCheck){
@@ -104,7 +104,7 @@ public class DrugProductService {
         DrugProduct cnDrugProduct=productConverter.convert(cn);
         cnDrugProduct.setProductName(cnDrugProduct.getProductNameEn());
         cnDrugProduct.setProductNameEn(enDrugProduct.getProductNameEn());
-        DrugProduct drugProduct=drugProductRepository.findByApprovalNumberAndCreatedWay(approvalNumber,2);
+        DrugProduct drugProduct=CPA_DRUG_PRODUCT.get(approvalNumber);//drugProductRepository.findByApprovalNumberAndCreatedWay(approvalNumber,2);
         if (drugProduct==null){
             drugProduct = drugProductRepository.save(enDrugProduct);
             cnDrugProductRepository.save(cnDrugProduct);

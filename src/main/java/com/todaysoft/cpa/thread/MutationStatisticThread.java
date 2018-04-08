@@ -91,6 +91,7 @@ public class MutationStatisticThread implements Runnable {
                                 String mutationId=idObject.getString("mutationId");
                                 String id=doid+"-"+mutationId;
                                 if (cpa.dbId.add(id)){
+                                    insertCount++;
                                     boolean reSave;
                                     do {
                                         try {
@@ -101,7 +102,6 @@ public class MutationStatisticThread implements Runnable {
                                                 success=contentParam.getBaseService().save(idObject,idObject,0);
                                             }
                                             if (success){
-                                                insertCount++;
                                                 logger.info("【"+cpa.name()+"】插入数据库成功:"+id);
                                             }else {
                                                 cpa.dbId.remove(id);
@@ -134,6 +134,11 @@ public class MutationStatisticThread implements Runnable {
                     }
                     logger.info("【"+cpa.name()+"】完成一次突变疾病样本量抓取,开始执行分页偏移:"+insertCount);
                     page.offset();//执行偏移操作
+                    if (logger.isDebugEnabled()){
+                        if (insertCount>=10) {
+                            break;
+                        }
+                    }
                     retryTimes=3;
                     Thread.sleep(1000);
                 } catch (InterruptedException e){

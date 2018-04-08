@@ -37,7 +37,7 @@ public class EnConfig {
         AtomikosDataSourceBean xaDataSource = new AtomikosDataSourceBean();
         xaDataSource.setXaDataSource(CustomDataSource.toDruidXADataSource(enProperties));
         xaDataSource.setUniqueResourceName("en");
-        xaDataSource.setBorrowConnectionTimeout(60);
+        xaDataSource.setBorrowConnectionTimeout(90);
         xaDataSource.setMaxPoolSize(20);
         return xaDataSource;
 

@@ -36,7 +36,7 @@ public class CnConfig {
         AtomikosDataSourceBean xaDataSource = new AtomikosDataSourceBean();
         xaDataSource.setXaDataSource(CustomDataSource.toDruidXADataSource(cnProperties));
         xaDataSource.setUniqueResourceName("cn");
-        xaDataSource.setBorrowConnectionTimeout(60);
+        xaDataSource.setBorrowConnectionTimeout(90);
         xaDataSource.setMaxPoolSize(20);
         return xaDataSource;
 
