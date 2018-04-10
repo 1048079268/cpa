@@ -25,7 +25,7 @@ public class GeneLocation {
     private String geneStop;
     @JSONField(name = "size")
     private Integer geneSize;
-    @JSONField(name = "orientatio")
+    @JSONField(name = "orientation")
     private String orientatio;
     @JSONField(name = "exonCount")
     private Integer exoncount;

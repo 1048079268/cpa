@@ -9,7 +9,7 @@
     <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${LOG_PATH:-kt_cpa_logs}/info.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH:-logs}/info-%d{yyyyMMdd}.log.%i</fileNamePattern>
+            <fileNamePattern>${LOG_PATH:-logs}/info-%d{yyyyMMdd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>10MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
@@ -27,7 +27,7 @@
         </filter>
         <File>${LOG_PATH:-kt_cpa_logs}/error.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH:-logs}/error-%d{yyyyMMdd}.log.%i
+            <fileNamePattern>${LOG_PATH:-logs}/error-%d{yyyyMMdd}.%i.log
             </fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>10MB</maxFileSize>

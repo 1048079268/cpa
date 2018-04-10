@@ -135,7 +135,7 @@ public class MutationStatisticThread implements Runnable {
                     logger.info("【"+cpa.name()+"】完成一次突变疾病样本量抓取,开始执行分页偏移:"+insertCount);
                     page.offset();//执行偏移操作
                     if (logger.isDebugEnabled()){
-                        if (insertCount>=10) {
+                        if (insertCount>=200) {
                             break;
                         }
                     }
@@ -165,7 +165,7 @@ public class MutationStatisticThread implements Runnable {
                 }
             }
         }finally {
-            logger.info("【"+cpa.name()+"】突变疾病样本量抓取完成,插入总量："+insertCount);
+            logger.info("【"+cpa.name()+"】突变疾病样本量抓取完成,抓取总量："+insertCount);
             insertCount=0;
         }
     }

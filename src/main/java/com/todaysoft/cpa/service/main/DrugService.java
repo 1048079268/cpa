@@ -21,6 +21,7 @@ import com.todaysoft.cpa.utils.JsonConverter.JsonObjectKeyConverter;
 import com.todaysoft.cpa.utils.dosage.Dosage;
 import com.todaysoft.cpa.utils.dosage.DosageUtil;
 import org.jsoup.helper.DescendableLinkedList;
+import org.jsoup.select.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @desc: 单独运行
@@ -194,91 +197,56 @@ public class DrugService{
         drugCn.setNameEn(drugEn.getNameEn());
         Drug drug=drugRepository.save(drugEn);
         if (checkDrugCn!=null&&finalMerge){
-            if (!StringUtils.isEmpty(checkDrugCn.getNameEn())){
-                drugCn.setNameEn(checkDrugCn.getNameEn());
-            }
             if (!StringUtils.isEmpty(checkDrugCn.getNameChinese())){
                 drugCn.setNameChinese(checkDrugCn.getNameChinese());
             }
-            if (checkDrugCn.getOncoDrug()!=null){
-                drugCn.setOncoDrug(checkDrugCn.getOncoDrug());
+            if (!StringUtils.isEmpty(checkDrugCn.getOtherNames())){
+                List<String> oldOther =Arrays.asList(checkDrugCn.getOtherNames().split("<=>")) ;
+                if (!StringUtils.isEmpty(drugCn.getOtherNames())){
+                    List<String> newOther =Arrays.asList(drugCn.getOtherNames().split("<=>")) ;
+                    oldOther.addAll(newOther);
+                }
+                String join = String.join("<=>", oldOther.stream().distinct().collect(Collectors.toList()));
+                drugCn.setOtherNames(join);
             }
-            if (!StringUtils.isEmpty(checkDrugCn.getDescription())){
-                drugCn.setDescription(checkDrugCn.getDescription());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getChemicalFormula())){
-                drugCn.setChemicalFormula(checkDrugCn.getChemicalFormula());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getMolecularWeight())){
-                drugCn.setMolecularWeight(checkDrugCn.getMolecularWeight());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getMechanismOfAction())){
-                drugCn.setMechanismOfAction(checkDrugCn.getMechanismOfAction());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getToxicity())){
-                drugCn.setToxicity(checkDrugCn.getToxicity());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getStructuredIndicationDesc())){
-                drugCn.setStructuredIndicationDesc(checkDrugCn.getStructuredIndicationDesc());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getAbsorption())){
-                drugCn.setAbsorption(checkDrugCn.getAbsorption());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getVolumeOfDistribution())){
-                drugCn.setVolumeOfDistribution(checkDrugCn.getVolumeOfDistribution());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getProteinBinding())){
-                drugCn.setProteinBinding(checkDrugCn.getProteinBinding());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getHalfLife())){
-                drugCn.setHalfLife(checkDrugCn.getHalfLife());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getClearance())){
-                drugCn.setClearance(checkDrugCn.getClearance());
-            }
-            if (!StringUtils.isEmpty(checkDrugCn.getPharmacodynamics())){
-                drugCn.setPharmacodynamics(checkDrugCn.getPharmacodynamics());
-            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getDescription())){
+//                drugCn.setDescription(checkDrugCn.getDescription());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getChemicalFormula())){
+//                drugCn.setChemicalFormula(checkDrugCn.getChemicalFormula());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getMolecularWeight())){
+//                drugCn.setMolecularWeight(checkDrugCn.getMolecularWeight());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getMechanismOfAction())){
+//                drugCn.setMechanismOfAction(checkDrugCn.getMechanismOfAction());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getToxicity())){
+//                drugCn.setToxicity(checkDrugCn.getToxicity());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getStructuredIndicationDesc())){
+//                drugCn.setStructuredIndicationDesc(checkDrugCn.getStructuredIndicationDesc());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getAbsorption())){
+//                drugCn.setAbsorption(checkDrugCn.getAbsorption());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getVolumeOfDistribution())){
+//                drugCn.setVolumeOfDistribution(checkDrugCn.getVolumeOfDistribution());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getProteinBinding())){
+//                drugCn.setProteinBinding(checkDrugCn.getProteinBinding());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getHalfLife())){
+//                drugCn.setHalfLife(checkDrugCn.getHalfLife());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getClearance())){
+//                drugCn.setClearance(checkDrugCn.getClearance());
+//            }
+//            if (!StringUtils.isEmpty(checkDrugCn.getPharmacodynamics())){
+//                drugCn.setPharmacodynamics(checkDrugCn.getPharmacodynamics());
+//            }
         }
         cnDrugRepository.save(drugCn);
-        //remove 2.判断插入是否成功
-        //3.药物别名 与其他名称合并
-//        String synonymKey=PkGenerator.generator(DrugSynonym.class);
-//        Map<Integer,String> synonymKeys=new HashMap<>();
-//        JsonArrayLangConverter<DrugSynonym> synonymConverter=(json, lang)->{
-//            JSONArray synonyms=json.getJSONArray("synonyms");
-//            List<DrugSynonym> synonymList=new ArrayList<>();
-//            if (synonyms!=null&&synonyms.size() > 0){
-//                for (int i=0;i<synonyms.size();i++){
-//                    DrugSynonym synonym=new DrugSynonym();
-//                    synonym.setSynonymKey(PkGenerator.md5(synonymKey+i));
-//                    if (finalMerge){
-//                        if (lang==1){
-//                            if (synonymKeys.containsKey(i)){
-//                                synonym.setSynonymKey(synonymKeys.get(i));
-//                            }
-//                        }
-//                        if (lang==2){
-//                            DrugSynonym drugSynonym = cnDrugSynonymRepository.findByDrugKeyAndSynonym(drug.getDrugKey(), synonyms.getString(i));
-//                            if (drugSynonym!=null){
-//                                synonym.setSynonymKey(drugSynonym.getSynonymKey());
-//                                synonymKeys.put(i,drugSynonym.getSynonymKey());
-//                                continue;
-//                            }
-//                        }
-//                    }
-//                    synonym.setDrugId(drug.getDrugId());
-//                    synonym.setDrugKey(drug.getDrugKey());
-//                    synonym.setDrugSynonym(synonyms.getString(i));
-//                    synonymList.add(synonym);
-//                }
-//            }
-//            return synonymList;
-//        };
-//        cnDrugSynonymRepository.save(synonymConverter.convert(cn,2));
-//        drugSynonymRepository.save(synonymConverter.convert(en,1));
-        //4.药物外部id
-        //保存主要外部数据库id
         String pExternalIdKey=PkGenerator.generator(DrugExternalId.class);
         JsonObjectConverter<DrugExternalId> pExternalIdConverter=(json)->{
             DrugExternalId externalId=new DrugExternalId();

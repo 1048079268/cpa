@@ -91,11 +91,11 @@ public class IdThread implements Runnable {
                     retryTimes=3;
                     if (logger.isDebugEnabled()){
                         if (contentParam.isHasDependence()){
-                            if (insertCount>=10){
+                            if (insertCount>=20){
                                 break;
                             }
                         }else {
-                            if (insertCount>=20) {
+                            if (insertCount>=1000) {
                                 break;
                             }
                         }
@@ -117,7 +117,7 @@ public class IdThread implements Runnable {
                 }
             }
         }finally {
-            logger.info("【"+cpa.name()+"】增量对比完成，此次插入【"+insertCount+"】条数据");
+            logger.info("【"+cpa.name()+"】增量对比完成，此次抓取【"+insertCount+"】条数据");
             insertCount=0;
         }
     }

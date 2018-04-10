@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
+import java.util.List;
 
 /**
  * @desc:
@@ -54,15 +55,17 @@ public class MutationStatisticService extends BaseService {
         if (statistic.getDoid()==null){
             return false;
         }
-        VariantTumorType variantTumorType = variantTumorTypeRepository.findByDoidAndVariantKey(statistic.getDoid(), dependenceKey);
-        if (variantTumorType!=null){
-            variantTumorType.setNumOfSamples(statistic.getNumOfSamples());
-            variantTumorTypeRepository.save(variantTumorType);
-            VariantTumorType tumorType = cnVariantTumorTypeRepository.findOne(variantTumorType.getTypeKey());
-            tumorType.setNumOfSamples(statistic.getNumOfSamples());
-            cnVariantTumorTypeRepository.save(tumorType);
-        }else {
-            throw new DataException("未找到相应的突变肿瘤类型记录，info->doid="+statistic.getDoid());
+        List<VariantTumorType> variantTumorTypeList = variantTumorTypeRepository.findByDoidAndVariantKey(Integer.valueOf(statistic.getDoid()), dependenceKey);
+        for (VariantTumorType variantTumorType : variantTumorTypeList) {
+            if (variantTumorType!=null){
+                variantTumorType.setNumOfSamples(statistic.getNumOfSamples());
+                variantTumorTypeRepository.save(variantTumorType);
+                VariantTumorType tumorType = cnVariantTumorTypeRepository.findOne(variantTumorType.getTypeKey());
+                tumorType.setNumOfSamples(statistic.getNumOfSamples());
+                cnVariantTumorTypeRepository.save(tumorType);
+            }else {
+                throw new DataException("未找到相应的突变肿瘤类型记录，info->doid="+statistic.getDoid());
+            }
         }
         return true;
     }

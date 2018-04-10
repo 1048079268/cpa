@@ -25,5 +25,5 @@ public interface VariantTumorTypeRepository extends JpaRepository<VariantTumorTy
 
     @Query("select v1 from VariantTumorType v1,VariantTumorTypeDoid v2 " +
             "where v1.variantKey=?2 and v1.typeKey=v2.typeKey and v2.doid=?1")
-    VariantTumorType findByDoidAndVariantKey(String doid,String variantKey);
+    List<VariantTumorType> findByDoidAndVariantKey(Integer doid,String variantKey);
 }

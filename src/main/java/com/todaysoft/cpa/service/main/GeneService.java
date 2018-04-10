@@ -23,10 +23,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @desc:
@@ -66,6 +64,7 @@ public class GeneService extends BaseService {
             if (!MergeInfo.GENE.isNeedArtificialCheck){
                 logger.info("【" + CPA.GENE.name() + "】与老库合并->id="+checkGene.getGeneId());
                 geneKey=byName.getGeneKey();
+                status=1;
             }else if (status==0){
                 if (MergeInfo.GENE.sign.add(String.valueOf(checkGene.getGeneId()))){
                     List<String> list=new ArrayList<>(4);
@@ -94,21 +93,30 @@ public class GeneService extends BaseService {
         Gene gene = geneRepository.save(geneConverter.convert(en));
         Gene geneCn = geneConverter.convert(cn);
         if (byName!=null&&status==1){
-            if (!StringUtils.isEmpty(byName.getGeneType())){
-                geneCn.setGeneType(byName.getGeneType());
+            if (!StringUtils.isEmpty(byName.getTheAlias())){
+                List<String> oldOther =Arrays.asList(byName.getTheAlias().split("<=>")) ;
+                if (!StringUtils.isEmpty(geneCn.getTheAlias())){
+                    List<String> newOther = Arrays.asList(geneCn.getTheAlias().split("<=>")) ;
+                    oldOther.addAll(newOther);
+                }
+                String join = String.join("<=>", oldOther.stream().distinct().collect(Collectors.toList()));
+                geneCn.setTheAlias(join);
             }
-            if (!StringUtils.isEmpty(byName.getEntrezGeneSummary())){
-                geneCn.setEntrezGeneSummary(byName.getEntrezGeneSummary());
-            }
-            if (!StringUtils.isEmpty(byName.getCytogeneticBand())){
-                geneCn.setCytogeneticBand(byName.getCytogeneticBand());
-            }
-            if (byName.getHasCosmicMutations()!=null){
-                geneCn.setHasCosmicMutations(byName.getHasCosmicMutations());
-            }
-            if (!StringUtils.isEmpty(byName.getCancerGene())){
-                geneCn.setCancerGene(byName.getCancerGene());
-            }
+//            if (!StringUtils.isEmpty(byName.getGeneType())){
+//                geneCn.setGeneType(byName.getGeneType());
+//            }
+//            if (!StringUtils.isEmpty(byName.getEntrezGeneSummary())){
+//                geneCn.setEntrezGeneSummary(byName.getEntrezGeneSummary());
+//            }
+//            if (!StringUtils.isEmpty(byName.getCytogeneticBand())){
+//                geneCn.setCytogeneticBand(byName.getCytogeneticBand());
+//            }
+//            if (byName.getHasCosmicMutations()!=null){
+//                geneCn.setHasCosmicMutations(byName.getHasCosmicMutations());
+//            }
+//            if (!StringUtils.isEmpty(byName.getCancerGene())){
+//                geneCn.setCancerGene(byName.getCancerGene());
+//            }
         }
         cnGeneRepository.save(geneCn);
         //外部数据库
