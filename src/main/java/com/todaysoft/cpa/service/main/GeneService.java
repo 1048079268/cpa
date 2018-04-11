@@ -93,30 +93,25 @@ public class GeneService extends BaseService {
         Gene gene = geneRepository.save(geneConverter.convert(en));
         Gene geneCn = geneConverter.convert(cn);
         if (byName!=null&&status==1){
-            if (!StringUtils.isEmpty(byName.getTheAlias())){
-                List<String> oldOther =Arrays.asList(byName.getTheAlias().split("<=>")) ;
-                if (!StringUtils.isEmpty(geneCn.getTheAlias())){
-                    List<String> newOther = Arrays.asList(geneCn.getTheAlias().split("<=>")) ;
-                    oldOther.addAll(newOther);
-                }
-                String join = String.join("<=>", oldOther.stream().distinct().collect(Collectors.toList()));
-                geneCn.setTheAlias(join);
+            geneCn.setTheAlias(MergeUtil.mergeAlias(byName.getTheAlias(),geneCn.getTheAlias(),"<=>"));
+            if (!StringUtils.isEmpty(byName.getGeneType())){
+                geneCn.setGeneType(byName.getGeneType());
             }
-//            if (!StringUtils.isEmpty(byName.getGeneType())){
-//                geneCn.setGeneType(byName.getGeneType());
-//            }
-//            if (!StringUtils.isEmpty(byName.getEntrezGeneSummary())){
-//                geneCn.setEntrezGeneSummary(byName.getEntrezGeneSummary());
-//            }
-//            if (!StringUtils.isEmpty(byName.getCytogeneticBand())){
-//                geneCn.setCytogeneticBand(byName.getCytogeneticBand());
-//            }
-//            if (byName.getHasCosmicMutations()!=null){
-//                geneCn.setHasCosmicMutations(byName.getHasCosmicMutations());
-//            }
-//            if (!StringUtils.isEmpty(byName.getCancerGene())){
-//                geneCn.setCancerGene(byName.getCancerGene());
-//            }
+            if (!StringUtils.isEmpty(byName.getGeneFullName())){
+                geneCn.setGeneFullName(byName.getGeneFullName());
+            }
+            if (!StringUtils.isEmpty(byName.getEntrezGeneSummary())){
+                geneCn.setEntrezGeneSummary(byName.getEntrezGeneSummary());
+            }
+            if (!StringUtils.isEmpty(byName.getCytogeneticBand())){
+                geneCn.setCytogeneticBand(byName.getCytogeneticBand());
+            }
+            if (byName.getHasCosmicMutations()!=null){
+                geneCn.setHasCosmicMutations(byName.getHasCosmicMutations());
+            }
+            if (!StringUtils.isEmpty(byName.getCancerGene())){
+                geneCn.setCancerGene(byName.getCancerGene());
+            }
         }
         cnGeneRepository.save(geneCn);
         //外部数据库

@@ -14,6 +14,7 @@ import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.utils.DateUtil;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
 import com.todaysoft.cpa.utils.MergeException;
+import com.todaysoft.cpa.utils.MergeUtil;
 import com.todaysoft.cpa.utils.PkGenerator;
 import com.todaysoft.cpa.utils.dosage.Dosage;
 import com.todaysoft.cpa.utils.dosage.DosageUtil;
@@ -62,10 +63,11 @@ public class DrugProductService {
         product.setApprovalNumber(approvalNumber(en));
         String approvalNumber = product.getApprovalNumber();
         DrugProduct oldProduct =OLD_DRUG_PRODUCT.get(approvalNumber); //drugProductRepository.findByApprovalNumberAndCreatedWay(approvalNumber, 3);
+        Integer integer = status.get(approvalNumber);
         if (oldProduct!=null){
-            Integer integer = status.get(approvalNumber);
             if (!MergeInfo.DRUG_PRODUCT.isNeedArtificialCheck){
                 productKey=oldProduct.getProductKey();
+                integer=1;
             }else if (integer==null||integer==0){
                 if (MergeInfo.DRUG_PRODUCT.sign.add(approvalNumber)){
                     List<String> list=new ArrayList<>();
@@ -107,6 +109,15 @@ public class DrugProductService {
         DrugProduct drugProduct=CPA_DRUG_PRODUCT.get(approvalNumber);//drugProductRepository.findByApprovalNumberAndCreatedWay(approvalNumber,2);
         if (drugProduct==null){
             drugProduct = drugProductRepository.save(enDrugProduct);
+            //保留老库数据
+            if (oldProduct!=null&&integer==1){
+                cnDrugProduct.setProductName(MergeUtil.cover(oldProduct.getProductName(),cnDrugProduct.getProductName()));
+                cnDrugProduct.setProductNameEn(MergeUtil.cover(oldProduct.getProductNameEn(),cnDrugProduct.getProductNameEn()));
+                cnDrugProduct.setDosageForm(MergeUtil.cover(oldProduct.getDosageForm(),cnDrugProduct.getDosageForm()));
+                cnDrugProduct.setInstructionUrl(MergeUtil.cover(oldProduct.getInstructionUrl(),cnDrugProduct.getInstructionUrl()));
+                cnDrugProduct.setDosageStrength(MergeUtil.cover(oldProduct.getDosageStrength(),cnDrugProduct.getDosageStrength()));
+                cnDrugProduct.setLabeller(MergeUtil.cover(oldProduct.getLabeller(),cnDrugProduct.getLabeller()));
+            }
             cnDrugProductRepository.save(cnDrugProduct);
         }
         //给药方式

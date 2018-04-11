@@ -36,6 +36,7 @@ public class Gene {
     private String theAlias;
     private Long createAt;
     private Integer createWay;
+    private Integer checkState=1;
     private String createdByName="CPA";
 
     @Basic
@@ -180,6 +181,16 @@ public class Gene {
 
     public void setTheAlias(String theAlias) {
         this.theAlias = theAlias;
+    }
+
+    @Basic
+    @Column(name = "check_state", nullable = true)
+    public Integer getCheckState() {
+        return checkState;
+    }
+
+    public void setCheckState(Integer checkState) {
+        this.checkState = checkState;
     }
 
     @Override

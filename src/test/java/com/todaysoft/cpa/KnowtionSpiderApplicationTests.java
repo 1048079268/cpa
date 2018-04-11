@@ -72,20 +72,20 @@ public class KnowtionSpiderApplicationTests {
 
     @Test
 	public void test() throws FileNotFoundException {
-        JSONObject temp= ReadJson.read("test/drugproduct-122.json");
-        JSONArray products = temp.getJSONArray("products");
-        Set<String> keys=new HashSet<>();
-        for (int i = 0; i < products.size(); i++) {
-            JSONObject product=products.getJSONObject(i);
-            DrugProduct drugProduct = drugProductService.save(product, product, null, new HashMap<>());
-            if (drugProduct==null){
-                logger.info("null:"+product.toJSONString());
-            }else if (keys.contains(drugProduct.getProductKey())){
-                logger.info(product.toJSONString());
-            }else {
-                keys.add(drugProduct.getProductKey());
-            }
-        }
+//        JSONObject temp= ReadJson.read("test/drugproduct-122.json");
+//        JSONArray products = temp.getJSONArray("products");
+//        Set<String> keys=new HashSet<>();
+//        for (int i = 0; i < products.size(); i++) {
+//            JSONObject product=products.getJSONObject(i);
+//            DrugProduct drugProduct = drugProductService.save(product, product, null, new HashMap<>());
+//            if (drugProduct==null){
+//                logger.info("null:"+product.toJSONString());
+//            }else if (keys.contains(drugProduct.getProductKey())){
+//                logger.info(product.toJSONString());
+//            }else {
+//                keys.add(drugProduct.getProductKey());
+//            }
+//        }
     }
 
 }

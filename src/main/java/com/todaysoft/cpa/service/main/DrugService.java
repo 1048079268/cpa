@@ -200,51 +200,46 @@ public class DrugService{
             if (!StringUtils.isEmpty(checkDrugCn.getNameChinese())){
                 drugCn.setNameChinese(checkDrugCn.getNameChinese());
             }
-            if (!StringUtils.isEmpty(checkDrugCn.getOtherNames())){
-                List<String> oldOther =Arrays.asList(checkDrugCn.getOtherNames().split("<=>")) ;
-                if (!StringUtils.isEmpty(drugCn.getOtherNames())){
-                    List<String> newOther =Arrays.asList(drugCn.getOtherNames().split("<=>")) ;
-                    oldOther.addAll(newOther);
-                }
-                String join = String.join("<=>", oldOther.stream().distinct().collect(Collectors.toList()));
-                drugCn.setOtherNames(join);
+            drugCn.setOtherNames(MergeUtil.mergeAlias(checkDrugCn.getOtherNames(),drugCn.getOtherNames(),"<=>"));
+            if (!StringUtils.isEmpty(checkDrugCn.getDescription())){
+                drugCn.setDescription(checkDrugCn.getDescription());
             }
-//            if (!StringUtils.isEmpty(checkDrugCn.getDescription())){
-//                drugCn.setDescription(checkDrugCn.getDescription());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getChemicalFormula())){
-//                drugCn.setChemicalFormula(checkDrugCn.getChemicalFormula());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getMolecularWeight())){
-//                drugCn.setMolecularWeight(checkDrugCn.getMolecularWeight());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getMechanismOfAction())){
-//                drugCn.setMechanismOfAction(checkDrugCn.getMechanismOfAction());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getToxicity())){
-//                drugCn.setToxicity(checkDrugCn.getToxicity());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getStructuredIndicationDesc())){
-//                drugCn.setStructuredIndicationDesc(checkDrugCn.getStructuredIndicationDesc());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getAbsorption())){
-//                drugCn.setAbsorption(checkDrugCn.getAbsorption());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getVolumeOfDistribution())){
-//                drugCn.setVolumeOfDistribution(checkDrugCn.getVolumeOfDistribution());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getProteinBinding())){
-//                drugCn.setProteinBinding(checkDrugCn.getProteinBinding());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getHalfLife())){
-//                drugCn.setHalfLife(checkDrugCn.getHalfLife());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getClearance())){
-//                drugCn.setClearance(checkDrugCn.getClearance());
-//            }
-//            if (!StringUtils.isEmpty(checkDrugCn.getPharmacodynamics())){
-//                drugCn.setPharmacodynamics(checkDrugCn.getPharmacodynamics());
-//            }
+            if (!StringUtils.isEmpty(checkDrugCn.getMechanismOfAction())){
+                drugCn.setMechanismOfAction(checkDrugCn.getMechanismOfAction());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getRouteOfElimination())){
+                drugCn.setRouteOfElimination(checkDrugCn.getRouteOfElimination());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getToxicity())){
+                drugCn.setToxicity(checkDrugCn.getToxicity());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getStructuredIndicationDesc())){
+                drugCn.setStructuredIndicationDesc(checkDrugCn.getStructuredIndicationDesc());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getAbsorption())){
+                drugCn.setAbsorption(checkDrugCn.getAbsorption());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getAttention())){
+                drugCn.setAttention(checkDrugCn.getAttention());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getVolumeOfDistribution())){
+                drugCn.setVolumeOfDistribution(checkDrugCn.getVolumeOfDistribution());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getMajorMetabolicSites())){
+                drugCn.setMajorMetabolicSites(checkDrugCn.getMajorMetabolicSites());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getProteinBinding())){
+                drugCn.setProteinBinding(checkDrugCn.getProteinBinding());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getHalfLife())){
+                drugCn.setHalfLife(checkDrugCn.getHalfLife());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getClearance())){
+                drugCn.setClearance(checkDrugCn.getClearance());
+            }
+            if (!StringUtils.isEmpty(checkDrugCn.getPharmacodynamics())){
+                drugCn.setPharmacodynamics(checkDrugCn.getPharmacodynamics());
+            }
         }
         cnDrugRepository.save(drugCn);
         String pExternalIdKey=PkGenerator.generator(DrugExternalId.class);

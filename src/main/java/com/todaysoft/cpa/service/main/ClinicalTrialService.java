@@ -109,30 +109,39 @@ public class ClinicalTrialService extends BaseService {
         };
         ClinicalTrial clinicalTrialEn=clinicalTrailRepository.save(converter.convert(en));
         ClinicalTrial clinicalTrialCn = converter.convert(cn);
-        //老库覆盖CPA中文库
-//        if (byId!=null&&status==1){
-//            if (!StringUtils.isEmpty(byId.getTheTitle())){
-//                clinicalTrialCn.setTheTitle(byId.getTheTitle());
-//            }
-//            if (!StringUtils.isEmpty(byId.getTheStatus())){
-//                clinicalTrialCn.setTheStatus(byId.getTheStatus());
-//            }
-//            if (!StringUtils.isEmpty(byId.getThePhase())){
-//                clinicalTrialCn.setThePhase(byId.getThePhase());
-//            }
-//            if (!StringUtils.isEmpty(byId.getTheType())){
-//                clinicalTrialCn.setTheType(byId.getTheType());
-//            }
-//            if (!StringUtils.isEmpty(byId.getStartDate())){
-//                clinicalTrialCn.setStartDate(byId.getStartDate());
-//            }
-//            if (!StringUtils.isEmpty(byId.getCountries())){
-//                clinicalTrialCn.setCountries(byId.getCountries());
-//            }
-//            if (!StringUtils.isEmpty(byId.getTheUrl())){
-//                clinicalTrialCn.setTheUrl(byId.getTheUrl());
-//            }
-//        }
+//        老库覆盖CPA中文库
+        if (byId!=null&&status==1){
+            if (!StringUtils.isEmpty(byId.getTheTitle())){
+                clinicalTrialCn.setTheTitle(byId.getTheTitle());
+            }
+            if (!StringUtils.isEmpty(byId.getTheStatus())){
+                clinicalTrialCn.setTheStatus(byId.getTheStatus());
+            }
+            if (!StringUtils.isEmpty(byId.getThePhase())){
+                clinicalTrialCn.setThePhase(byId.getThePhase());
+            }
+            if (!StringUtils.isEmpty(byId.getTheType())){
+                clinicalTrialCn.setTheType(byId.getTheType());
+            }
+            if (!StringUtils.isEmpty(byId.getStartDate())){
+                clinicalTrialCn.setStartDate(byId.getStartDate());
+            }
+            if (!StringUtils.isEmpty(byId.getCountries())){
+                clinicalTrialCn.setCountries(byId.getCountries());
+            }
+            if (!StringUtils.isEmpty(byId.getTheUrl())){
+                clinicalTrialCn.setTheUrl(byId.getTheUrl());
+            }
+            if (!StringUtils.isEmpty(byId.getPathologicalState())){
+                clinicalTrialCn.setPathologicalState(byId.getPathologicalState());
+            }
+            if (!StringUtils.isEmpty(byId.getExistTreatment())){
+                clinicalTrialCn.setExistTreatment(byId.getExistTreatment());
+            }
+            clinicalTrialCn.setThePmid(MergeUtil.cover(byId.getThePmid(),clinicalTrialCn.getThePmid()));
+            clinicalTrialCn.setTestCenter(MergeUtil.cover(byId.getTestCenter(),clinicalTrialCn.getTestCenter()));
+            clinicalTrialCn.setOrganization(MergeUtil.cover(byId.getOrganization(),clinicalTrialCn.getOrganization()));
+        }
         cnClinicalTrailRepository.save(clinicalTrialCn);
         saveFixed(clinicalTrialEn,en,cn);
         //临床&药物
