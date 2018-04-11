@@ -31,8 +31,8 @@ public class Start implements CommandLineRunner {
     private StatisticsService statisticsService;
     @Override
     public void run(String... strings) throws IOException, InterruptedException, InvalidFormatException {
-//        mainService.init();
-//        mainService.manager();
+        mainService.init();
+        mainService.manager();
 //        mainService.test();
 //        statisticsService.init();
 //        statisticsService.statistics();
