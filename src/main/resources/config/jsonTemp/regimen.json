@@ -1,0 +1,73 @@
+{
+  "data": {
+    "regimen": {
+      "id": 0,
+      "diseaseName": "String",
+      "chemotherapyType": "String",
+      "chemotherapyName": "String",
+      "chemotherapyDescription": "String",
+      "regimenName": "String",
+      "studies": [
+        {
+          "pmid": null,
+          "study": null,
+          "efficacy": null,
+          "evidence": null,
+          "comparator": null
+        }
+      ],
+      "drugs": [
+        0
+      ],
+      "doid": {
+        "id": 0,
+        "name": "String"
+      },
+      "references": [
+        {
+          "id": 0,
+          "refType": "String",
+          "externalId": "String"
+        }
+      ],
+      "instructions": [
+        {
+          "id": 0,
+          "regimenId": 0,
+          "instructionName": "String",
+          "instructionList": [
+            {
+              "text": "String",
+              "route": [
+                "String"
+              ],
+              "duration": [
+                "String"
+              ],
+              "freq": [
+                [
+                  "String"
+                ]
+              ],
+              "dosage": [
+                "String"
+              ],
+              "drugIds": [
+                0
+              ]
+            }
+          ],
+          "instructionCourse": "String",
+          "instructionOrder": 0,
+          "reviewRequired": true,
+          "createdAt": "String",
+          "updatedAt": "String",
+          "deletedAt": "String",
+          "drugIds": [
+            0
+          ]
+        }
+      ]
+    }
+  }
+}

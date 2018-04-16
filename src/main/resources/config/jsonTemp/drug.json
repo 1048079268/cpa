@@ -1,0 +1,107 @@
+{
+  "data": {
+    "drug": {
+      "id": 0,
+      "name": "String",
+      "synonyms": [
+        "String"
+      ],
+      "primaryExternalId": "String",
+      "primaryExternalSource": "String",
+      "externalIds": [
+        {
+          "externalSource": "String",
+          "externalId": "String"
+        }
+      ],
+      "oncodrug": true,
+      "keggPathways": [
+        {
+          "id": "String",
+          "name": "String"
+        }
+      ],
+      "description": "String ",
+      "indication": "String",
+      "pharmacodynamics": "String ",
+      "mechanismOfAction": "String",
+      "routeOfElimination": "String",
+      "halfLife": "String",
+      "clearance": "String",
+      "proteinBinding": "String",
+      "absorption": "String",
+      "volumeOfDistribution": "String",
+      "toxicity": "String",
+      "foodInteractions": null,
+      "fdaLabel": "String",
+      "otherNames": [
+        "String"
+      ],
+      "chemicalFormula": [
+        "String"
+      ],
+      "molecularWeight": [
+        "String"
+      ],
+      "sequences": [
+        "String"
+      ],
+      "internationalBrands": [
+        [
+          "String",
+          "String"
+        ]
+      ],
+      "createdAt": "String",
+      "updatedAt": "String",
+      "deletedAt": "String",
+      "structuredIndications": [
+        "String"
+      ],
+      "clinicalTrials": [
+        "String"
+      ],
+      "adverseReactions": [
+        {
+          "adrName": "String",
+          "frequency": "String",
+          "placeboFrequency": "String"
+        }
+      ],
+      "interactions": [
+        {
+          "drugID": 0,
+          "drugName": "String",
+          "description": "String"
+        }
+      ],
+      "products": [
+        {
+          "approved": true,
+          "country": "String",
+          "dosageForm": "String",
+          "dosageStrength": "String",
+          "externalIds": {
+            "dpd_id": null,
+            "ndc_id": null,
+            "ndc_product_code": null,
+            "cfda_id": null
+          },
+          "generic": true,
+          "labeller": "String",
+          "marketingEnd": "String",
+          "marketingStart": "String",
+          "name": "String",
+          "route": "String",
+          "source": "String"
+        }
+      ],
+      "categories": [
+        {
+          "categoryName": "String",
+          "meshId": "String"
+        }
+      ]
+    }
+  }
+}

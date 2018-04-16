@@ -1,0 +1,23 @@
+{
+  "data": {
+    "evidence": {
+      "id": 0,
+      "variantId": 0,
+      "evidenceType": "String",
+      "evidenceLevel": 0,
+      "evidenceDirection": "String",
+      "summary": "String",
+      "doid": {
+        "id": 0,
+        "name": "String"
+      },
+      "reference": {
+        "refType": "String",
+        "externalId": "String"
+      },
+      "drugIds": [
+        0
+      ]
+    }
+  }
+}

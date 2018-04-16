@@ -1,6 +1,7 @@
 package com.todaysoft.cpa.compare;
 
 import com.alibaba.fastjson.JSONObject;
+import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,7 +14,7 @@ import java.util.Scanner;
  */
 public class ReadJson {
     public static JSONObject read(String path) throws FileNotFoundException {
-        File file = new File(path);
+        File file =ResourceUtils.getFile(path); //new File(path);
         Scanner scanner = null;
         StringBuilder buffer = new StringBuilder();
         try {

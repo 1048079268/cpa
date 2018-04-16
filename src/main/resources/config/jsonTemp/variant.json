@@ -1,0 +1,33 @@
+{
+  "data": {
+    "variant": {
+      "id": 0,
+      "geneId": 0,
+      "grch": 0,
+      "genomicPosition": "String",
+      "aaMutation": "String",
+      "cdsMutation": "String",
+      "variantType": "String",
+      "cosmicId": "String",
+      "mutationEffect": "String",
+      "oncogenicity": "String",
+      "tumorTypes": [
+        {
+          "doid": {
+            "id": 0,
+            "name": "String"
+          },
+          "site1": "String",
+          "site2": "String",
+          "site3": "String",
+          "site4": "String",
+          "hist1": "String",
+          "hist2": "String",
+          "hist3": "String",
+          "hist4": "String"
+        }
+      ],
+      "dbsnpId": "String"
+    }
+  }
+}

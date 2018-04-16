@@ -23,6 +23,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
 import javax.activation.DataSource;
 import javax.mail.MessagingException;
@@ -85,7 +86,7 @@ public class MergeService {
         isCreateAndSend = operator.operate(MergeInfo.CLINICAL_TRIAL)||isCreateAndSend;
         isCreateAndSend = operator.operate(MergeInfo.GENE)||isCreateAndSend;
         //扫描以前发送失败的邮件的附件，如果有，在本次发送时一起发送，发送成功后删除
-        File dir=new File(mergeScanDir);
+        File dir= ResourceUtils.getFile(mergeScanDir);
         File[] files=null;
         if (dir.exists()){
             files = dir.listFiles(pathname -> pathname.getName().matches("^superposition-\\d*\\.xlsx$"));
@@ -128,7 +129,7 @@ public class MergeService {
             isSendSuccess=false;
             //发生异常后保存在本地，以免丢失
             String path = mergeScanDir + "/superposition-" + System.currentTimeMillis() + ".xlsx";
-            FileOutputStream fos = new FileOutputStream(path);
+            FileOutputStream fos = new FileOutputStream(ResourceUtils.getFile(path).getAbsolutePath());
             wb.write(fos);
             fos.close();
             wb.close();
@@ -145,10 +146,11 @@ public class MergeService {
     }
 
     /**
+     * TODO 关闭定时扫描合并文件功能
      * @desc:  定时扫描合并文件并保存相应数据到数据库
      * @author: 鱼唇的人类
      */
-    @Scheduled(cron = "0 0 1 * * ?")
+//    @Scheduled(cron = "0 0 1 * * ?")
     public void scanAndSave() throws IOException, InvalidFormatException {
         if (isScan.get()){
             return;
@@ -156,7 +158,7 @@ public class MergeService {
         try {
             isScan.set(true);
             //扫描文件并将数据写入各自的mergeList
-            File dir=new File(mergeScanDir);
+            File dir=ResourceUtils.getFile(mergeScanDir);
             if (!dir.exists()){
                 return;
             }
@@ -280,7 +282,7 @@ public class MergeService {
             }
             //保存未处理的数据，merge.xlsx是保留文件，不能占用
             String path=mergeScanDir+"/merge.xlsx";
-            FileOutputStream fos = new FileOutputStream(path);
+            FileOutputStream fos = new FileOutputStream(ResourceUtils.getFile(path).getAbsolutePath());
             wb.write(fos);
             fos.close();
             wb.close();

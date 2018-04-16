@@ -7,8 +7,6 @@ import com.todaysoft.cpa.compare.JsonDataType;
 import com.todaysoft.cpa.compare.ReadJson;
 import com.todaysoft.cpa.utils.ExceptionInfo;
 import com.todaysoft.cpa.utils.StructureChangeException;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 
 import java.io.*;
 import java.util.*;
@@ -31,13 +29,13 @@ public class ErrorJsonAnalyze {
 //                .maxBodySize(0)
 //                .execute();
         long start = System.currentTimeMillis();
-        JSONObject temp= ReadJson.read("jsonTemp/gene.json");
+        JSONObject temp= ReadJson.read("config/jsonTemp/gene.json");
         Map<String, JsonDataType> tempKeyMap = AcquireJsonStructure.getJsonKeyMap(null, temp);
         tempKeyMap.entrySet().stream().forEach(stringDataTypeEntry -> {
             System.out.println(stringDataTypeEntry.getKey()+":"+stringDataTypeEntry.getValue());
         });
         System.out.println("----------------");
-        JSONObject jsonObject=ReadJson.read("jsonTemp/geneTest.json");
+        JSONObject jsonObject=ReadJson.read("config/jsonTemp/geneTest.json");
         Map<String, JsonDataType> jsonKeyMap = AcquireJsonStructure.getJsonKeyMap(null, jsonObject);
         jsonKeyMap.entrySet().stream().forEach(stringDataTypeEntry -> {
             System.out.println(stringDataTypeEntry.getKey()+":"+stringDataTypeEntry.getValue());

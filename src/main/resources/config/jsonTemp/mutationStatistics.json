@@ -1,0 +1,16 @@
+{
+  "data": {
+    "mutationStatistics": [
+      {
+        "doid": 0,
+        "mutationId": "String",
+        "numOfSamples": "String"
+      }
+    ]
+  },
+  "meta": {
+    "offset": 0,
+    "limit": 0,
+    "total": 0
+  }
+}

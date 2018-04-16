@@ -1,5 +1,6 @@
 package com.todaysoft.cpa.service;
 
+import com.sun.xml.internal.bind.v2.TODO;
 import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.param.GlobalVar;
 import com.todaysoft.cpa.param.*;
@@ -111,8 +112,8 @@ public class MainService {
         //子业务抓取id线程池(抓取id线程数量的控制主要是在子业务线程上)
         childrenTreadPool=Executors.newFixedThreadPool(cpaProperties.getMaxIdTreadNum());
         while (true){
-            //每次重新运行要清除重合信息
-            mergeService.mergeInit();
+            //TODO 屏蔽 每次重新运行要清除重合信息
+//            mergeService.mergeInit();
             //一线id抓取线程池（主）
             ExecutorService mainPool = Executors.newFixedThreadPool(1);
             //启动一级线程（暂时不去除线程池，以便以后扩展）
@@ -151,7 +152,7 @@ public class MainService {
             //启动二级线程
             secondPool.execute(gene());
             secondPool.execute(clinicalTrail());
-//            secondPool.execute(regimen());
+//            secondPool.execute(regimen());//TODO 屏蔽用药方案
             logger.info("【manager】二级主线程全部启动完成");
             secondPool.shutdown();
             while (true) {
@@ -224,8 +225,8 @@ public class MainService {
             while (!mainManager.isAllWaiting()){
                 Thread.sleep(1000);
             }
-            //执行CPA与老库重合数据审核流程
-            mergeService.createExcelAndSend();
+            //TODO　屏蔽　执行CPA与老库重合数据审核流程
+//            mergeService.createExcelAndSend();
             logger.info("【manager】全部执行完成，休眠【"+cpaProperties.getHeartbeat()+"】分钟...");
             Thread.sleep(cpaProperties.getHeartbeat()*60000);
             logger.info("【manager】休眠结束，开始重启各线程...");
