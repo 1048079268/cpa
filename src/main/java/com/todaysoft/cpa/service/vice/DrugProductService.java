@@ -108,9 +108,12 @@ public class DrugProductService {
         cnDrugProduct.setProductNameEn(enDrugProduct.getProductNameEn());
         DrugProduct drugProduct=CPA_DRUG_PRODUCT.get(approvalNumber);//drugProductRepository.findByApprovalNumberAndCreatedWay(approvalNumber,2);
         if (drugProduct==null){
-            drugProduct = drugProductRepository.save(enDrugProduct);
             //保留老库数据
             if (oldProduct!=null&&integer==1){
+                cnDrugProduct.setCheckState(oldProduct.getCheckState());
+                cnDrugProduct.setCreatedWay(oldProduct.getCreatedWay());
+                cnDrugProduct.setCreatedByName(oldProduct.getCreatedByName());
+                enDrugProduct.setCheckState(4);
                 cnDrugProduct.setProductName(MergeUtil.cover(oldProduct.getProductName(),cnDrugProduct.getProductName()));
                 cnDrugProduct.setProductNameEn(MergeUtil.cover(oldProduct.getProductNameEn(),cnDrugProduct.getProductNameEn()));
                 cnDrugProduct.setDosageForm(MergeUtil.cover(oldProduct.getDosageForm(),cnDrugProduct.getDosageForm()));
@@ -118,6 +121,7 @@ public class DrugProductService {
                 cnDrugProduct.setDosageStrength(MergeUtil.cover(oldProduct.getDosageStrength(),cnDrugProduct.getDosageStrength()));
                 cnDrugProduct.setLabeller(MergeUtil.cover(oldProduct.getLabeller(),cnDrugProduct.getLabeller()));
             }
+            drugProduct = drugProductRepository.save(enDrugProduct);
             cnDrugProductRepository.save(cnDrugProduct);
         }
         //给药方式

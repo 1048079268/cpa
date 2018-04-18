@@ -107,10 +107,14 @@ public class ClinicalTrialService extends BaseService {
             clinicalTrial.setCountries(JsonUtil.jsonArrayToString(json.getJSONArray("countries"),","));
             return clinicalTrial;
         };
-        ClinicalTrial clinicalTrialEn=clinicalTrailRepository.save(converter.convert(en));
+        ClinicalTrial clinicalTrialEn = converter.convert(en);
         ClinicalTrial clinicalTrialCn = converter.convert(cn);
 //        老库覆盖CPA中文库
         if (byId!=null&&status==1){
+            clinicalTrialCn.setCheckState(byId.getCheckState());
+            clinicalTrialCn.setCreatedWay(byId.getCreatedWay());
+            clinicalTrialCn.setCreatedByName(byId.getCreatedByName());
+            clinicalTrialEn.setCheckState(4);
             if (!StringUtils.isEmpty(byId.getTheTitle())){
                 clinicalTrialCn.setTheTitle(byId.getTheTitle());
             }
@@ -142,9 +146,11 @@ public class ClinicalTrialService extends BaseService {
             clinicalTrialCn.setTestCenter(MergeUtil.cover(byId.getTestCenter(),clinicalTrialCn.getTestCenter()));
             clinicalTrialCn.setOrganization(MergeUtil.cover(byId.getOrganization(),clinicalTrialCn.getOrganization()));
         }
+        clinicalTrialEn=clinicalTrailRepository.save(clinicalTrialEn);
         cnClinicalTrailRepository.save(clinicalTrialCn);
         saveFixed(clinicalTrialEn,en,cn);
         //临床&药物
+        ClinicalTrial finalClinicalTrialEn = clinicalTrialEn;
         JsonArrayConverter<DrugClinicalTrial> clinicalTrialConverter=(json)->{
             List<DrugClinicalTrial> clinicalTrialList=new ArrayList<>();
             JSONArray drugs = json.getJSONArray("drugs");
@@ -156,8 +162,8 @@ public class ClinicalTrialService extends BaseService {
                         throw new DataException("未找到相应的药物，info->drugId="+drugId);
                     }
                     DrugClinicalTrial drugClinicalTrial=new DrugClinicalTrial();
-                    drugClinicalTrial.setClinicalTrialId(clinicalTrialEn.getClinicalTrialId());
-                    drugClinicalTrial.setClinicalTrialKey(clinicalTrialEn.getClinicalTrialKey());
+                    drugClinicalTrial.setClinicalTrialId(finalClinicalTrialEn.getClinicalTrialId());
+                    drugClinicalTrial.setClinicalTrialKey(finalClinicalTrialEn.getClinicalTrialKey());
                     drugClinicalTrial.setDrugId(drug.getDrugId());
                     drugClinicalTrial.setDrugKey(drug.getDrugKey());
                     clinicalTrialList.add(drugClinicalTrial);

@@ -105,13 +105,15 @@ public class KeggPathwaysService{
         if (merge) {
             //中文的状态与英文状态一致
             KeggPathway pathway = pathwayMap.get(compareKey);
-            pathway.setCreateWay(cnKeggPathway.getCreateWay());
-            pathway.setCheckState(cnKeggPathway.getCheckState());
-            pathway.setCreateAt(cnKeggPathway.getCreateAt());
+            //说明：中文状态与与老库数据状态保持一致
+//            pathway.setCreateWay(cnKeggPathway.getCreateWay());
+//            pathway.setCheckState(cnKeggPathway.getCheckState());
+//            pathway.setCreateAt(cnKeggPathway.getCreateAt());
             pathway.setKeggId(cnKeggPathway.getKeggId());
             cnKeggPathwayRepository.save(pathway);
             //英文主键与中文库主键一致
             enKeggPathway.setPathwayKey(pathway.getPathwayKey());
+            enKeggPathway.setCheckState(4);
             enKeggPathway=keggPathwayRepository.save(enKeggPathway);
             pathwayMap.remove(compareKey);
             KEGG_PATHWAY_MAP.put(enKeggPathway.getKeggId(),enKeggPathway);

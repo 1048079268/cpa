@@ -90,9 +90,14 @@ public class GeneService extends BaseService {
             gene.setCreateWay(2);
             return gene;
         };
-        Gene gene = geneRepository.save(geneConverter.convert(en));
+        Gene geneEn = geneConverter.convert(en);
         Gene geneCn = geneConverter.convert(cn);
+        //合并数据
         if (byName!=null&&status==1){
+            geneCn.setCheckState(byName.getCheckState());
+            geneCn.setCreateWay(byName.getCreateWay());
+            geneCn.setCreatedByName(byName.getCreatedByName());
+            geneCn.setCheckState(4);
             geneCn.setTheAlias(MergeUtil.mergeAlias(byName.getTheAlias(),geneCn.getTheAlias(),"<=>"));
             if (!StringUtils.isEmpty(byName.getGeneType())){
                 geneCn.setGeneType(byName.getGeneType());
@@ -113,6 +118,7 @@ public class GeneService extends BaseService {
                 geneCn.setCancerGene(byName.getCancerGene());
             }
         }
+        Gene gene = geneRepository.save(geneEn);
         cnGeneRepository.save(geneCn);
         //外部数据库
         String externalIdKey=PkGenerator.generator(GeneExternalId.class);

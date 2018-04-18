@@ -195,8 +195,12 @@ public class DrugService{
         Drug drugCn=drugConverter.convert(cn);
         drugCn.setNameChinese(drugCn.getNameEn());
         drugCn.setNameEn(drugEn.getNameEn());
-        Drug drug=drugRepository.save(drugEn);
+        //合并CPA和老库
         if (checkDrugCn!=null&&finalMerge){
+            drugCn.setCheckState(checkDrugCn.getCheckState());
+            drugCn.setCreateWay(checkDrugCn.getCreateWay());
+            drugCn.setCreatedByName(checkDrugCn.getCreatedByName());
+            drugEn.setCheckState(4);
             if (!StringUtils.isEmpty(checkDrugCn.getNameChinese())){
                 drugCn.setNameChinese(checkDrugCn.getNameChinese());
             }
@@ -241,6 +245,7 @@ public class DrugService{
                 drugCn.setPharmacodynamics(checkDrugCn.getPharmacodynamics());
             }
         }
+        Drug drug=drugRepository.save(drugEn);
         cnDrugRepository.save(drugCn);
         String pExternalIdKey=PkGenerator.generator(DrugExternalId.class);
         JsonObjectConverter<DrugExternalId> pExternalIdConverter=(json)->{
