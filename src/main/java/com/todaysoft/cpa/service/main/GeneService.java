@@ -97,7 +97,7 @@ public class GeneService extends BaseService {
             geneCn.setCheckState(byName.getCheckState());
             geneCn.setCreateWay(byName.getCreateWay());
             geneCn.setCreatedByName(byName.getCreatedByName());
-            geneCn.setCheckState(4);
+            geneEn.setCheckState(4);
             geneCn.setTheAlias(MergeUtil.mergeAlias(byName.getTheAlias(),geneCn.getTheAlias(),"<=>"));
             if (!StringUtils.isEmpty(byName.getGeneType())){
                 geneCn.setGeneType(byName.getGeneType());

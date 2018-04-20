@@ -48,10 +48,10 @@ public class DrugProductService {
     CnDrugProductRouteRepository cnDrugProductRouteRepository;
 
     public void init(){
-        drugProductRepository.findByCreatedWay(2).forEach(drugProduct -> {
+        cnDrugProductRepository.findByCreatedWay(2).forEach(drugProduct -> {
             CPA_DRUG_PRODUCT.put(drugProduct.getApprovalNumber(),drugProduct);
         });
-        drugProductRepository.findByCreatedWay(3).forEach(drugProduct -> {
+        cnDrugProductRepository.findByCreatedWay(3).forEach(drugProduct -> {
             OLD_DRUG_PRODUCT.put(drugProduct.getApprovalNumber(),drugProduct);
         });
     }
