@@ -50,6 +50,7 @@ public class EnConfig {
         HashMap<String, Object> properties = new HashMap();
         properties.put("hibernate.transaction.jta.platform", AtomikosJtaPlatform.class.getName());
         properties.put("javax.persistence.transactionType", "JTA");
+        properties.put("hibernate.show_sql", "false");
         LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
         entityManager.setJtaDataSource(enDataSource());
         entityManager.setJpaVendorAdapter(jpaVendorAdapter);
