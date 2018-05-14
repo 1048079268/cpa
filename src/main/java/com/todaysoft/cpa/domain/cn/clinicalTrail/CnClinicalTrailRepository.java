@@ -18,6 +18,6 @@ public interface CnClinicalTrailRepository extends JpaRepository<ClinicalTrial,S
 
     ClinicalTrial findByClinicalTrialId(String clinicalTrialId);
 
-    @Query("select c from ClinicalTrial c where c.clinicalTrialId=?1 and c.createdWay=3")
+    @Query("select c from ClinicalTrial c where c.createdWay=3 and c.clinicalTrialId=?1")
     ClinicalTrial findById(String id);
 }

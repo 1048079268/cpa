@@ -41,11 +41,11 @@ public class MutationStatisticService extends BaseService {
     @Override
     public boolean save(JSONObject object,JSONObject cn,int status) {
         VariantMutationStatistic statistic=object.toJavaObject(VariantMutationStatistic.class);
-        Variant variant=variantRepository.findByCosmicIdAndCreatedWay(statistic.getCosmicId(),2);
-        if (variant==null){
+        String variantKey=variantRepository.findByCosmicIdAndCreatedWay(statistic.getCosmicId(),2);
+        if (variantKey==null||variantKey.length()==0){
             throw new DataException("未找到相应的突变，info->cosmicId="+statistic.getCosmicId());
         }
-        return saveByDependence(object,cn,variant.getVariantKey(),status);
+        return saveByDependence(object,cn,variantKey,status);
     }
 
     @Override

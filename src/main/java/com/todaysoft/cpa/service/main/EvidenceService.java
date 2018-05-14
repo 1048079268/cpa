@@ -68,11 +68,11 @@ public class EvidenceService extends BaseService {
     @Override
     public boolean save(JSONObject object,JSONObject cn,int status) throws InterruptedException {
         Evidence evidence=object.toJavaObject(Evidence.class);
-        Variant variant=variantRepository.findByVariantIdAndCreatedWay(evidence.getVariantId(),2);
-        if (variant==null){
+        String variantKey=variantRepository.findByVariantIdAndCreatedWay(evidence.getVariantId(),2);
+        if (variantKey==null||variantKey.length()==0){
             throw new DataException("未找到相应的突变，info->variantId="+evidence.getVariantId());
         }
-        return saveByDependence(object,cn,variant.getVariantKey(),status);
+        return saveByDependence(object,cn,variantKey,status);
     }
 
     @Override

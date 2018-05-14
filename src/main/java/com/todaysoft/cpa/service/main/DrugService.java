@@ -369,15 +369,15 @@ public class DrugService{
             if (clinicalTrials!=null&&clinicalTrials.size()>0){
                 for (int i=0;i<clinicalTrials.size();i++){
                     String clinicalTrialId=clinicalTrials.getString(i);
-                    ClinicalTrial clinicalTrial=clinicalTrailRepository.findByClinicalTrialId(clinicalTrialId);
-                    if (clinicalTrial!=null){
+                    String clinicalTrialKey=clinicalTrailRepository.findByClinicalTrialId(clinicalTrialId);
+                    if (clinicalTrialKey!=null&&clinicalTrialKey.length()>0){
                         DrugClinicalTrialPK pk=new DrugClinicalTrialPK();
-                        pk.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
+                        pk.setClinicalTrialKey(clinicalTrialKey);
                         pk.setDrugKey(drug.getDrugKey());
                         if (drugClinicalTrialRepository.findOne(pk)==null){
                             DrugClinicalTrial drugClinicalTrial=new DrugClinicalTrial();
                             drugClinicalTrial.setClinicalTrialId(clinicalTrialId);
-                            drugClinicalTrial.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
+                            drugClinicalTrial.setClinicalTrialKey(clinicalTrialKey);
                             drugClinicalTrial.setDrugId(drug.getDrugId());
                             drugClinicalTrial.setDrugKey(drug.getDrugKey());
                             drugClinicalTrialList.add(drugClinicalTrial);
