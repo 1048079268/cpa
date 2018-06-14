@@ -25,6 +25,7 @@ import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.service.BaseService;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.*;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
@@ -70,6 +71,8 @@ public class ClinicalTrialService extends BaseService {
     private DrugClinicalTrialRepository drugClinicalTrialRepository;
     @Autowired
     private CnDrugClinicalTrialRepository cnDrugClinicalTrialRepository;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     @Override
     @Transactional
@@ -173,6 +176,9 @@ public class ClinicalTrialService extends BaseService {
         };
         drugClinicalTrialRepository.save(clinicalTrialConverter.convert(en));
         cnDrugClinicalTrialRepository.save(clinicalTrialConverter.convert(cn));
+        if (clinicalTrialCn.getCheckState()==1){
+            kbUpdateService.send("kt_clinical_trial");
+        }
         return true;
     }
 

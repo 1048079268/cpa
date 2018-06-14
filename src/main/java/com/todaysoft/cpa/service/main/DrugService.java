@@ -12,6 +12,7 @@ import com.todaysoft.cpa.domain.en.drug.*;
 import com.todaysoft.cpa.domain.entity.*;
 import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.param.*;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.service.vice.*;
 import com.todaysoft.cpa.utils.*;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
@@ -109,6 +110,8 @@ public class DrugService{
     private DrugProductIngredientRepository drugProductIngredientRepository;
     @Autowired
     private CnDrugProductIngredientRepository cnDrugProductIngredientRepository;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     /**
      * @param en
@@ -516,6 +519,9 @@ public class DrugService{
         cnDrugSequenceRepository.save(sequenceConverter.convert(cn));
         //15.TODO（该字段全部为空，看不到结构，暂时不做） 药物食物不良反应
         // JSONArray foodInteractions=object.getJSONArray("foodInteractions");
+        if (drugCn.getCheckState()==1){
+            kbUpdateService.send("kt_drug");
+        }
         return true;
     }
 

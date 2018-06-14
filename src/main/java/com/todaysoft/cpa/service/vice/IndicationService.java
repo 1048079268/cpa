@@ -3,6 +3,7 @@ package com.todaysoft.cpa.service.vice;
 import com.todaysoft.cpa.domain.cn.drug.CnIndicationRepository;
 import com.todaysoft.cpa.domain.en.drug.IndicationRepository;
 import com.todaysoft.cpa.domain.entity.Indication;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -30,6 +31,8 @@ public class IndicationService{
     private IndicationRepository indicationRepository;
     @Autowired
     private CnIndicationRepository cnIndicationRepository;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     public void init() {
 //        indicationRepository.findByCreatedWay(2).stream().forEach(indication -> {
@@ -66,6 +69,9 @@ public class IndicationService{
         if (indication==null){
             indication = indicationRepository.save(enIndication);
             cnIndicationRepository.save(cnIndication);
+            if (indication.getCheckState()==1){
+                kbUpdateService.send("kt_indication");
+            }
         }
         return indication;
 //        if (INDICATION_MAP.containsKey(mapKey)){

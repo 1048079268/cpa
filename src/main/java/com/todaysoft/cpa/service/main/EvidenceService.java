@@ -21,6 +21,7 @@ import com.todaysoft.cpa.domain.entity.Variant;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.service.BaseService;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
@@ -64,7 +65,8 @@ public class EvidenceService extends BaseService {
     private DrugRepository drugRepository;
     @Autowired
     private VariantRepository variantRepository;
-
+    @Autowired
+    private KbUpdateService kbUpdateService;
     @Override
     public boolean save(JSONObject object,JSONObject cn,int status) throws InterruptedException {
         Evidence evidence=object.toJavaObject(Evidence.class);
@@ -138,6 +140,9 @@ public class EvidenceService extends BaseService {
         };
         evidenceDrugRepository.save(evidenceDrugConverter.convert(en));
         cnEvidenceDrugRepository.save(evidenceDrugConverter.convert(cn));
+        if (evidence.getCheckState()==1){
+            kbUpdateService.send("kt_evidence");
+        }
         return true;
     }
 

@@ -11,6 +11,7 @@ import com.todaysoft.cpa.domain.entity.DrugProduct;
 import com.todaysoft.cpa.domain.entity.DrugProductIngredient;
 import com.todaysoft.cpa.domain.entity.DrugProductRoute;
 import com.todaysoft.cpa.merge.MergeInfo;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.DateUtil;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
 import com.todaysoft.cpa.utils.MergeException;
@@ -46,6 +47,8 @@ public class DrugProductService {
     DrugProductRouteRepository drugProductRouteRepository;
     @Autowired
     CnDrugProductRouteRepository cnDrugProductRouteRepository;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     public void init(){
         cnDrugProductRepository.findByCreatedWay(2).forEach(drugProduct -> {
@@ -123,6 +126,9 @@ public class DrugProductService {
             }
             drugProduct = drugProductRepository.save(enDrugProduct);
             cnDrugProductRepository.save(cnDrugProduct);
+            if (drugProduct.getCheckState()==1){
+                kbUpdateService.send("kt_drug_product");
+            }
         }
         //给药方式
         if (!StringUtils.isEmpty(en.getString("route"))&&!StringUtils.isEmpty(cn.getString("route"))){

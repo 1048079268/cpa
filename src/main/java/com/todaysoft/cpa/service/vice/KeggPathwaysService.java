@@ -5,6 +5,7 @@ import com.todaysoft.cpa.domain.en.drug.KeggPathwayRepository;
 import com.todaysoft.cpa.domain.entity.Drug;
 import com.todaysoft.cpa.domain.entity.KeggPathway;
 import com.todaysoft.cpa.merge.MergeInfo;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.MergeException;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
@@ -34,6 +35,8 @@ public class KeggPathwaysService{
     private KeggPathwayRepository keggPathwayRepository;
     @Autowired
     private CnKeggPathwayRepository cnKeggPathwayRepository;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     public void init(){
         cnKeggPathwayRepository.findByCreateWay(3).forEach(keggPathway -> {
@@ -124,6 +127,9 @@ public class KeggPathwaysService{
             if (pathway==null){
                 pathway = keggPathwayRepository.save(enKeggPathway);
                 cnKeggPathwayRepository.save(cnKeggPathway);
+                if (pathway.getCheckState()==1){
+                    kbUpdateService.send("kt_kegg_pathway");
+                }
             }
             return pathway;
 //            //老库没有记录的话查询keggId有没有重的

@@ -3,6 +3,7 @@ package com.todaysoft.cpa.service.vice;
 import com.todaysoft.cpa.domain.cn.drug.CnMeshCategoryRepository;
 import com.todaysoft.cpa.domain.en.drug.MeshCategoryRepository;
 import com.todaysoft.cpa.domain.entity.MeshCategory;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,8 @@ public class MeshCategoryService {
     private MeshCategoryRepository meshCategoryRepository;
     @Autowired
     private CnMeshCategoryRepository cnMeshCategoryRepository;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     public void init(){
 //        meshCategoryRepository.findByCPA().stream().forEach(meshCategory->{
@@ -70,6 +73,9 @@ public class MeshCategoryService {
         if (meshCategory==null){
             meshCategory=meshCategoryRepository.save(enMeshCategory);
             cnMeshCategoryRepository.save(cnMeshCategory);
+            if (meshCategory.getCheckState()==1){
+                kbUpdateService.send("kt_mesh_category");
+            }
         }
         return meshCategory;
         //TODO 暂时屏蔽与老库合并

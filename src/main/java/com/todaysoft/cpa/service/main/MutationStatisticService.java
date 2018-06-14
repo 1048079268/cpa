@@ -14,6 +14,7 @@ import com.todaysoft.cpa.domain.entity.VariantTumorType;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.service.BaseService;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.DataException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,8 @@ public class MutationStatisticService extends BaseService {
     private CPAProperties cpaProperties;
     @Autowired
     private VariantRepository variantRepository;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     @Override
     public boolean save(JSONObject object,JSONObject cn,int status) {

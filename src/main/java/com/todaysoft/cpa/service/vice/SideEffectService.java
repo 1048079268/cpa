@@ -3,6 +3,7 @@ package com.todaysoft.cpa.service.vice;
 import com.todaysoft.cpa.domain.cn.drug.CnSideEffectRepository;
 import com.todaysoft.cpa.domain.en.drug.SideEffectRepository;
 import com.todaysoft.cpa.domain.entity.SideEffect;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,8 @@ public class SideEffectService{
     private SideEffectRepository sideEffectRepository;
     @Autowired
     private CnSideEffectRepository cnSideEffectRepository;
+    @Autowired
+    private KbUpdateService kbUpdateService;
     public void init() {
 //        sideEffectRepository.findByCreatedWay(2).stream().forEach(sideEffect -> {
 //            SIDE_EFFECT_MAP.put(sideEffect.getSideEffectName(),sideEffect);
@@ -71,6 +74,9 @@ public class SideEffectService{
         if (sideEffect==null){
             sideEffect=sideEffectRepository.save(enSideEffect);
             cnSideEffectRepository.save(cnSideEffect);
+            if (sideEffect.getCheckState()==1){
+                kbUpdateService.send("kt_side_effect");
+            }
         }
         return sideEffect;
         //TODO 暂时屏蔽与老库合并

@@ -11,6 +11,7 @@ import com.todaysoft.cpa.domain.en.drug.DrugRepository;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.service.BaseService;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.*;
 import com.todaysoft.cpa.utils.JsonConverter.JsonArrayConverter;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
@@ -71,6 +72,8 @@ public class MedicationPlanService extends BaseService {
     private CancerRepository cancerRepository;
     @Autowired
     private CPAProperties cpaProperties;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     @Override
     @Transactional

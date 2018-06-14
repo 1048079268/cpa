@@ -37,6 +37,7 @@ public class Protein {
     private String otherNames;
     private Long createdAt;
     private Integer createWay;
+    private Integer checkState;
     private String createdByName="CPA";
 
     @Basic
@@ -190,6 +191,16 @@ public class Protein {
 
     public void setOtherNames(String otherNames) {
         this.otherNames = otherNames;
+    }
+
+    @Basic
+    @Column(name = "check_state",nullable = false)
+    public Integer getCheckState() {
+        return checkState;
+    }
+
+    public void setCheckState(Integer checkState) {
+        this.checkState = checkState;
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.todaysoft.cpa.domain.entity.*;
 import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.param.*;
 import com.todaysoft.cpa.service.BaseService;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.service.MainService;
 import com.todaysoft.cpa.thread.IdThread;
 import com.todaysoft.cpa.utils.*;
@@ -52,6 +53,8 @@ public class GeneService extends BaseService {
     private VariantService variantService;
     @Autowired
     private CPAProperties cpaProperties;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     @Override
     public boolean save(JSONObject en,JSONObject cn,int status) throws InterruptedException {
@@ -169,6 +172,9 @@ public class GeneService extends BaseService {
         Page variantPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.VARIANT.name+"s");
         ContentParam variantParam=new ContentParam(CPA.VARIANT,variantService,true,gene.getGeneKey());
         MainService.childrenTreadPool.execute(new IdThread(variantPage,variantParam));
+        if (geneCn.getCheckState()==1){
+            kbUpdateService.send("kt_gene");
+        }
         return true;
     }
 

@@ -23,6 +23,7 @@ import com.todaysoft.cpa.param.ContentParam;
 import com.todaysoft.cpa.param.Page;
 import com.todaysoft.cpa.service.BaseService;
 import com.todaysoft.cpa.service.ContentService;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.service.MainService;
 import com.todaysoft.cpa.thread.IdThread;
 import com.todaysoft.cpa.thread.MutationStatisticThread;
@@ -73,6 +74,8 @@ public class VariantService extends BaseService {
     private GeneRepository geneRepository;
     @Autowired
     private ContentService contentService;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     @Override
     public boolean save(JSONObject object,JSONObject cn,int status) {
@@ -158,6 +161,9 @@ public class VariantService extends BaseService {
         Page evidencePage=new Page(CPA.VARIANT.contentUrl+"/"+variant.getVariantId()+"/"+CPA.EVIDENCE.name+"s");
         ContentParam evidenceParam=new ContentParam(CPA.EVIDENCE,evidenceService,true,variant.getVariantKey());
         MainService.childrenTreadPool.execute(new IdThread(evidencePage,evidenceParam));
+        if (variant.getCheckState()==1){
+            kbUpdateService.send("kt_variant");
+        }
         return true;
     }
 

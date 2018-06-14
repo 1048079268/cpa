@@ -10,6 +10,7 @@ import com.todaysoft.cpa.domain.en.proteins.ProteinRepository;
 import com.todaysoft.cpa.domain.entity.Protein;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.service.BaseService;
+import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.DataException;
 import com.todaysoft.cpa.utils.JsonConverter.JsonObjectConverter;
 import com.todaysoft.cpa.utils.JsonUtil;
@@ -40,6 +41,8 @@ public class ProteinService extends BaseService {
     private CPAProperties cpaProperties;
     @Autowired
     private GeneRepository geneRepository;
+    @Autowired
+    private KbUpdateService kbUpdateService;
 
     @Override
     public boolean save(JSONObject object,JSONObject cn,int status) throws InterruptedException {
@@ -62,10 +65,14 @@ public class ProteinService extends BaseService {
             protein.setCreatedAt(System.currentTimeMillis());
             protein.setGeneKey(dependenceKey);
             protein.setCreateWay(2);
+            protein.setCheckState(1);
             return protein;
         };
         Protein protein = proteinRepository.save(proteinConverter.convert(en));
         cnProteinRepository.save(proteinConverter.convert(cn));
+        if (protein.getCheckState()==1){
+            kbUpdateService.send("kt_protein");
+        }
         return true;
     }
 
