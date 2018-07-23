@@ -43,9 +43,6 @@ public class KeggPathwaysService{
             String idKey=keggPathway.getKeggId().replace("hsa|map","").trim();
             pathwayMap.put(idKey,keggPathway);
         });
-//        keggPathwayRepository.findByCPA().forEach(keggPathway -> {
-//            KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),keggPathway);
-//        });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -82,66 +79,49 @@ public class KeggPathwaysService{
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public KeggPathway save(KeggPathway cnKeggPathway, KeggPathway enKeggPathway, Drug drug, Map<String,Integer> status){
-        String key= PkGenerator.generator(KeggPathway.class);
-        cnKeggPathway.setPathwayKey(key);
-        enKeggPathway.setPathwayKey(key);
         //此处使用en的做比较是因为老库的数据也是英文的
         String compareKey=enKeggPathway.getKeggId().replaceAll("path:hsa","").trim();
-        Integer s = status.get(enKeggPathway.getKeggId());
-        if (MergeInfo.KEGG_PATHWAY.isNeedArtificialCheck&&pathwayMap.containsKey(compareKey)&&s==null){
-            if (MergeInfo.KEGG_PATHWAY.sign.add(enKeggPathway.getKeggId())){
-                KeggPathway pathway = pathwayMap.get(compareKey);
-                List<String> list=new ArrayList<>();
-                list.add(0, String.valueOf(drug.getDrugId()));
-                list.add(1,drug.getNameEn());
-                list.add(2,enKeggPathway.getKeggId());
-                list.add(3,enKeggPathway.getPathwayName());
-                list.add(4,pathway.getPathwayKey());
-                list.add(5,pathway.getKeggId());
-                list.add(6,pathway.getPathwayName());
-                MergeInfo.KEGG_PATHWAY.checkList.add(list);
-            }
-            throw new MergeException("【KeggPathway】等待审核->id="+enKeggPathway.getKeggId());
+        KeggPathway oldEn = keggPathwayRepository.findByKeggId(enKeggPathway.getKeggId());
+        KeggPathway oldCn = cnKeggPathwayRepository.findByKeggId(enKeggPathway.getKeggId());
+        //是否使用老中文库数据状态
+        boolean isUseOldCnState=oldCn!=null;
+        //是否使用老英文库数据状态
+        boolean isUseOldEnState=oldEn!=null;
+        //是否保存中文数据
+        boolean isSaveCn = oldEn==null;
+        //是否是老库覆盖CPA数据
+        boolean isOldBaseData= oldEn==null&&pathwayMap.containsKey(compareKey);
+        //判断CPA
+        String key= oldCn==null?PkGenerator.generator(KeggPathway.class):oldCn.getPathwayKey();
+        cnKeggPathway.setPathwayKey(key);
+        enKeggPathway.setPathwayKey(key);
+        //更新状态
+        if (isUseOldCnState){
+            cnKeggPathway.setCreateWay(oldCn.getCreateWay());
+            cnKeggPathway.setCheckState(oldCn.getCheckState());
+            cnKeggPathway.setCreatedByName(oldCn.getCreatedByName());
         }
-        boolean merge=pathwayMap.containsKey(compareKey)&&(!MergeInfo.KEGG_PATHWAY.isNeedArtificialCheck||(s!=null&&s==1));
-        //中文老库已有该记录
-        if (merge) {
-            //中文的状态与英文状态一致
-            KeggPathway pathway = pathwayMap.get(compareKey);
-            //说明：中文状态与与老库数据状态保持一致
-//            pathway.setCreateWay(cnKeggPathway.getCreateWay());
-//            pathway.setCheckState(cnKeggPathway.getCheckState());
-//            pathway.setCreateAt(cnKeggPathway.getCreateAt());
-            pathway.setKeggId(cnKeggPathway.getKeggId());
-            cnKeggPathwayRepository.save(pathway);
-            //英文主键与中文库主键一致
-            enKeggPathway.setPathwayKey(pathway.getPathwayKey());
+        if (isUseOldEnState){
+            enKeggPathway.setCreateWay(oldEn.getCreateWay());
+            enKeggPathway.setCheckState(oldEn.getCheckState());
+            enKeggPathway.setCreatedByName(oldEn.getCreatedByName());
+        }
+        if (isOldBaseData){
+            KeggPathway keggPathway = pathwayMap.get(compareKey);
+            enKeggPathway.setPathwayKey(keggPathway.getPathwayKey());
+            cnKeggPathway.setPathwayKey(keggPathway.getPathwayKey());
             enKeggPathway.setCheckState(4);
-            enKeggPathway=keggPathwayRepository.save(enKeggPathway);
-            pathwayMap.remove(compareKey);
-            KEGG_PATHWAY_MAP.put(enKeggPathway.getKeggId(),enKeggPathway);
-            logger.info("【KeggPathway】与老库合并->id="+enKeggPathway.getKeggId());
-            return enKeggPathway;
-        } else {
-            KeggPathway pathway = keggPathwayRepository.findByKeggIdAndCreateWay(enKeggPathway.getKeggId(), 2);
-            if (pathway==null){
-                pathway = keggPathwayRepository.save(enKeggPathway);
-                cnKeggPathwayRepository.save(cnKeggPathway);
-                if (pathway.getCheckState()==1){
-                    kbUpdateService.send("kt_kegg_pathway");
-                }
-            }
-            return pathway;
-//            //老库没有记录的话查询keggId有没有重的
-//            if (KEGG_PATHWAY_MAP.containsKey(enKeggPathway.getKeggId())){
-//                return KEGG_PATHWAY_MAP.get(enKeggPathway.getKeggId());
-//            }else {
-//                KeggPathway keggPathway = keggPathwayRepository.save(enKeggPathway);
-//                cnKeggPathwayRepository.save(cnKeggPathway);
-//                KEGG_PATHWAY_MAP.put(keggPathway.getKeggId(),keggPathway);
-//                //返回英文库数据
-//                return keggPathway;
-//            }
+            cnKeggPathway.setKeggLink(keggPathway.getKeggLink());
+            cnKeggPathway.setPathwayName(keggPathway.getPathwayName());
+            cnKeggPathway.setSelleckLink(keggPathway.getSelleckLink());
         }
+        KeggPathway pathway = keggPathwayRepository.save(enKeggPathway);
+        if (isSaveCn){
+            cnKeggPathwayRepository.save(cnKeggPathway);
+        }
+        if (pathway.getCheckState()==1){
+            kbUpdateService.send("kt_kegg_pathway");
+        }
+        return pathway;
     }
 }

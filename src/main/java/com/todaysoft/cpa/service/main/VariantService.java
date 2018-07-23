@@ -7,16 +7,12 @@ import com.todaysoft.cpa.compare.AcquireJsonStructure;
 import com.todaysoft.cpa.domain.cn.variants.CnVariantRepository;
 import com.todaysoft.cpa.domain.cn.variants.CnVariantTumorTypeDoidRepository;
 import com.todaysoft.cpa.domain.cn.variants.CnVariantTumorTypeRepository;
-import com.todaysoft.cpa.domain.entity.Cancer;
+import com.todaysoft.cpa.domain.entity.*;
 import com.todaysoft.cpa.domain.en.cacer.CancerRepository;
 import com.todaysoft.cpa.domain.en.gene.GeneRepository;
-import com.todaysoft.cpa.domain.entity.Gene;
 import com.todaysoft.cpa.domain.en.variants.VariantRepository;
 import com.todaysoft.cpa.domain.en.variants.VariantTumorTypeDoidRepository;
 import com.todaysoft.cpa.domain.en.variants.VariantTumorTypeRepository;
-import com.todaysoft.cpa.domain.entity.Variant;
-import com.todaysoft.cpa.domain.entity.VariantTumorType;
-import com.todaysoft.cpa.domain.entity.VariantTumorTypeDoid;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.CPAProperties;
 import com.todaysoft.cpa.param.ContentParam;
@@ -90,18 +86,31 @@ public class VariantService extends BaseService {
     @Override
     @Transactional
     public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey,int status) {
-        String variantKey=PkGenerator.generator(Variant.class);
+        Variant object = en.toJavaObject(Variant.class);
+        Variant old = variantRepository.findByVariantId(object.getVariantId());
+        boolean isSaveCn=old==null;
+        boolean isUseOldState=old!=null;
+        String variantKey=old==null?PkGenerator.generator(Protein.class):old.getVariantKey();
         JsonObjectConverter<Variant> variantConverter=(json)->{
             Variant variant = json.toJavaObject(Variant.class);
             variant.setVariantKey(variantKey);
             variant.setGeneKey(dependenceKey);
-            variant.setCreatedWay(2);
-            variant.setCheckState(1);
+            if (isUseOldState){
+                variant.setCreatedWay(old.getCreatedWay());
+                variant.setCheckState(old.getCheckState());
+                variant.setCreatedByName(old.getCreatedByName());
+            }else {
+                variant.setCreatedWay(2);
+                variant.setCheckState(1);
+                variant.setCreatedByName("CPA");
+            }
             variant.setCreatedAt(System.currentTimeMillis());
             return variant;
         };
         Variant variant =variantRepository.save(variantConverter.convert(en));
-        cnVariantRepository.save(variantConverter.convert(cn));
+        if (isSaveCn){
+            cnVariantRepository.save(variantConverter.convert(cn));
+        }
         JSONArray enTumorTypes=en.getJSONArray("tumorTypes");
         JSONArray cnTumorTypes=cn.getJSONArray("tumorTypes");
         if (enTumorTypes!=null&&enTumorTypes.size()>0){
@@ -121,7 +130,9 @@ public class VariantService extends BaseService {
                 VariantTumorType variantTumorTypeCn = tumorTypeConverter.convert(cnTumorTypes.getJSONObject(i));
                 if (variantTumorTypeEn!=null&&variantTumorTypeCn!=null){
                     variantTumorTypeRepository.save(variantTumorTypeEn);
-                    cnVariantTumorTypeRepository.save(variantTumorTypeCn);
+                    if (isSaveCn){
+                        cnVariantTumorTypeRepository.save(variantTumorTypeCn);
+                    }
                 }
                 JsonObjectConverter<VariantTumorTypeDoid> doidConverter=(json)->{
                     if (variantTumorTypeEn!=null&&json!=null){
@@ -144,23 +155,25 @@ public class VariantService extends BaseService {
                     VariantTumorTypeDoid doidCn = doidConverter.convert(enTumorTypes.getJSONObject(i).getJSONObject("doid"));
                     if (doidCn!=null&&doidEn!=null){
                         variantTumorTypeDoidRepository.save(doidEn);
-                        cnVariantTumorTypeDoidRepository.save(doidCn);
+                        if (isSaveCn){
+                            cnVariantTumorTypeDoidRepository.save(doidCn);
+                        }
                     }
                 }
             }
         }
-        if (!StringUtils.isEmpty(variant.getCosmicId())){
-            logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的突变疾病样本量");
-            Page msPage=new Page(CPA.MUTATION_STATISTICS.contentUrl);
-            msPage.putParam("cosmicId",variant.getCosmicId());
-            ContentParam msParam=new ContentParam(CPA.MUTATION_STATISTICS,mutationStatisticService,true,variant.getVariantKey());
-            MainService.childrenTreadPool.execute(new MutationStatisticThread(msPage,msParam,contentService));
-        }
-        //插入与该id关联的证据
-        logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的证据");
-        Page evidencePage=new Page(CPA.VARIANT.contentUrl+"/"+variant.getVariantId()+"/"+CPA.EVIDENCE.name+"s");
-        ContentParam evidenceParam=new ContentParam(CPA.EVIDENCE,evidenceService,true,variant.getVariantKey());
-        MainService.childrenTreadPool.execute(new IdThread(evidencePage,evidenceParam));
+//        if (!StringUtils.isEmpty(variant.getCosmicId())){
+//            logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的突变疾病样本量");
+//            Page msPage=new Page(CPA.MUTATION_STATISTICS.contentUrl);
+//            msPage.putParam("cosmicId",variant.getCosmicId());
+//            ContentParam msParam=new ContentParam(CPA.MUTATION_STATISTICS,mutationStatisticService,true,variant.getVariantKey());
+//            MainService.childrenTreadPool.execute(new MutationStatisticThread(msPage,msParam,contentService));
+//        }
+//        //插入与该id关联的证据
+//        logger.info("【" + CPA.VARIANT.name() + "】开始插入关联的证据");
+//        Page evidencePage=new Page(CPA.VARIANT.contentUrl+"/"+variant.getVariantId()+"/"+CPA.EVIDENCE.name+"s");
+//        ContentParam evidenceParam=new ContentParam(CPA.EVIDENCE,evidenceService,true,variant.getVariantKey());
+//        MainService.childrenTreadPool.execute(new IdThread(evidencePage,evidenceParam));
         if (variant.getCheckState()==1){
             kbUpdateService.send("kt_variant");
         }

@@ -18,6 +18,8 @@ public class GlobalVar {
     private static LinkedBlockingQueue<ContentParam> CONTENT_QUEUE;
     private static LinkedBlockingQueue<ContentParam> DRUG_QUEUE;
     private static LinkedBlockingQueue<ContentParam> FAILURE_QUEUE;
+    private final static String LANG_ZH="zh";
+    private final static String LANG_EN="en";
     private static String AUTHORIZATION;
     /**
      * 异常过滤列表
@@ -56,5 +58,13 @@ public class GlobalVar {
 
     public static void setAUTHORIZATION(String AUTHORIZATION) {
         GlobalVar.AUTHORIZATION = AUTHORIZATION;
+    }
+
+    public static String getLangZh() {
+        return LANG_ZH;
+    }
+
+    public static String getLangEn() {
+        return LANG_EN;
     }
 }

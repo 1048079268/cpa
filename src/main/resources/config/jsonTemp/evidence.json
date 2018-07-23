@@ -17,7 +17,13 @@
       },
       "drugIds": [
         0
-      ]
+      ],
+      "timestamps": {
+        "createdAt": null,
+        "updatedAt": null,
+        "deletedAt": null,
+        "isDeleted": null
+      }
     }
   }
 }

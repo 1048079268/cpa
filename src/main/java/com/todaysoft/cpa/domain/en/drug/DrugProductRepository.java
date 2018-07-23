@@ -15,4 +15,6 @@ public interface DrugProductRepository extends JpaRepository<DrugProduct,String>
     List<DrugProduct> findByCreatedWay(Integer createWay);
 
     DrugProduct findByApprovalNumberAndCreatedWay(String approvalNumber, Integer createdWay);
+
+    DrugProduct findByApprovalNumber(String approvalNumber);
 }

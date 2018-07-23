@@ -14,4 +14,6 @@ import java.util.Set;
 public interface CnEvidenceRepository extends JpaRepository<Evidence,String> {
     @Query("select e.evidenceId from Evidence e where e.createdWay=2")
     Set<Integer> findIdByCPA();
+
+    Evidence findByEvidenceId(Integer evidenceId);
 }

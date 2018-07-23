@@ -3,6 +3,7 @@ package com.todaysoft.cpa.service.vice;
 import com.todaysoft.cpa.domain.cn.drug.CnMeshCategoryRepository;
 import com.todaysoft.cpa.domain.en.drug.MeshCategoryRepository;
 import com.todaysoft.cpa.domain.entity.MeshCategory;
+import com.todaysoft.cpa.domain.entity.Protein;
 import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
@@ -38,12 +39,6 @@ public class MeshCategoryService {
     private KbUpdateService kbUpdateService;
 
     public void init(){
-//        meshCategoryRepository.findByCPA().stream().forEach(meshCategory->{
-//            MESH_CATEGORY_MAP.put(meshCategory.getMeshId(),meshCategory);
-//        });
-//        cnMeshCategoryRepository.findByCreatedWay(3).forEach(meshCategory -> {
-//            meshCategoryMapOldDB.put(meshCategory.getCategoryName(),meshCategory);
-//        });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -66,16 +61,23 @@ public class MeshCategoryService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public MeshCategory save(MeshCategory cnMeshCategory,MeshCategory enMeshCategory){
-        String key= PkGenerator.generator(MeshCategory.class);
+        MeshCategory old = meshCategoryRepository.findByMeshIdAndCreatedWay(enMeshCategory.getMeshId(), 2);
+        boolean isSaveCn= old==null;
+        boolean isUseOldState= old!=null;
+        String key=old==null?PkGenerator.generator(MeshCategory.class):old.getMeshCategoryKey();
         cnMeshCategory.setMeshCategoryKey(key);
         enMeshCategory.setMeshCategoryKey(key);
-        MeshCategory meshCategory = meshCategoryRepository.findByMeshIdAndCreatedWay(enMeshCategory.getMeshId(), 2);
-        if (meshCategory==null){
-            meshCategory=meshCategoryRepository.save(enMeshCategory);
+        if (isUseOldState){
+            enMeshCategory.setCheckState(old.getCheckState());
+            enMeshCategory.setCreatedByName(old.getCreatedByName());
+            enMeshCategory.setCreatedWay(old.getCreatedWay());
+        }
+        MeshCategory meshCategory=meshCategoryRepository.save(enMeshCategory);
+        if (isSaveCn){
             cnMeshCategoryRepository.save(cnMeshCategory);
-            if (meshCategory.getCheckState()==1){
-                kbUpdateService.send("kt_mesh_category");
-            }
+        }
+        if (meshCategory.getCheckState()==1){
+            kbUpdateService.send("kt_mesh_category");
         }
         return meshCategory;
         //TODO 暂时屏蔽与老库合并

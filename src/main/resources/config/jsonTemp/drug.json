@@ -101,7 +101,13 @@
           "categoryName": "String",
           "meshId": "String"
         }
-      ]
+      ],
+      "timestamps": {
+        "createdAt": null,
+        "updatedAt": null,
+        "deletedAt": null,
+        "isDeleted": null
+      }
     }
   }
 }

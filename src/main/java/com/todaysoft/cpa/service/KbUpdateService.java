@@ -44,7 +44,9 @@ public class KbUpdateService {
      * @param type 类型
      */
     public void send(String type){
-        logger.info("更新数量(+1)："+type);
-        restTemplate.postForEntity(sendUrl, type, String.class);
+//        logger.debug("更新数量(+1)："+type);
+        if (!logger.isDebugEnabled()){
+            restTemplate.postForEntity(sendUrl, type, String.class);
+        }
     }
 }

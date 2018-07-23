@@ -40,7 +40,7 @@ public class Variant {
     private Long createdAt;
     private Integer createdWay;
     private String createdByKey;
-    private String createdByName="CPA";
+    private String createdByName;
     private Integer checkState;
     private String checkReport;
     private String checkedByKey;

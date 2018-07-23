@@ -2,6 +2,7 @@ package com.todaysoft.cpa.service.vice;
 
 import com.todaysoft.cpa.domain.cn.drug.CnIndicationRepository;
 import com.todaysoft.cpa.domain.en.drug.IndicationRepository;
+import com.todaysoft.cpa.domain.entity.Evidence;
 import com.todaysoft.cpa.domain.entity.Indication;
 import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.PkGenerator;
@@ -35,10 +36,6 @@ public class IndicationService{
     private KbUpdateService kbUpdateService;
 
     public void init() {
-//        indicationRepository.findByCreatedWay(2).stream().forEach(indication -> {
-//            String key=indication.getMeddraConceptName();
-//            INDICATION_MAP.put(key,indication);
-//        });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -62,25 +59,24 @@ public class IndicationService{
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Indication save(Indication cnIndication,Indication enIndication){
-        String key= PkGenerator.generator(Indication.class);
+        Indication old = indicationRepository.findByCreatedWayAndMeddraConceptNameAndMeddraConceptType(2,enIndication.getMeddraConceptName(),enIndication.getMeddraConceptType());
+        boolean isSaveCn=old==null;
+        boolean isUseOldState=old!=null;
+        String key= old==null?PkGenerator.generator(Indication.class):old.getIndicationKey();
         cnIndication.setIndicationKey(key);
         enIndication.setIndicationKey(key);
-        Indication indication = indicationRepository.findByCreatedWayAndMeddraConceptNameAndMeddraConceptType(2, enIndication.getMeddraConceptName(),enIndication.getMeddraConceptType());
-        if (indication==null){
-            indication = indicationRepository.save(enIndication);
+        if (isUseOldState){
+            enIndication.setCreatedByName(old.getCreatedByName());
+            enIndication.setCheckState(old.getCheckState());
+            enIndication.setCreatedWay(old.getCreatedWay());
+        }
+        Indication indication = indicationRepository.save(enIndication);
+        if (isSaveCn){
             cnIndicationRepository.save(cnIndication);
-            if (indication.getCheckState()==1){
-                kbUpdateService.send("kt_indication");
-            }
+        }
+        if (indication.getCheckState()==1){
+            kbUpdateService.send("kt_indication");
         }
         return indication;
-//        if (INDICATION_MAP.containsKey(mapKey)){
-//            return INDICATION_MAP.get(mapKey);
-//        }else {
-//            Indication result = indicationRepository.save(enIndication);
-//            cnIndicationRepository.save(cnIndication);
-//            INDICATION_MAP.put(mapKey,result);
-//            return result;
-//        }
     }
 }

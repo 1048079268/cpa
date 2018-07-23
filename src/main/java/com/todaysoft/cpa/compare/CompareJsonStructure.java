@@ -15,8 +15,7 @@ import java.util.Set;
  */
 public class CompareJsonStructure {
     public static void compare(Map<String,JsonDataType> template,Map<String,JsonDataType> dataMap) throws StructureChangeException {
-        Map<String,JsonDataType> temp=new HashMap<>();
-        temp.putAll(template);
+        Map<String, JsonDataType> temp = new HashMap<>(template);
         StringBuffer notMatch=new StringBuffer();
         Set<String> nullValueKeys=new HashSet<>();
         //1.遍历待比对的json，如果有值为NULL的将键写入nullValueKeys

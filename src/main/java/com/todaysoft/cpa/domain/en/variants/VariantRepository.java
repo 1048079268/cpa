@@ -20,4 +20,6 @@ public interface VariantRepository extends JpaRepository<Variant,String> {
 
     @Query("select v.variantKey from Variant v where v.createdWay=?2 and v.variantId=?1")
     String findByVariantIdAndCreatedWay(Integer variantId,Integer createdWay);
+
+    Variant findByVariantId(Integer variantId);
 }

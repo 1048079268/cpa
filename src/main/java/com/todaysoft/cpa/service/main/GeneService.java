@@ -58,71 +58,68 @@ public class GeneService extends BaseService {
 
     @Override
     public boolean save(JSONObject en,JSONObject cn,int status) throws InterruptedException {
-        //1.基因
-        String geneKey=PkGenerator.generator(Gene.class);
-        //查重覆盖
         Gene checkGene = cn.toJavaObject(Gene.class);
-        Gene byName = cnGeneRepository.findByName(checkGene.getGeneSymbol());
-        if (byName!=null){
-            if (!MergeInfo.GENE.isNeedArtificialCheck){
-                logger.info("【" + CPA.GENE.name() + "】与老库合并->id="+checkGene.getGeneId());
-                geneKey=byName.getGeneKey();
-                status=1;
-            }else if (status==0){
-                if (MergeInfo.GENE.sign.add(String.valueOf(checkGene.getGeneId()))){
-                    List<String> list=new ArrayList<>(4);
-                    list.add(0, String.valueOf(checkGene.getGeneId()));
-                    list.add(1,checkGene.getGeneSymbol());
-                    list.add(2,byName.getGeneKey());
-                    list.add(3,byName.getGeneSymbol());
-                    MergeInfo.GENE.checkList.add(list);
-                }
-                throw new MergeException("【" + CPA.GENE.name() + "】与老库重合，等待审核->id="+checkGene.getGeneId());
-            }else if (status==1){
-                logger.info("【" + CPA.GENE.name() + "】与老库合并->id="+checkGene.getGeneId());
-                geneKey=byName.getGeneKey();
-            }
-        }
-        String finalGeneKey = geneKey;
+        Gene oldCn = cnGeneRepository.findByName(checkGene.getGeneSymbol());
+        Gene oldEn = geneRepository.findByGeneId(checkGene.getGeneId());
+        //是否使用老中文库数据状态
+        boolean isUseOldCnState=oldCn!=null;
+        //是否使用老英文库数据状态
+        boolean isUseOldEnState=oldEn!=null;
+        //是否保存中文数据
+        boolean isSaveCn = oldEn==null&&(oldCn==null||oldCn.getCreateWay()==3);
+        //是否是老库覆盖CPA数据
+        boolean isOldBaseData= oldEn==null && oldCn!=null;
+        String geneKey=oldCn==null?PkGenerator.generator(Gene.class):oldCn.getGeneKey();
         JsonObjectConverter<Gene> geneConverter=(json)->{
             Gene gene = json.toJavaObject(Gene.class);
             gene.setTheAlias(JsonUtil.jsonArrayToString(json.getJSONArray("aliases"),"<=>"));
             gene.setOtherNames(JsonUtil.jsonArrayToString(json.getJSONArray("otherNames"),"<=>"));
-            gene.setGeneKey(finalGeneKey);
+            gene.setGeneKey(geneKey);
             gene.setCreateAt(System.currentTimeMillis());
             gene.setCreateWay(2);
+            gene.setCheckState(1);
+            gene.setCreatedByName("CPA");
             return gene;
         };
         Gene geneEn = geneConverter.convert(en);
         Gene geneCn = geneConverter.convert(cn);
+        if (isUseOldCnState) {
+            geneCn.setCheckState(oldCn.getCheckState());
+            geneCn.setCreateWay(oldCn.getCreateWay());
+            geneCn.setCreatedByName(oldCn.getCreatedByName());
+        }
+        if (isUseOldEnState){
+            geneEn.setCheckState(oldEn.getCheckState());
+            geneEn.setCreateWay(oldEn.getCreateWay());
+            geneEn.setCreatedByName(oldEn.getCreatedByName());
+        }
         //合并数据
-        if (byName!=null&&status==1){
-            geneCn.setCheckState(byName.getCheckState());
-            geneCn.setCreateWay(byName.getCreateWay());
-            geneCn.setCreatedByName(byName.getCreatedByName());
+        if (isOldBaseData){
             geneEn.setCheckState(4);
-            geneCn.setTheAlias(MergeUtil.mergeAlias(byName.getTheAlias(),geneCn.getTheAlias(),"<=>"));
-            if (!StringUtils.isEmpty(byName.getGeneType())){
-                geneCn.setGeneType(byName.getGeneType());
+            geneCn.setTheAlias(MergeUtil.mergeAlias(oldCn.getTheAlias(),geneCn.getTheAlias(),"<=>"));
+            if (!StringUtils.isEmpty(oldCn.getGeneType())){
+                geneCn.setGeneType(oldCn.getGeneType());
             }
-            if (!StringUtils.isEmpty(byName.getGeneFullName())){
-                geneCn.setGeneFullName(byName.getGeneFullName());
+            if (!StringUtils.isEmpty(oldCn.getGeneFullName())){
+                geneCn.setGeneFullName(oldCn.getGeneFullName());
             }
-            if (!StringUtils.isEmpty(byName.getEntrezGeneSummary())){
-                geneCn.setEntrezGeneSummary(byName.getEntrezGeneSummary());
+            if (!StringUtils.isEmpty(oldCn.getEntrezGeneSummary())){
+                geneCn.setEntrezGeneSummary(oldCn.getEntrezGeneSummary());
             }
-            if (!StringUtils.isEmpty(byName.getCytogeneticBand())){
-                geneCn.setCytogeneticBand(byName.getCytogeneticBand());
+            if (!StringUtils.isEmpty(oldCn.getCytogeneticBand())){
+                geneCn.setCytogeneticBand(oldCn.getCytogeneticBand());
             }
-            if (byName.getHasCosmicMutations()!=null){
-                geneCn.setHasCosmicMutations(byName.getHasCosmicMutations());
+            if (oldCn.getHasCosmicMutations()!=null){
+                geneCn.setHasCosmicMutations(oldCn.getHasCosmicMutations());
             }
-            if (!StringUtils.isEmpty(byName.getCancerGene())){
-                geneCn.setCancerGene(byName.getCancerGene());
+            if (!StringUtils.isEmpty(oldCn.getCancerGene())){
+                geneCn.setCancerGene(oldCn.getCancerGene());
             }
         }
         Gene gene = geneRepository.save(geneEn);
-        cnGeneRepository.save(geneCn);
+        if (isSaveCn) {
+            cnGeneRepository.save(geneCn);
+        }
         //外部数据库
         String externalIdKey=PkGenerator.generator(GeneExternalId.class);
         JsonArrayConverter<GeneExternalId> externalIdConverter=(json)->{
@@ -140,7 +137,9 @@ public class GeneService extends BaseService {
             return externalIdsList;
         };
         geneExternalIdRepository.save(externalIdConverter.convert(en));
-        cnGeneExternalIdRepository.save(externalIdConverter.convert(cn));
+        if(isSaveCn){
+            cnGeneExternalIdRepository.save(externalIdConverter.convert(cn));
+        }
         //4.基因位置
         String locationKey=PkGenerator.generator(GeneLocation.class);
         JsonArrayConverter<GeneLocation> locationConverter=(json)->{
@@ -158,20 +157,22 @@ public class GeneService extends BaseService {
             return locationList;
         };
         geneLocationRepository.save(locationConverter.convert(en));
-        cnGeneLocationRepository.save(locationConverter.convert(cn));
+        if (isSaveCn){
+            cnGeneLocationRepository.save(locationConverter.convert(cn));
+        }
         if (status!=0){
             return true;
         }
-        //插入与该id关联的蛋白质
-        logger.info("【" + CPA.GENE.name() + "】开始插入关联的蛋白质");
-        Page proteinPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.PROTEIN.name+"s");
-        ContentParam proteinParam=new ContentParam(CPA.PROTEIN,proteinService,true,gene.getGeneKey());
-        MainService.childrenTreadPool.execute(new IdThread(proteinPage,proteinParam));
-        //插入与该id关联的突变
-        logger.info("【" + CPA.GENE.name() + "】开始插入关联的突变");
-        Page variantPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.VARIANT.name+"s");
-        ContentParam variantParam=new ContentParam(CPA.VARIANT,variantService,true,gene.getGeneKey());
-        MainService.childrenTreadPool.execute(new IdThread(variantPage,variantParam));
+//        //插入与该id关联的蛋白质
+//        logger.info("【" + CPA.GENE.name() + "】开始插入关联的蛋白质");
+//        Page proteinPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.PROTEIN.name+"s");
+//        ContentParam proteinParam=new ContentParam(CPA.PROTEIN,proteinService,true,gene.getGeneKey());
+//        MainService.childrenTreadPool.execute(new IdThread(proteinPage,proteinParam));
+//        //插入与该id关联的突变
+//        logger.info("【" + CPA.GENE.name() + "】开始插入关联的突变");
+//        Page variantPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.VARIANT.name+"s");
+//        ContentParam variantParam=new ContentParam(CPA.VARIANT,variantService,true,gene.getGeneKey());
+//        MainService.childrenTreadPool.execute(new IdThread(variantPage,variantParam));
         if (geneCn.getCheckState()==1){
             kbUpdateService.send("kt_gene");
         }

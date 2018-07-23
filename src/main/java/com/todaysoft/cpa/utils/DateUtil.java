@@ -15,20 +15,17 @@ import java.util.Date;
 public class DateUtil {
     public static String formatDate0(Date date){
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        String dateString=df.format(date);
-        return dateString;
+        return df.format(date);
     }
 
     public static String formatDate1(Date date){
         DateFormat df = new SimpleDateFormat("yyyyMMdd");
-        String dateString=df.format(date);
-        return dateString;
+        return df.format(date);
     }
 
     public static String formatDate2(Date date){
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        String dateString=df.format(date);
-        return dateString;
+        return df.format(date);
     }
 
     /**

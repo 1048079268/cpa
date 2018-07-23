@@ -38,7 +38,7 @@ public class Protein {
     private Long createdAt;
     private Integer createWay;
     private Integer checkState;
-    private String createdByName="CPA";
+    private String createdByName;
 
     @Basic
     @Column(name = "created_by_name", nullable = true, length = 20)

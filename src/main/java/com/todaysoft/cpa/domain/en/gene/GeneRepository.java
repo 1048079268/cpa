@@ -24,4 +24,6 @@ public interface GeneRepository extends JpaRepository<Gene,String>{
     @Query("select g.geneKey from Gene g " +
             "where g.createWay=2 and (g.cancerGene='oncogene/TSG' or g.cancerGene='TSG' or g.cancerGene='oncogene')")
     Set<String> statisticsKey();
+
+    Gene findByGeneId(Integer geneId);
 }

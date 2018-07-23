@@ -12,4 +12,6 @@ import java.util.List;
  */
 public interface CnDrugProductRepository extends JpaRepository<DrugProduct,String> {
     List<DrugProduct> findByCreatedWay(Integer createWay);
+
+    DrugProduct findByApprovalNumber(String approvalNumber);
 }

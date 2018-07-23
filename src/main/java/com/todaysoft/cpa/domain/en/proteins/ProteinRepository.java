@@ -19,4 +19,6 @@ public interface ProteinRepository extends JpaRepository<Protein,String>{
     @Query("select distinct p from Protein p,Gene g where p.geneKey=g.geneKey and " +
             "g.createWay=2 and (g.cancerGene='oncogene/TSG' or g.cancerGene='TSG' or g.cancerGene='oncogene')")
     List<Protein> statistics();
+
+    Protein findByProteinId(String proteinId);
 }

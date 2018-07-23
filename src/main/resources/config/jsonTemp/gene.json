@@ -31,7 +31,13 @@
         "String"
       ],
       "hasCosmicMutations": true,
-      "cancerGene": "String"
+      "cancerGene": "String",
+      "timestamps": {
+        "createdAt": null,
+        "updatedAt": null,
+        "deletedAt": null,
+        "isDeleted": null
+      }
     }
   }
 }

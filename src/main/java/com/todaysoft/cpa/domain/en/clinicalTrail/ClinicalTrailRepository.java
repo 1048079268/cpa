@@ -22,4 +22,7 @@ public interface ClinicalTrailRepository extends JpaRepository<ClinicalTrial,Str
     @Query("select distinct c from ClinicalTrial c ,DrugClinicalTrial dc ,Drug d " +
             "where c.clinicalTrialKey=dc.clinicalTrialKey and dc.drugKey=d.drugKey and d.oncoDrug=true")
     List<ClinicalTrial> statistics();
+
+    @Query("select c from ClinicalTrial c where c.clinicalTrialId=?1")
+    ClinicalTrial findById(String clinicalTrialId);
 }

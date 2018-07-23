@@ -57,19 +57,32 @@ public class ProteinService extends BaseService {
     @Override
     @Transactional
     public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey,int status) throws InterruptedException {
-        String proteinKey=PkGenerator.generator(Protein.class);
+        Protein object = en.toJavaObject(Protein.class);
+        Protein old = proteinRepository.findByProteinId(object.getProteinId());
+        boolean isSaveCn= old==null;
+        boolean isUseOldState= old!=null;
+        String proteinKey=old==null?PkGenerator.generator(Protein.class):old.getProteinKey();
         JsonObjectConverter<Protein> proteinConverter=(json)->{
             Protein protein=json.toJavaObject(Protein.class);
             protein.setProteinKey(proteinKey);
             protein.setOtherNames(JsonUtil.jsonArrayToString(json.getJSONArray("synonyms"),"<=>"));
             protein.setCreatedAt(System.currentTimeMillis());
             protein.setGeneKey(dependenceKey);
-            protein.setCreateWay(2);
-            protein.setCheckState(1);
+            if (isUseOldState){
+                protein.setCreateWay(old.getCreateWay());
+                protein.setCheckState(old.getCheckState());
+                protein.setCreatedByName(old.getCreatedByName());
+            }else {
+                protein.setCreateWay(2);
+                protein.setCheckState(1);
+                protein.setCreatedByName("CPA");
+            }
             return protein;
         };
         Protein protein = proteinRepository.save(proteinConverter.convert(en));
-        cnProteinRepository.save(proteinConverter.convert(cn));
+        if (isSaveCn){
+            cnProteinRepository.save(proteinConverter.convert(cn));
+        }
         if (protein.getCheckState()==1){
             kbUpdateService.send("kt_protein");
         }

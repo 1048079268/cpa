@@ -27,7 +27,13 @@
           "hist4": "String"
         }
       ],
-      "dbsnpId": "String"
+      "dbsnpId": "String",
+      "timestamps": {
+        "createdAt": null,
+        "updatedAt": null,
+        "deletedAt": null,
+        "isDeleted": null
+      }
     }
   }
 }

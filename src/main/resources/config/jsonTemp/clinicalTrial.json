@@ -34,7 +34,13 @@
       "drugs": [
         0
       ],
-      "url": "String"
+      "url": "String",
+      "timestamps": {
+        "createdAt": null,
+        "updatedAt": null,
+        "deletedAt": null,
+        "isDeleted": null
+      }
     }
   }
 }

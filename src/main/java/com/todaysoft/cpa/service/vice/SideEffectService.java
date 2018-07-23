@@ -67,18 +67,25 @@ public class SideEffectService{
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public SideEffect save(SideEffect cnSideEffect,SideEffect enSideEffect){
-        String generator = PkGenerator.generator(SideEffect.class);
+        SideEffect old = cnSideEffectRepository.findByCreatedWayAndSideEffectNameAndKindOfTerm(2, enSideEffect.getSideEffectName(), enSideEffect.getKindOfTerm());
+        boolean isSaveCn=old==null;
+        boolean isUseOldState=old!=null;
+        String generator = old==null?PkGenerator.generator(SideEffect.class):old.getSideEffectKey();
         cnSideEffect.setSideEffectKey(generator);
         enSideEffect.setSideEffectKey(generator);
-        SideEffect sideEffect = sideEffectRepository.findByCreatedWayAndSideEffectNameAndKindOfTerm(2, enSideEffect.getSideEffectName(),enSideEffect.getKindOfTerm());
-        if (sideEffect==null){
-            sideEffect=sideEffectRepository.save(enSideEffect);
-            cnSideEffectRepository.save(cnSideEffect);
-            if (sideEffect.getCheckState()==1){
-                kbUpdateService.send("kt_side_effect");
-            }
+        if (isUseOldState){
+            cnSideEffect.setCheckState(old.getCheckState());
+            cnSideEffect.setCreatedWay(old.getCreatedWay());
+            cnSideEffect.setCreatedByName(old.getCreatedByName());
         }
-        return sideEffect;
+        old=sideEffectRepository.save(enSideEffect);
+        if (isSaveCn){
+            cnSideEffectRepository.save(cnSideEffect);
+        }
+        if (old.getCheckState()==1){
+            kbUpdateService.send("kt_side_effect");
+        }
+        return old;
         //TODO 暂时屏蔽与老库合并
 //        String compareName=cnSideEffect.getSideEffectName();
 //        if (SIDE_EFFECT_MAP_OLD.containsKey(compareName)){

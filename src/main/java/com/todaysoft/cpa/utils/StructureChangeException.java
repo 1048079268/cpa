@@ -5,7 +5,7 @@ package com.todaysoft.cpa.utils;
  * @author: 鱼唇的人类
  * @date: 2017/10/10 16:38
  */
-public class StructureChangeException extends Exception{
+public class StructureChangeException extends RuntimeException{
     public StructureChangeException() {
         super();
     }

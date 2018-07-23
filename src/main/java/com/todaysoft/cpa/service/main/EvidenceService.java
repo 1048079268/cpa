@@ -80,14 +80,25 @@ public class EvidenceService extends BaseService {
     @Override
     @Transactional
     public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey,int status) throws InterruptedException {
-        String evidenceKey=PkGenerator.generator(Evidence.class);
+        Evidence object = en.toJavaObject(Evidence.class);
+        Evidence old = evidenceRepository.findByEvidenceId(object.getEvidenceId());
+        boolean isSaveCn= old==null;
+        boolean isUseOldState= old!=null;
+        String evidenceKey=old==null?PkGenerator.generator(Evidence.class):old.getEvidenceKey();
         JsonObjectConverter<Evidence> evidenceConverter=(json)->{
             Evidence evidence=json.toJavaObject(Evidence.class);
             evidence.setVariantKey(dependenceKey);
             evidence.setEvidenceKey(evidenceKey);
-            evidence.setCheckState(1);
             evidence.setCreatedAt(System.currentTimeMillis());
-            evidence.setCreatedWay(2);
+            if (isUseOldState){
+                evidence.setCheckState(old.getCheckState());
+                evidence.setCreatedWay(old.getCreatedWay());
+                evidence.setCreatedByName(old.getCreatedByName());
+            }else {
+                evidence.setCheckState(1);
+                evidence.setCreatedWay(2);
+                evidence.setCreatedByName("CPA");
+            }
             JSONObject doidObj=json.getJSONObject("doid");
             if (doidObj!=null){
                 String doid=doidObj.getString("id");
@@ -102,7 +113,9 @@ public class EvidenceService extends BaseService {
             return evidence;
         };
         Evidence evidence=evidenceRepository.save(evidenceConverter.convert(en));
-        cnEvidenceRepository.save(evidenceConverter.convert(cn));
+        if (isSaveCn){
+            cnEvidenceRepository.save(evidenceConverter.convert(cn));
+        }
         //参考文献
         JsonObjectConverter<EvidenceReference> referenceConverter=(json)->{
             JSONObject reference=json.getJSONObject("reference");
@@ -116,7 +129,9 @@ public class EvidenceService extends BaseService {
             return null;
         };
         evidenceReferenceRepository.save(referenceConverter.convert(en));
-        cnEvidenceReferenceRepository.save(referenceConverter.convert(cn));
+        if (isSaveCn){
+            cnEvidenceReferenceRepository.save(referenceConverter.convert(cn));
+        }
         //药物
         JsonArrayConverter<EvidenceDrug> evidenceDrugConverter=(json)->{
             JSONArray drugIds=json.getJSONArray("drugIds");
@@ -139,7 +154,9 @@ public class EvidenceService extends BaseService {
             return drugList;
         };
         evidenceDrugRepository.save(evidenceDrugConverter.convert(en));
-        cnEvidenceDrugRepository.save(evidenceDrugConverter.convert(cn));
+        if (isSaveCn){
+            cnEvidenceDrugRepository.save(evidenceDrugConverter.convert(cn));
+        }
         if (evidence.getCheckState()==1){
             kbUpdateService.send("kt_evidence");
         }

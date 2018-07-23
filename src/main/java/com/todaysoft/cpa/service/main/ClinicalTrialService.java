@@ -74,84 +74,91 @@ public class ClinicalTrialService extends BaseService {
     @Autowired
     private KbUpdateService kbUpdateService;
 
+    /**更新逻辑
+    1.如果英文库有数据，就不更新中文库，且英文库状态与以前保存一致
+    2.如果英文库没有数据，判断中文库是否有数据
+    2.1 如果中文库有，有的话中文库状态保持不变，老库覆盖CPA
+    2.2 如果中文库没有，则全部保存
+     **/
+
     @Override
     @Transactional
     public boolean save(JSONObject en,JSONObject cn,int status) throws InterruptedException {
-        String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
         ClinicalTrial checkClinicalTrial=cn.toJavaObject(ClinicalTrial.class);
-        ClinicalTrial byId= cnClinicalTrailRepository.findById(checkClinicalTrial.getClinicalTrialId());
-        if (byId!=null){
-            if (!MergeInfo.CLINICAL_TRIAL.isNeedArtificialCheck){
-                logger.info("【" + CPA.CLINICAL_TRIAL.name() + "】与老库合并->id="+byId.getClinicalTrialId());
-                clinicalTrialKey=byId.getClinicalTrialKey();
-                status=1;
-            }else if (status==0){
-                if (MergeInfo.CLINICAL_TRIAL.sign.add(checkClinicalTrial.getClinicalTrialId())){
-                    List<String> list=new ArrayList<>(3);
-                    list.add(0,checkClinicalTrial.getClinicalTrialId());
-                    list.add(1,byId.getClinicalTrialKey());
-                    list.add(2,byId.getClinicalTrialId());
-                    MergeInfo.CLINICAL_TRIAL.checkList.add(list);
-                }
-                throw new MergeException("【" + CPA.CLINICAL_TRIAL.name() + "】与老库重合，等待审核->id="+checkClinicalTrial.getClinicalTrialId());
-            }else if (status==1){
-                logger.info("【" + CPA.CLINICAL_TRIAL.name() + "】与老库合并->id="+byId.getClinicalTrialId());
-                clinicalTrialKey=byId.getClinicalTrialKey();
-            }
-        }
-        String finalClinicalTrialKey = clinicalTrialKey;
+        ClinicalTrial oldCn= cnClinicalTrailRepository.findById(checkClinicalTrial.getClinicalTrialId());
+        ClinicalTrial oldEn = clinicalTrailRepository.findById(checkClinicalTrial.getClinicalTrialId());
+        //是否使用老中文库数据状态
+        boolean isUseOldCnState=oldCn!=null;
+        //是否使用老英文库数据状态
+        boolean isUseOldEnState=oldEn!=null;
+        //是否保存中文数据
+        boolean isSaveCn = oldEn==null&&(oldCn==null||oldCn.getCreatedWay()==3);
+        //是否是老库覆盖CPA数据
+        boolean isOldBaseData= oldEn==null && oldCn!=null;
+        //判断使用哪个id
+        String clinicalTrialKey=oldCn==null?PkGenerator.generator(ClinicalTrial.class):oldCn.getClinicalTrialKey();
         JsonObjectConverter<ClinicalTrial> converter=(json)->{
             ClinicalTrial clinicalTrial=json.toJavaObject(ClinicalTrial.class);
-            clinicalTrial.setClinicalTrialKey(finalClinicalTrialKey);
-            clinicalTrial.setCheckState(1);
+            clinicalTrial.setClinicalTrialKey(clinicalTrialKey);
             clinicalTrial.setCreatedAt(System.currentTimeMillis());
+            clinicalTrial.setCountries(JsonUtil.jsonArrayToString(json.getJSONArray("countries"),","));
+            clinicalTrial.setCheckState(1);
             clinicalTrial.setCreatedWay(2);
             clinicalTrial.setCreatedByName("CPA");
-            clinicalTrial.setCountries(JsonUtil.jsonArrayToString(json.getJSONArray("countries"),","));
             return clinicalTrial;
         };
         ClinicalTrial clinicalTrialEn = converter.convert(en);
         ClinicalTrial clinicalTrialCn = converter.convert(cn);
-//        老库覆盖CPA中文库
-        if (byId!=null&&status==1){
-            clinicalTrialCn.setCheckState(byId.getCheckState());
-            clinicalTrialCn.setCreatedWay(byId.getCreatedWay());
-            clinicalTrialCn.setCreatedByName(byId.getCreatedByName());
+        //更新状态
+        if (isUseOldCnState){
+            clinicalTrialCn.setCreatedWay(oldCn.getCreatedWay());
+            clinicalTrialCn.setCheckState(oldCn.getCheckState());
+            clinicalTrialCn.setCreatedByName(oldCn.getCreatedByName());
+        }
+        if (isUseOldEnState){
+            clinicalTrialEn.setCreatedWay(oldEn.getCreatedWay());
+            clinicalTrialEn.setCheckState(oldEn.getCheckState());
+            clinicalTrialEn.setCreatedByName(oldEn.getCreatedByName());
+        }
+        //老库覆盖CPA中文库
+        if (isOldBaseData){
             clinicalTrialEn.setCheckState(4);
-            if (!StringUtils.isEmpty(byId.getTheTitle())){
-                clinicalTrialCn.setTheTitle(byId.getTheTitle());
+            if (!StringUtils.isEmpty(oldCn.getTheTitle())){
+                clinicalTrialCn.setTheTitle(oldCn.getTheTitle());
             }
-            if (!StringUtils.isEmpty(byId.getTheStatus())){
-                clinicalTrialCn.setTheStatus(byId.getTheStatus());
+            if (!StringUtils.isEmpty(oldCn.getTheStatus())){
+                clinicalTrialCn.setTheStatus(oldCn.getTheStatus());
             }
-            if (!StringUtils.isEmpty(byId.getThePhase())){
-                clinicalTrialCn.setThePhase(byId.getThePhase());
+            if (!StringUtils.isEmpty(oldCn.getThePhase())){
+                clinicalTrialCn.setThePhase(oldCn.getThePhase());
             }
-            if (!StringUtils.isEmpty(byId.getTheType())){
-                clinicalTrialCn.setTheType(byId.getTheType());
+            if (!StringUtils.isEmpty(oldCn.getTheType())){
+                clinicalTrialCn.setTheType(oldCn.getTheType());
             }
-            if (!StringUtils.isEmpty(byId.getStartDate())){
-                clinicalTrialCn.setStartDate(byId.getStartDate());
+            if (!StringUtils.isEmpty(oldCn.getStartDate())){
+                clinicalTrialCn.setStartDate(oldCn.getStartDate());
             }
-            if (!StringUtils.isEmpty(byId.getCountries())){
-                clinicalTrialCn.setCountries(byId.getCountries());
+            if (!StringUtils.isEmpty(oldCn.getCountries())){
+                clinicalTrialCn.setCountries(oldCn.getCountries());
             }
-            if (!StringUtils.isEmpty(byId.getTheUrl())){
-                clinicalTrialCn.setTheUrl(byId.getTheUrl());
+            if (!StringUtils.isEmpty(oldCn.getTheUrl())){
+                clinicalTrialCn.setTheUrl(oldCn.getTheUrl());
             }
-            if (!StringUtils.isEmpty(byId.getPathologicalState())){
-                clinicalTrialCn.setPathologicalState(byId.getPathologicalState());
+            if (!StringUtils.isEmpty(oldCn.getPathologicalState())){
+                clinicalTrialCn.setPathologicalState(oldCn.getPathologicalState());
             }
-            if (!StringUtils.isEmpty(byId.getExistTreatment())){
-                clinicalTrialCn.setExistTreatment(byId.getExistTreatment());
+            if (!StringUtils.isEmpty(oldCn.getExistTreatment())){
+                clinicalTrialCn.setExistTreatment(oldCn.getExistTreatment());
             }
-            clinicalTrialCn.setThePmid(MergeUtil.cover(byId.getThePmid(),clinicalTrialCn.getThePmid()));
-            clinicalTrialCn.setTestCenter(MergeUtil.cover(byId.getTestCenter(),clinicalTrialCn.getTestCenter()));
-            clinicalTrialCn.setOrganization(MergeUtil.cover(byId.getOrganization(),clinicalTrialCn.getOrganization()));
+            clinicalTrialCn.setThePmid(MergeUtil.cover(oldCn.getThePmid(),clinicalTrialCn.getThePmid()));
+            clinicalTrialCn.setTestCenter(MergeUtil.cover(oldCn.getTestCenter(),clinicalTrialCn.getTestCenter()));
+            clinicalTrialCn.setOrganization(MergeUtil.cover(oldCn.getOrganization(),clinicalTrialCn.getOrganization()));
         }
         clinicalTrialEn=clinicalTrailRepository.save(clinicalTrialEn);
-        cnClinicalTrailRepository.save(clinicalTrialCn);
-        saveFixed(clinicalTrialEn,en,cn);
+        if (isSaveCn){
+            cnClinicalTrailRepository.save(clinicalTrialCn);
+        }
+        saveFixed(clinicalTrialEn,en,cn,isSaveCn);
         //临床&药物
         ClinicalTrial finalClinicalTrialEn = clinicalTrialEn;
         JsonArrayConverter<DrugClinicalTrial> clinicalTrialConverter=(json)->{
@@ -175,7 +182,9 @@ public class ClinicalTrialService extends BaseService {
             return clinicalTrialList;
         };
         drugClinicalTrialRepository.save(clinicalTrialConverter.convert(en));
-        cnDrugClinicalTrialRepository.save(clinicalTrialConverter.convert(cn));
+        if (isSaveCn){
+            cnDrugClinicalTrialRepository.save(clinicalTrialConverter.convert(cn));
+        }
         if (clinicalTrialCn.getCheckState()==1){
             kbUpdateService.send("kt_clinical_trial");
         }
@@ -197,75 +206,76 @@ public class ClinicalTrialService extends BaseService {
     @Override
     @Transactional
     public boolean saveByDependence(JSONObject en,JSONObject cn, String dependenceKey,int status) throws InterruptedException {
-        String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
-        ClinicalTrial checkClinicalTrial=cn.toJavaObject(ClinicalTrial.class);
-        ClinicalTrial byTitle = cnClinicalTrailRepository.findById(checkClinicalTrial.getClinicalTrialId());
-        if (byTitle!=null){
-            logger.info("【" + CPA.CLINICAL_TRIAL.name() + "】与老库合并->id="+byTitle.getClinicalTrialId());
-            clinicalTrialKey=byTitle.getClinicalTrialKey();
-        }
-        String finalClinicalTrialKey = clinicalTrialKey;
-        JsonObjectConverter<ClinicalTrial> converter=(json)->{
-            ClinicalTrial clinicalTrial=json.toJavaObject(ClinicalTrial.class);
-            clinicalTrial.setClinicalTrialKey(finalClinicalTrialKey);
-            clinicalTrial.setCheckState(1);
-            clinicalTrial.setCreatedAt(System.currentTimeMillis());
-            clinicalTrial.setCreatedWay(2);
-            clinicalTrial.setCreatedByName("CPA");
-            clinicalTrial.setCountries(JsonUtil.jsonArrayToString(en.getJSONArray("countries"),","));
-            return clinicalTrial;
-        };
-        ClinicalTrial clinicalTrialEn=clinicalTrailRepository.save(converter.convert(en));
-        ClinicalTrial clinicalTrialCn = converter.convert(cn);
-        //老库覆盖CPA中文库
-        if (byTitle!=null){
-            if (!StringUtils.isEmpty(byTitle.getTheTitle())){
-                clinicalTrialCn.setTheTitle(byTitle.getTheTitle());
-            }
-            if (!StringUtils.isEmpty(byTitle.getTheStatus())){
-                clinicalTrialCn.setTheStatus(byTitle.getTheStatus());
-            }
-            if (!StringUtils.isEmpty(byTitle.getThePhase())){
-                clinicalTrialCn.setThePhase(byTitle.getThePhase());
-            }
-            if (!StringUtils.isEmpty(byTitle.getTheType())){
-                clinicalTrialCn.setTheType(byTitle.getTheType());
-            }
-            if (!StringUtils.isEmpty(byTitle.getStartDate())){
-                clinicalTrialCn.setStartDate(byTitle.getStartDate());
-            }
-            if (!StringUtils.isEmpty(byTitle.getCountries())){
-                clinicalTrialCn.setCountries(byTitle.getCountries());
-            }
-            if (!StringUtils.isEmpty(byTitle.getTheUrl())){
-                clinicalTrialCn.setTheUrl(byTitle.getTheUrl());
-            }
-        }
-        cnClinicalTrailRepository.save(clinicalTrialCn);
-        saveFixed(clinicalTrialEn,en,cn);
-        Drug drug=drugRepository.findOne(dependenceKey);
-        if (drug!=null){
-            DrugClinicalTrialPK pk=new DrugClinicalTrialPK();
-            pk.setClinicalTrialKey(clinicalTrialEn.getClinicalTrialKey());
-            pk.setDrugKey(drug.getDrugKey());
-            if (drugClinicalTrialRepository.findOne(pk)==null){
-                DrugClinicalTrial drugClinicalTrial=new DrugClinicalTrial();
-                drugClinicalTrial.setDrugKey(dependenceKey);
-                drugClinicalTrial.setDrugId(drug.getDrugId());
-                drugClinicalTrial.setClinicalTrialKey(clinicalTrialEn.getClinicalTrialKey());
-                drugClinicalTrial.setClinicalTrialId(clinicalTrialEn.getClinicalTrialId());
-                drugClinicalTrialRepository.save(drugClinicalTrial);
-                cnDrugClinicalTrialRepository.save(drugClinicalTrial);
-            }
-        }
-        return true;
+//        String clinicalTrialKey=PkGenerator.generator(ClinicalTrial.class);
+//        ClinicalTrial checkClinicalTrial=cn.toJavaObject(ClinicalTrial.class);
+//        ClinicalTrial byTitle = cnClinicalTrailRepository.findById(checkClinicalTrial.getClinicalTrialId());
+//        if (byTitle!=null){
+//            logger.info("【" + CPA.CLINICAL_TRIAL.name() + "】与老库合并->id="+byTitle.getClinicalTrialId());
+//            clinicalTrialKey=byTitle.getClinicalTrialKey();
+//        }
+//        String finalClinicalTrialKey = clinicalTrialKey;
+//        JsonObjectConverter<ClinicalTrial> converter=(json)->{
+//            ClinicalTrial clinicalTrial=json.toJavaObject(ClinicalTrial.class);
+//            clinicalTrial.setClinicalTrialKey(finalClinicalTrialKey);
+//            clinicalTrial.setCheckState(1);
+//            clinicalTrial.setCreatedAt(System.currentTimeMillis());
+//            clinicalTrial.setCreatedWay(2);
+//            clinicalTrial.setCreatedByName("CPA");
+//            clinicalTrial.setCountries(JsonUtil.jsonArrayToString(en.getJSONArray("countries"),","));
+//            return clinicalTrial;
+//        };
+//        ClinicalTrial clinicalTrialEn=clinicalTrailRepository.save(converter.convert(en));
+//        ClinicalTrial clinicalTrialCn = converter.convert(cn);
+//        //老库覆盖CPA中文库
+//        if (byTitle!=null){
+//            if (!StringUtils.isEmpty(byTitle.getTheTitle())){
+//                clinicalTrialCn.setTheTitle(byTitle.getTheTitle());
+//            }
+//            if (!StringUtils.isEmpty(byTitle.getTheStatus())){
+//                clinicalTrialCn.setTheStatus(byTitle.getTheStatus());
+//            }
+//            if (!StringUtils.isEmpty(byTitle.getThePhase())){
+//                clinicalTrialCn.setThePhase(byTitle.getThePhase());
+//            }
+//            if (!StringUtils.isEmpty(byTitle.getTheType())){
+//                clinicalTrialCn.setTheType(byTitle.getTheType());
+//            }
+//            if (!StringUtils.isEmpty(byTitle.getStartDate())){
+//                clinicalTrialCn.setStartDate(byTitle.getStartDate());
+//            }
+//            if (!StringUtils.isEmpty(byTitle.getCountries())){
+//                clinicalTrialCn.setCountries(byTitle.getCountries());
+//            }
+//            if (!StringUtils.isEmpty(byTitle.getTheUrl())){
+//                clinicalTrialCn.setTheUrl(byTitle.getTheUrl());
+//            }
+//        }
+//        cnClinicalTrailRepository.save(clinicalTrialCn);
+//        saveFixed(clinicalTrialEn,en,cn,true);
+//        Drug drug=drugRepository.findOne(dependenceKey);
+//        if (drug!=null){
+//            DrugClinicalTrialPK pk=new DrugClinicalTrialPK();
+//            pk.setClinicalTrialKey(clinicalTrialEn.getClinicalTrialKey());
+//            pk.setDrugKey(drug.getDrugKey());
+//            if (drugClinicalTrialRepository.findOne(pk)==null){
+//                DrugClinicalTrial drugClinicalTrial=new DrugClinicalTrial();
+//                drugClinicalTrial.setDrugKey(dependenceKey);
+//                drugClinicalTrial.setDrugId(drug.getDrugId());
+//                drugClinicalTrial.setClinicalTrialKey(clinicalTrialEn.getClinicalTrialKey());
+//                drugClinicalTrial.setClinicalTrialId(clinicalTrialEn.getClinicalTrialId());
+//                drugClinicalTrialRepository.save(drugClinicalTrial);
+//                cnDrugClinicalTrialRepository.save(drugClinicalTrial);
+//            }
+//        }
+//        return true;
+        return false;
     }
 
     /**
      * 保存没有关联的部分数据
      * @param clinicalTrial
      */
-    private void saveFixed(ClinicalTrial clinicalTrial,JSONObject en,JSONObject cn) throws InterruptedException {
+    private void saveFixed(ClinicalTrial clinicalTrial,JSONObject en,JSONObject cn,boolean isSaveCn) throws InterruptedException {
         //成果
         String outcomesKey=PkGenerator.generator(ClinicalTrialOutcome.class);
         JsonArrayConverter<ClinicalTrialOutcome> outcomeJsonArrayConverter=(json)->{
@@ -283,7 +293,9 @@ public class ClinicalTrialService extends BaseService {
             return outcomeList;
         };
         clinicalTrialOutcomeRepository.save(outcomeJsonArrayConverter.convert(en));
-        cnClinicalTrialOutcomeRepository.save(outcomeJsonArrayConverter.convert(cn));
+        if (isSaveCn){
+            cnClinicalTrialOutcomeRepository.save(outcomeJsonArrayConverter.convert(cn));
+        }
         //与疾病关联
         JsonArrayConverter<ClinicalTrialCancer> cancerJsonArrayConverter=(json)->{
             JSONArray diseases=json.getJSONArray("diseases");
@@ -307,7 +319,9 @@ public class ClinicalTrialService extends BaseService {
             return trailCancerList;
         };
         clinicalTrialCancerRepository.save(cancerJsonArrayConverter.convert(en));
-        cnClinicalTrialCancerRepository.save(cancerJsonArrayConverter.convert(cn));
+        if (isSaveCn){
+            cnClinicalTrialCancerRepository.save(cancerJsonArrayConverter.convert(cn));
+        }
     }
 
     @Override

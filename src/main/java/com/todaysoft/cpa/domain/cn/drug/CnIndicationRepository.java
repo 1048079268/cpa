@@ -13,4 +13,8 @@ import java.util.List;
 public interface CnIndicationRepository extends JpaRepository<Indication,String> {
     List<Indication> findByCreatedWay(Integer createdWay);
     Indication findByCreatedWayAndMeddraConceptName(Integer createdWay, String meddraConceptName);
+
+    Indication findByMeddraConceptNameAndMeddraConceptType(String meddraConceptName, String meddraConceptType);
+
+    Indication findByCreatedWayAndMeddraConceptNameAndMeddraConceptType(int createdWay, String meddraConceptName, String meddraConceptType);
 }

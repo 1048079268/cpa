@@ -14,4 +14,6 @@ import java.util.Set;
 public interface CnProteinRepository extends JpaRepository<Protein,String>{
     @Query("select p.proteinId from Protein p where p.createWay=2")
     Set<Integer> findIdByCPA();
+
+    Protein findByProteinId(String proteinId);
 }

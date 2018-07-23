@@ -21,7 +21,7 @@ public class SideEffect {
     private Long createdAt;
     private Integer createdWay;
     private Integer checkState;
-    private String createdByName="CPA";
+    private String createdByName;
 
     @Basic
     @Column(name = "created_by_name", nullable = true, length = 20)
