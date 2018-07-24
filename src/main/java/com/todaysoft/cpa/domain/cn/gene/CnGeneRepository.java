@@ -19,4 +19,6 @@ public interface CnGeneRepository extends JpaRepository<Gene,String>{
 
     @Query("select g from Gene g where g.geneSymbol=?1 and g.createWay=3")
     Gene findByName(String name);
+
+    Gene findByGeneSymbol(String geneSymbol);
 }

@@ -59,7 +59,7 @@ public class GeneService extends BaseService {
     @Override
     public boolean save(JSONObject en,JSONObject cn,int status) throws InterruptedException {
         Gene checkGene = cn.toJavaObject(Gene.class);
-        Gene oldCn = cnGeneRepository.findByName(checkGene.getGeneSymbol());
+        Gene oldCn = cnGeneRepository.findByGeneSymbol(checkGene.getGeneSymbol());
         Gene oldEn = geneRepository.findByGeneId(checkGene.getGeneId());
         //是否使用老中文库数据状态
         boolean isUseOldCnState=oldCn!=null;

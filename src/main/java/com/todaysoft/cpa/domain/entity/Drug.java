@@ -526,4 +526,17 @@ public class Drug implements Serializable{
         result = 31 * result + (getCreatedAt() != null ? getCreatedAt().hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "Drug{" +
+                "drugKey='" + drugKey + '\'' +
+                ", drugId=" + drugId +
+                ", nameEn='" + nameEn + '\'' +
+                ", nameChinese='" + nameChinese + '\'' +
+                ", checkState=" + checkState +
+                ", createWay=" + createWay +
+                ", createdByName='" + createdByName + '\'' +
+                '}';
+    }
 }

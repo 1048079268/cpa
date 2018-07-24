@@ -128,9 +128,8 @@ public class DrugService{
     @Transactional
     public boolean save(JSONObject en,JSONObject cn,Map<String,Integer> status) throws InterruptedException {
         //1.解析药物基本信息
-        Drug checkDrug=cn.toJavaObject(Drug.class);
-        String cnName=checkDrug.getNameEn();
-        Drug oldCn = cnDrugRepository.findByName(cnName);
+        Drug checkDrug=en.toJavaObject(Drug.class);
+        Drug oldCn = cnDrugRepository.findByNameEn(checkDrug.getNameEn());
         Drug oldEn = drugRepository.findByDrugId(checkDrug.getDrugId());
         //是否使用老中文库数据状态
         boolean isUseOldCnState=oldCn!=null;
