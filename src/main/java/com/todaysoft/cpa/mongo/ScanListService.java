@@ -48,6 +48,7 @@ public class ScanListService {
      * 默认页数
      */
     private final static int DEFAULT_LIMIT =20;
+    private final static  int DEFAULT_PAGE=5;
     /**
      * 遍历数据
      * @param cpa 遍历类型
@@ -61,7 +62,7 @@ public class ScanListService {
         }
         //测试环境固定页数
         if (logger.isDebugEnabled()){
-            countPage=2;
+            countPage=DEFAULT_PAGE;
         }
         //根据页数创建流
         return Flux.range(0,countPage)
@@ -163,12 +164,6 @@ public class ScanListService {
                 .filter(Objects::nonNull)
                 //转换id集合
                 .block();
-//        MongoPage mongoPage=new MongoPage();
-//        mongoPage.setLimit(DEFAULT_LIMIT);
-//        mongoPage.setModuleName(cpa.name());
-//        mongoPage.setPage(page);
-//        mongoPage.setUpdateSince(updateSince);
-//        mongoService.upsertErrorPage(mongoPage);
     }
 
 
@@ -185,7 +180,7 @@ public class ScanListService {
         }
         //如果是测试模式
         if (logger.isDebugEnabled()){
-            countPage=2;
+            countPage=DEFAULT_PAGE;
         }
         //按页数创建流
         Flux.range(0,countPage)

@@ -71,6 +71,7 @@ public class SaveDetailService {
                                     //判断新跑的数据是不是比数据库新
                                     int dbHash=StringUtils.isEmpty(mongoDataUpdateSince)?0:mongoDataUpdateSince.hashCode();
                                     int hash=StringUtils.isEmpty(updateSince)?0:updateSince.hashCode();
+                                    logger.debug("["+cpa.name()+"]更新"+mongoDataUpdateSince+"-to-"+updateSince+",id="+dataId+",isUpdate="+(hash>dbHash));
                                     return hash>dbHash;
                                 }
                                 return true;
@@ -87,7 +88,7 @@ public class SaveDetailService {
                             .subscribe(param->{
                                 CPA cpa=param.getCpa();
                                 if (param.isSaveSuccess()){
-                                    logger.info("["+cpa.name()+"]保存成功，id="+param.getDataId());
+                                    logger.debug("["+cpa.name()+"]保存成功，id="+param.getDataId());
                                 }else {
                                     logger.error("["+cpa.name()+"]保存失败,id="+param.getDataId());
 //                                    mongoService.upsertErrorDetail(param.toMongoDetail());
@@ -164,7 +165,6 @@ public class SaveDetailService {
                     if (cn && en) {
                         //需要保存更新时间
                         enData.put("updateSince",updateSince);
-                        cnData.put("updateSince",updateSince);
                         //保存知识库的mysql是否同步
                         enData.put("ktMysqlSyncStatus",false);
                         String saveZH = mongoService.save(dataId, cnData, cpa.cnDbName());

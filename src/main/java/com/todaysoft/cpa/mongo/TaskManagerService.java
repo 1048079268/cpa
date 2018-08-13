@@ -33,19 +33,23 @@ public class TaskManagerService {
     @Autowired
     private FluxManagerService fluxManagerService;
     /**
-     * 一般处理的类型
+     * 全量更新或者根据总量补全的模块
      */
-    private final static CPA[] COMMONS={
+    private final static CPA[] FULL_AMOUNT_UPDATE ={
             CPA.GENE, CPA.CLINICAL_TRIAL,
             CPA.DRUG, CPA.VARIANT,
             CPA.PROTEIN, CPA.REGIMEN,
-            CPA.EVIDENCE
+            CPA.EVIDENCE,CPA.MUTATION_STATISTICS
 
     };
 
-    private final static CPA[] INCREMENTAL={
+    /**
+     * 增量更新的模块
+     */
+    private final static CPA[] INCREMENTAL_UPDATE ={
             CPA.GENE, CPA.CLINICAL_TRIAL,
-            CPA.DRUG, CPA.VARIANT,CPA.EVIDENCE
+            CPA.DRUG, CPA.VARIANT,
+            CPA.EVIDENCE
     };
 
     /**
@@ -60,41 +64,46 @@ public class TaskManagerService {
      */
     @Scheduled(fixedDelay = 600000,initialDelay = 1000)
     public void task() throws InterruptedException {
-        logger.info("mongodb同步任务开始");
         String updateSince = mongoService.updateSince();
+        logger.info("mongodb同步任务开始，本次增量参数为"+updateSince);
         String date = DateUtil.formatDate0(new Date());
         ExecutorService service = Executors.newFixedThreadPool(4);
         //同步接口数据
-        final CountDownLatch latch=new CountDownLatch(CPA.values().length);
+        final CountDownLatch latch=new CountDownLatch(INCREMENTAL_UPDATE.length);
         //增量的
-        for (CPA cpa : COMMONS) {
+        for (CPA cpa : INCREMENTAL_UPDATE) {
             service.submit(()->{
                 Flux<List<DetailParam>> scan = scanListService.scan(cpa,updateSince);
                 saveDetailService.saveContentToMongo(scan,latch);
             });
         }
-        //针对MUTATION_STATISTICS的处理
-        service.submit(()-> scanListService.scanAndSaveMutationStatistics(latch));
         latch.await();
         //更新时间
         mongoService.postUpdateSince(date);
-        //
-        final CountDownLatch latch2=new CountDownLatch(INCREMENTAL.length);
-        for (CPA cpa : INCREMENTAL) {
+        logger.info("mongodb同步任务结束，下次增量参数为"+date);
+        //查漏
+        logger.info("mongodb查漏任务开始");
+        final CountDownLatch latch2=new CountDownLatch(FULL_AMOUNT_UPDATE.length);
+        for (CPA cpa : FULL_AMOUNT_UPDATE) {
             long cpaCount = scanListService.totalElement(cpa);
             long dbCount = mongoService.countModule(cpa);
             if (cpaCount>dbCount){
-                service.submit(()->{
-                    Flux<List<DetailParam>> page =scanListService.scan(cpa,"");
-                    saveDetailService.saveContentToMongo(page,latch2);
-                });
+                if (CPA.MUTATION_STATISTICS.equals(cpa)){
+                    //针对MUTATION_STATISTICS的处理
+                    service.submit(()-> scanListService.scanAndSaveMutationStatistics(latch2));
+                }else {
+                    service.submit(()->{
+                        Flux<List<DetailParam>> page =scanListService.scan(cpa,"");
+                        saveDetailService.saveContentToMongo(page,latch2);
+                    });
+                }
             }else {
                 latch2.countDown();
             }
         }
         latch2.await();
         service.shutdown();
-        logger.info("mongodb同步任务结束");
+        logger.info("mongodb查漏任务结束");
         fluxManagerService.task();
     }
 }
