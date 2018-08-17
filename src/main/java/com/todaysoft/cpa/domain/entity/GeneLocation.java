@@ -3,6 +3,7 @@ package com.todaysoft.cpa.domain.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @desc:
@@ -133,37 +134,22 @@ public class GeneLocation {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (!(o instanceof GeneLocation)) return false;
         GeneLocation that = (GeneLocation) o;
-
-        if (geneLocationKey != null ? !geneLocationKey.equals(that.geneLocationKey) : that.geneLocationKey != null)
-            return false;
-        if (geneKey != null ? !geneKey.equals(that.geneKey) : that.geneKey != null) return false;
-        if (geneId != null ? !geneId.equals(that.geneId) : that.geneId != null) return false;
-        if (refAssembly != null ? !refAssembly.equals(that.refAssembly) : that.refAssembly != null) return false;
-        if (chromosome != null ? !chromosome.equals(that.chromosome) : that.chromosome != null) return false;
-        if (geneStart != null ? !geneStart.equals(that.geneStart) : that.geneStart != null) return false;
-        if (geneStop != null ? !geneStop.equals(that.geneStop) : that.geneStop != null) return false;
-        if (geneSize != null ? !geneSize.equals(that.geneSize) : that.geneSize != null) return false;
-        if (orientatio != null ? !orientatio.equals(that.orientatio) : that.orientatio != null) return false;
-        if (exoncount != null ? !exoncount.equals(that.exoncount) : that.exoncount != null) return false;
-
-        return true;
+        return Objects.equals(getGeneKey(), that.getGeneKey()) &&
+                Objects.equals(getGeneId(), that.getGeneId()) &&
+                Objects.equals(getRefAssembly(), that.getRefAssembly()) &&
+                Objects.equals(getChromosome(), that.getChromosome()) &&
+                Objects.equals(getGeneStart(), that.getGeneStart()) &&
+                Objects.equals(getGeneStop(), that.getGeneStop()) &&
+                Objects.equals(getGeneSize(), that.getGeneSize()) &&
+                Objects.equals(getOrientatio(), that.getOrientatio()) &&
+                Objects.equals(getExoncount(), that.getExoncount());
     }
 
     @Override
     public int hashCode() {
-        int result = geneLocationKey != null ? geneLocationKey.hashCode() : 0;
-        result = 31 * result + (geneKey != null ? geneKey.hashCode() : 0);
-        result = 31 * result + (geneId != null ? geneId.hashCode() : 0);
-        result = 31 * result + (refAssembly != null ? refAssembly.hashCode() : 0);
-        result = 31 * result + (chromosome != null ? chromosome.hashCode() : 0);
-        result = 31 * result + (geneStart != null ? geneStart.hashCode() : 0);
-        result = 31 * result + (geneStop != null ? geneStop.hashCode() : 0);
-        result = 31 * result + (geneSize != null ? geneSize.hashCode() : 0);
-        result = 31 * result + (orientatio != null ? orientatio.hashCode() : 0);
-        result = 31 * result + (exoncount != null ? exoncount.hashCode() : 0);
-        return result;
+
+        return Objects.hash(getGeneKey(), getGeneId(), getRefAssembly(), getChromosome(), getGeneStart(), getGeneStop(), getGeneSize(), getOrientatio(), getExoncount());
     }
 }

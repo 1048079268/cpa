@@ -151,8 +151,9 @@ public class MongoService {
      * @return
      */
     public long countKtData(String  collection){
-        Criteria criteria = Criteria.where("ktMysqlSyncStatus").is(false);
-        Query query=Query.query(criteria);
+//        Criteria criteria = Criteria.where("ktMysqlSyncStatus").is(false);
+//        Query query=Query.query(criteria);
+        Query query = Query.query(Criteria.where("data").exists(true));
         return mongoTemplate.count(query, collection);
     }
 

@@ -2,6 +2,7 @@ package com.todaysoft.cpa.domain.entity;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @desc:
@@ -72,23 +73,16 @@ public class DrugInternationalBrand implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof DrugInternationalBrand)) return false;
-
         DrugInternationalBrand that = (DrugInternationalBrand) o;
-
-        if (getDrugId() != that.getDrugId()) return false;
-        if (!getInternationalBrandKey().equals(that.getInternationalBrandKey())) return false;
-        if (!getDrugKey().equals(that.getDrugKey())) return false;
-        if (!getInternationalBrand().equals(that.getInternationalBrand())) return false;
-        return getBrandCompany().equals(that.getBrandCompany());
+        return getDrugId() == that.getDrugId() &&
+                Objects.equals(getDrugKey(), that.getDrugKey()) &&
+                Objects.equals(getInternationalBrand(), that.getInternationalBrand()) &&
+                Objects.equals(getBrandCompany(), that.getBrandCompany());
     }
 
     @Override
     public int hashCode() {
-        int result = getInternationalBrandKey().hashCode();
-        result = 31 * result + getDrugKey().hashCode();
-        result = 31 * result + getDrugId();
-        result = 31 * result + getInternationalBrand().hashCode();
-        result = 31 * result + getBrandCompany().hashCode();
-        return result;
+
+        return Objects.hash(getDrugKey(), getDrugId(), getInternationalBrand(), getBrandCompany());
     }
 }

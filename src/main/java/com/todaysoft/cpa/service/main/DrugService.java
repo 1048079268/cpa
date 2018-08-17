@@ -138,7 +138,7 @@ public class DrugService{
         //是否保存中文数据
         boolean isSaveCn = oldEn==null&&(oldCn==null||oldCn.getCreateWay()==3);
         //是否是老库覆盖CPA数据
-        boolean isOldBaseData= oldEn==null && oldCn!=null;
+        boolean isOldBaseData= oldEn==null && oldCn!=null && oldCn.getCreateWay()==3;
         String drugKey=oldCn==null?PkGenerator.generator(Drug.class):oldCn.getDrugKey();
         JsonObjectConverter<Drug> drugConverter=(json)->{
             Drug drug=json.toJavaObject(Drug.class);
@@ -243,72 +243,108 @@ public class DrugService{
         if (isSaveCn){
             cnDrugRepository.save(drugCn);
         }
-        String pExternalIdKey=PkGenerator.generator(DrugExternalId.class);
-        JsonObjectConverter<DrugExternalId> pExternalIdConverter=(json)->{
-            DrugExternalId externalId=new DrugExternalId();
+
+        //---start PrimaryDrugExternalId--------------------
+        List<DrugExternalId> hasExternalIds = drugExternalIdRepository.findByDrugKey(drug.getDrugKey());
+        Map<Integer, String> externalIdKeys = new HashMap<>();
+        if (hasExternalIds != null) {
+            externalIdKeys.putAll(hasExternalIds.stream().collect(Collectors.toMap(DrugExternalId::hashCode, DrugExternalId::getExternalIdKey)));
+        }
+        String pExternalIdKey = PkGenerator.generator(DrugExternalId.class);
+        JsonObjectConverter<DrugExternalId> pExternalIdConverter = (json) -> {
+            DrugExternalId externalId = new DrugExternalId();
             externalId.setPrimary(true);
             externalId.setDrugId(drug.getDrugId());
             externalId.setDrugKey(drug.getDrugKey());
-            externalId.setExternalIdKey(pExternalIdKey);
             externalId.setExternalId(json.getString("primaryExternalId"));
             externalId.setExternalIdSource(json.getString("primaryExternalSource"));
+            externalId.setExternalIdKey(pExternalIdKey);
             return externalId;
         };
-        drugExternalIdRepository.save(pExternalIdConverter.convert(en));
-        if (isSaveCn){
-            cnDrugExternalIdRepository.save(pExternalIdConverter.convert(cn));
+        DrugExternalId enDrugExternalId = pExternalIdConverter.convert(en);
+        String pekey = externalIdKeys.get(enDrugExternalId.hashCode());
+        if (pekey != null) {
+            enDrugExternalId.setExternalIdKey(pekey);
         }
-        //外部数据库id
-        String externalIdKey=PkGenerator.generator(DrugExternalId.class);
-        JsonArrayConverter<DrugExternalId> externalIdConverter=(json)->{
-            JSONArray externalIds=json.getJSONArray("externalIds");
-            List<DrugExternalId> externalIdList=new ArrayList<>();
-            if (externalIds!=null&&externalIds.size() > 0){
-                for (int i=0;i<externalIds.size();i++){
-                    DrugExternalId externalId=externalIds.getJSONObject(i).toJavaObject(DrugExternalId.class);
-                    externalId.setExternalIdKey(PkGenerator.md5(externalIdKey+i));
+        drugExternalIdRepository.save(enDrugExternalId);
+        if (isSaveCn) {
+            DrugExternalId cDrugExternalId = pExternalIdConverter.convert(cn);
+            if (pekey != null) {
+                cDrugExternalId.setExternalIdKey(pekey);
+            }
+            cnDrugExternalIdRepository.save(cDrugExternalId);
+        }
+        //---end  PrimaryDrugExternalId---------------------
+        //---start DrugExternalId--------------------
+        String externalIdKey = PkGenerator.generator(DrugExternalId.class);
+        JsonArrayConverter<DrugExternalId> externalIdConverter = (json) -> {
+            JSONArray externalIds = json.getJSONArray("externalIds");
+            List<DrugExternalId> externalIdList = new ArrayList<>();
+            if (externalIds != null && externalIds.size() > 0) {
+                for (int i = 0; i < externalIds.size(); i++) {
+                    DrugExternalId externalId = externalIds.getJSONObject(i).toJavaObject(DrugExternalId.class);
                     externalId.setDrugId(drug.getDrugId());
                     externalId.setDrugKey(drug.getDrugKey());
                     externalId.setPrimary(false);
+                    String key = externalIdKeys.get(externalId.hashCode());
+                    externalId.setExternalIdKey(key!=null?key:PkGenerator.md5(externalIdKey + i));
                     externalIdList.add(externalId);
                 }
             }
             return externalIdList;
         };
-        drugExternalIdRepository.save(externalIdConverter.convert(en));
-        if (isSaveCn){
-            cnDrugExternalIdRepository.save(externalIdConverter.convert(cn));
+        List<DrugExternalId> enED = externalIdConverter.convert(en);
+        drugExternalIdRepository.save(enED);
+        if (isSaveCn) {
+            List<DrugExternalId> cnDE = externalIdConverter.convert(cn);
+            for (int i = 0; i < cnDE.size(); i++) {
+                cnDE.get(i).setExternalIdKey(enED.get(i).getExternalIdKey());
+            }
+            cnDrugExternalIdRepository.save(cnDE);
         }
-        //6.药物商品
-        String internationalBrandKey=PkGenerator.generator(DrugInternationalBrand.class);
-        JsonArrayConverter<DrugInternationalBrand> brandConverter=(json)->{
-            JSONArray internationalBrands=json.getJSONArray("internationalBrands");
-            List<DrugInternationalBrand> internationalBrandList=new ArrayList<>();
-            if (internationalBrands!=null&&internationalBrands.size()>0){
-                for (int i=0;i<internationalBrands.size();i++){
-                    DrugInternationalBrand internationalBrand=new DrugInternationalBrand();
-                    internationalBrand.setInternationalBrandKey(PkGenerator.md5(internationalBrandKey+i));
+        //---end  DrugExternalId---------------------
+        //---start 药物商品--------------------
+        List<DrugInternationalBrand> dbDIBs = drugInternationalBrandRepository.findByDrugKey(drug.getDrugKey());
+        Map<Integer,String> dibKeyMap=new HashMap<>();
+        if (dbDIBs!=null){
+            dibKeyMap.putAll(dbDIBs.stream().collect(Collectors.toMap(DrugInternationalBrand::hashCode, DrugInternationalBrand::getInternationalBrandKey)));
+        }
+        String internationalBrandKey = PkGenerator.generator(DrugInternationalBrand.class);
+        JsonArrayConverter<DrugInternationalBrand> brandConverter = (json) -> {
+            JSONArray internationalBrands = json.getJSONArray("internationalBrands");
+            List<DrugInternationalBrand> internationalBrandList = new ArrayList<>();
+            if (internationalBrands != null && internationalBrands.size() > 0) {
+                for (int i = 0; i < internationalBrands.size(); i++) {
+                    DrugInternationalBrand internationalBrand = new DrugInternationalBrand();
                     internationalBrand.setDrugId(drug.getDrugId());
                     internationalBrand.setDrugKey(drug.getDrugKey());
-                    JSONArray brands=internationalBrands.getJSONArray(i);
-                    if (brands!=null&&brands.size()==2){
+                    JSONArray brands = internationalBrands.getJSONArray(i);
+                    if (brands != null && brands.size() == 2) {
                         internationalBrand.setInternationalBrand(brands.getString(0));
                         internationalBrand.setBrandCompany(brands.getString(1));
+                        String key = dibKeyMap.get(internationalBrand.hashCode());
+                        internationalBrand.setInternationalBrandKey(key!=null?key:PkGenerator.md5(internationalBrandKey + i));
                         internationalBrandList.add(internationalBrand);
                     }
                 }
             }
             return internationalBrandList;
         };
-        drugInternationalBrandRepository.save(brandConverter.convert(en));
-        if (isSaveCn){
-            cnDrugInternationalBrandRepository.save(brandConverter.convert(cn));
+        List<DrugInternationalBrand> enDIB = brandConverter.convert(en);
+        drugInternationalBrandRepository.save(enDIB);
+        if (isSaveCn) {
+            List<DrugInternationalBrand> cnDIB = brandConverter.convert(cn);
+            for (int i = 0; i < cnDIB.size(); i++) {
+                cnDIB.get(i).setInternationalBrandKey(enDIB.get(i).getInternationalBrandKey());
+            }
+            cnDrugInternationalBrandRepository.save(cnDIB);
         }
-        //7.药物通路
-        JSONArray keggPathwaysEn=en.getJSONArray("keggPathways");
-        JSONArray keggPathwaysCn=cn.getJSONArray("keggPathways");
-        if (keggPathwaysEn!=null&&keggPathwaysEn.size()>0){
-            JsonObjectConverter<KeggPathway> pathwayConverter=(json)->{
+        //---end  药物商品---------------------
+        //---start 药物通路--------------------
+        JSONArray keggPathwaysEn = en.getJSONArray("keggPathways");
+        JSONArray keggPathwaysCn = cn.getJSONArray("keggPathways");
+        if (keggPathwaysEn != null && keggPathwaysEn.size() > 0) {
+            JsonObjectConverter<KeggPathway> pathwayConverter = (json) -> {
                 KeggPathway pathway = new KeggPathway();
                 pathway.setCreateAt(System.currentTimeMillis());
                 pathway.setCreateWay(2);
@@ -322,9 +358,9 @@ public class DrugService{
                 String nameCn = keggPathwaysCn.getJSONObject(i).getString("name");
                 KeggPathway keggPathwayEn = pathwayConverter.convert(keggPathwaysEn.getJSONObject(i));
                 KeggPathway keggPathwayCn = pathwayConverter.convert(keggPathwaysCn.getJSONObject(i));
-                KeggPathway keggPathway = keggPathwaysService.save(keggPathwayCn,keggPathwayEn,drug,status);
-                if(keggPathway!=null){
-                    DrugKeggPathway drugKeggPathway=new DrugKeggPathway();
+                KeggPathway keggPathway = keggPathwaysService.save(keggPathwayCn, keggPathwayEn, drug, status);
+                if (keggPathway != null) {
+                    DrugKeggPathway drugKeggPathway = new DrugKeggPathway();
                     drugKeggPathway.setPathwayKey(keggPathway.getPathwayKey());
                     drugKeggPathway.setDrugKey(drug.getDrugKey());
                     drugKeggPathway.setKeggId(keggPathway.getKeggId());
@@ -332,81 +368,79 @@ public class DrugService{
                     drugKeggPathway.setPathwayName(keggPathway.getPathwayName());
                     drugKeggPathwayRepository.save(drugKeggPathway);
                     drugKeggPathway.setPathwayName(nameCn);
-                    if (isSaveCn){
+                    if (isSaveCn) {
                         cnDrugKeggPathwayRepository.save(drugKeggPathway);
                     }
                 }
             }
         }
-        //8.药物结构化适应症
+        //---end  药物通路---------------------
+        //---start 药物结构化适应症--------------------
         JSONArray indicationsEn = en.getJSONArray("structuredIndications");
         JSONArray indicationsCn = cn.getJSONArray("structuredIndications");
-        if (indicationsEn!=null&&indicationsEn.size()>0){
+        if (indicationsEn != null && indicationsEn.size() > 0) {
             for (int i = 0; i < indicationsEn.size(); i++) {
-                Indication enIndication=new Indication();
+                Indication enIndication = new Indication();
                 enIndication.setCheckState(1);
                 enIndication.setCreatedAt(System.currentTimeMillis());
                 enIndication.setCreatedWay(2);
                 enIndication.setCreatedByName("CPA");
-                String meddraConceptNameEn=indicationsEn.getString(i);
+                String meddraConceptNameEn = indicationsEn.getString(i);
                 enIndication.setMeddraConceptName(meddraConceptNameEn);
-                Indication cnIndication=new Indication();
+                Indication cnIndication = new Indication();
                 cnIndication.setCheckState(1);
                 cnIndication.setCreatedAt(System.currentTimeMillis());
                 cnIndication.setCreatedWay(2);
                 cnIndication.setCreatedByName("CPA");
-                String meddraConceptNameCn=indicationsCn.getString(i);
+                String meddraConceptNameCn = indicationsCn.getString(i);
                 cnIndication.setMeddraConceptName(meddraConceptNameCn);
                 Indication indication = indicationService.save(cnIndication, enIndication);
-                if (indication!=null){
-                    DrugStructuredIndication structuredIndication=new DrugStructuredIndication();
+                if (indication != null) {
+                    DrugStructuredIndication structuredIndication = new DrugStructuredIndication();
                     structuredIndication.setDrugId(drug.getDrugId());
                     structuredIndication.setDrugKey(drug.getDrugKey());
                     structuredIndication.setIndicationKey(indication.getIndicationKey());
                     drugStructuredIndicationRepository.save(structuredIndication);
-                    if (isSaveCn){
+                    if (isSaveCn) {
                         cnDrugStructuredIndicationRepository.save(structuredIndication);
                     }
                 }
             }
         }
-        // 9.药物临床实验(见底部)
-        JsonArrayConverter<DrugClinicalTrial> clinicalTrialConverter=(json)->{
-            JSONArray clinicalTrials=json.getJSONArray("clinicalTrials");
-            List<DrugClinicalTrial> drugClinicalTrialList=new ArrayList<>();
-            if (clinicalTrials!=null&&clinicalTrials.size()>0){
-                for (int i=0;i<clinicalTrials.size();i++){
-                    String clinicalTrialId=clinicalTrials.getString(i);
-                    String clinicalTrialKey=clinicalTrailRepository.findByClinicalTrialId(clinicalTrialId);
-                    if (clinicalTrialKey!=null&&clinicalTrialKey.length()>0){
-                        DrugClinicalTrialPK pk=new DrugClinicalTrialPK();
-                        pk.setClinicalTrialKey(clinicalTrialKey);
-                        pk.setDrugKey(drug.getDrugKey());
-                        if (drugClinicalTrialRepository.findOne(pk)==null){
-                            DrugClinicalTrial drugClinicalTrial=new DrugClinicalTrial();
-                            drugClinicalTrial.setClinicalTrialId(clinicalTrialId);
-                            drugClinicalTrial.setClinicalTrialKey(clinicalTrialKey);
-                            drugClinicalTrial.setDrugId(drug.getDrugId());
-                            drugClinicalTrial.setDrugKey(drug.getDrugKey());
-                            drugClinicalTrialList.add(drugClinicalTrial);
-                        }
+        //---end  药物结构化适应症---------------------
+        //---start 药物临床实验--------------------
+        JsonArrayConverter<DrugClinicalTrial> clinicalTrialConverter = (json) -> {
+            JSONArray clinicalTrials = json.getJSONArray("clinicalTrials");
+            List<DrugClinicalTrial> drugClinicalTrialList = new ArrayList<>();
+            if (clinicalTrials != null && clinicalTrials.size() > 0) {
+                for (int i = 0; i < clinicalTrials.size(); i++) {
+                    String clinicalTrialId = clinicalTrials.getString(i);
+                    String clinicalTrialKey = clinicalTrailRepository.findByClinicalTrialId(clinicalTrialId);
+                    if (clinicalTrialKey != null && clinicalTrialKey.length() > 0) {
+                        DrugClinicalTrial drugClinicalTrial = new DrugClinicalTrial();
+                        drugClinicalTrial.setClinicalTrialId(clinicalTrialId);
+                        drugClinicalTrial.setClinicalTrialKey(clinicalTrialKey);
+                        drugClinicalTrial.setDrugId(drug.getDrugId());
+                        drugClinicalTrial.setDrugKey(drug.getDrugKey());
+                        drugClinicalTrialList.add(drugClinicalTrial);
                     }
                 }
             }
             return drugClinicalTrialList;
         };
         drugClinicalTrialRepository.save(clinicalTrialConverter.convert(en));
-        if (isSaveCn){
+        if (isSaveCn) {
             cnDrugClinicalTrialRepository.save(clinicalTrialConverter.convert(cn));
         }
+        //---end  药物临床实验---------------------
 
-        //10.药物不良反应
+        //---start 药物不良反应--------------------
         JSONArray reactionsEn = en.getJSONArray("adverseReactions");
         JSONArray reactionsCn = cn.getJSONArray("adverseReactions");
-        if (reactionsEn!=null&&reactionsEn.size()>0){
-            JsonObjectConverter<SideEffect> sideEffectConverter=(json)->{
-                SideEffect sideEffect=new SideEffect();
-                DrugAdverseReaction adverseReaction=json.toJavaObject(DrugAdverseReaction.class);
+        if (reactionsEn != null && reactionsEn.size() > 0) {
+            JsonObjectConverter<SideEffect> sideEffectConverter = (json) -> {
+                SideEffect sideEffect = new SideEffect();
+                DrugAdverseReaction adverseReaction = json.toJavaObject(DrugAdverseReaction.class);
                 sideEffect.setCheckState(1);
                 sideEffect.setCreatedAt(System.currentTimeMillis());
                 sideEffect.setCreatedWay(2);
@@ -414,14 +448,14 @@ public class DrugService{
                 sideEffect.setSideEffectName(adverseReaction.getAdressName());
                 return sideEffect;
             };
-            Set<String> uniqueSet=new HashSet<>();
+            Set<String> uniqueSet = new HashSet<>();
             for (int i = 0; i < reactionsEn.size(); i++) {
-                DrugAdverseReaction adverseReactionEn=reactionsEn.getObject(i,DrugAdverseReaction.class);
-                DrugAdverseReaction adverseReactionCn=reactionsCn.getObject(i,DrugAdverseReaction.class);
+                DrugAdverseReaction adverseReactionEn = reactionsEn.getObject(i, DrugAdverseReaction.class);
+                DrugAdverseReaction adverseReactionCn = reactionsCn.getObject(i, DrugAdverseReaction.class);
                 SideEffect sideEffectEn = sideEffectConverter.convert(reactionsEn.getJSONObject(i));
                 SideEffect sideEffectCn = sideEffectConverter.convert(reactionsCn.getJSONObject(i));
                 SideEffect sideEffect = sideEffectService.save(sideEffectCn, sideEffectEn);
-                if (sideEffect!=null&&uniqueSet.add(sideEffect.getSideEffectKey())){
+                if (sideEffect != null && uniqueSet.add(sideEffect.getSideEffectKey())) {
                     adverseReactionEn.setDrugId(drug.getDrugId());
                     adverseReactionEn.setDrugKey(drug.getDrugKey());
                     adverseReactionEn.setSideEffectKey(sideEffect.getSideEffectKey());
@@ -429,69 +463,83 @@ public class DrugService{
                     adverseReactionCn.setDrugId(drug.getDrugId());
                     adverseReactionCn.setDrugKey(drug.getDrugKey());
                     adverseReactionCn.setSideEffectKey(sideEffect.getSideEffectKey());
-                    if (isSaveCn){
+                    if (isSaveCn) {
                         cnDrugAdverseReactionRepository.save(adverseReactionCn);
                     }
                 }
             }
         }
-        //11.药物相互作用
-        String interactionKey=PkGenerator.generator(DrugInteraction.class);
-        JsonArrayConverter<DrugInteraction> interactionConverter=(json)->{
-            List<DrugInteraction> interactionList=new ArrayList<>();
-            JSONArray interactions=json.getJSONArray("interactions");
-            if (interactions!=null&&interactions.size()>0){
-                Set<Integer> interactionId=new HashSet<>();
-                for (int i=0;i<interactions.size();i++){
-                    DrugInteraction interaction=interactions.getObject(i,DrugInteraction.class);
+        //---end  药物不良反应---------------------
+        //---start 药物相互作用--------------------
+        List<DrugInteraction> diList = drugInteractionRepository.findByDrugKey(drug.getDrugKey());
+        Map<Integer,String> diKeyMap=new HashMap<>();
+        if (diList!=null){
+            diKeyMap.putAll(diList.stream().collect(Collectors.toMap(DrugInteraction::hashCode, DrugInteraction::getInteractionKey)));
+        }
+        String interactionKey = PkGenerator.generator(DrugInteraction.class);
+        JsonArrayConverter<DrugInteraction> interactionConverter = (json) -> {
+            List<DrugInteraction> interactionList = new ArrayList<>();
+            JSONArray interactions = json.getJSONArray("interactions");
+            if (interactions != null && interactions.size() > 0) {
+                Set<Integer> interactionId = new HashSet<>();
+                for (int i = 0; i < interactions.size(); i++) {
+                    DrugInteraction interaction = interactions.getObject(i, DrugInteraction.class);
                     //去重
-                    if (interactionId.contains(interaction.getDrugIdInteraction())){
+                    if (interactionId.contains(interaction.getDrugIdInteraction())) {
                         continue;
                     }
                     interactionId.add(interaction.getDrugIdInteraction());
-                    interaction.setInteractionKey(PkGenerator.md5(interactionKey+i));
                     interaction.setDrugId(drug.getDrugId());
                     interaction.setDrugKey(drug.getDrugKey());
+                    String key = diKeyMap.get(interaction.hashCode());
+                    interaction.setInteractionKey(key!=null?key:PkGenerator.md5(interactionKey + i));
                     interactionList.add(interaction);
                 }
             }
             return interactionList;
         };
-        drugInteractionRepository.save(interactionConverter.convert(en));
-        if (isSaveCn){
-            cnDrugInteractionRepository.save(interactionConverter.convert(cn));
+        List<DrugInteraction> enDI = interactionConverter.convert(en);
+        drugInteractionRepository.save(enDI);
+        if (isSaveCn) {
+            List<DrugInteraction> cnDI = interactionConverter.convert(cn);
+            for (int i = 0; i < cnDI.size(); i++) {
+                cnDI.get(i).setInteractionKey(enDI.get(i).getInteractionKey());
+            }
+            cnDrugInteractionRepository.save(cnDI);
         }
-        //12.药品
-        JSONArray productsEn=en.getJSONArray("products");
-        JSONArray productsCn=cn.getJSONArray("products");
-        if (productsEn!=null&&productsEn.size()>0){
-            Set<String> uniqSet=new HashSet<>();
-            for (int i=0;i<productsEn.size();i++){
+        //---end  药物相互作用---------------------
+        //---start 药品--------------------
+        JSONArray productsEn = en.getJSONArray("products");
+        JSONArray productsCn = cn.getJSONArray("products");
+        if (productsEn != null && productsEn.size() > 0) {
+            Set<String> uniqSet = new HashSet<>();
+            for (int i = 0; i < productsEn.size(); i++) {
                 JSONObject objectEn = productsEn.getJSONObject(i);
                 JSONObject objectCn = productsCn.getJSONObject(i);
                 DrugProduct product = drugProductService.save(objectEn, objectCn, drug, status);
-                if (product!=null&&uniqSet.add(product.getProductKey())){
-                    DrugProductIngredientPK pk=new DrugProductIngredientPK();
+                if (product != null && uniqSet.add(product.getProductKey())) {
+                    DrugProductIngredientPK pk = new DrugProductIngredientPK();
                     pk.setDrugKey(drug.getDrugKey());
                     pk.setProductKey(product.getProductKey());
-                    DrugProductIngredient ingredient=new DrugProductIngredient();
+                    DrugProductIngredient ingredient = new DrugProductIngredient();
                     ingredient.setDrugKey(drug.getDrugKey());
                     ingredient.setProductKey(product.getProductKey());
-                    if (drugProductIngredientRepository.findOne(pk)==null){
+                    if (drugProductIngredientRepository.findOne(pk) == null) {
                         drugProductIngredientRepository.save(ingredient);
                     }
-                    if (isSaveCn&&cnDrugProductIngredientRepository.findOne(pk)==null){
+                    if (isSaveCn && cnDrugProductIngredientRepository.findOne(pk) == null) {
                         cnDrugProductIngredientRepository.save(ingredient);
                     }
                 }
             }
         }
-        //13.药物分类
+        //---end  药品---------------------
+        //---start 药物分类--------------------
         JSONArray categoriesEn = en.getJSONArray("categories");
         JSONArray categoriesCn = cn.getJSONArray("categories");
-        if (categoriesEn!=null&&categoriesEn.size()>0){
-            JsonObjectConverter<MeshCategory> meshCategoryConverter=(json)->{
-                MeshCategory meshCategory=json.toJavaObject(MeshCategory.class);
+        if (categoriesEn != null && categoriesEn.size() > 0) {
+            JsonObjectConverter<MeshCategory> meshCategoryConverter = (json) -> {
+                MeshCategory meshCategory = json.toJavaObject(MeshCategory.class);
                 meshCategory.setCreatedAt(System.currentTimeMillis());
                 meshCategory.setCreatedWay(2);
                 meshCategory.setCheckState(1);
@@ -502,39 +550,52 @@ public class DrugService{
                 MeshCategory meshCategoryEn = meshCategoryConverter.convert(categoriesEn.getJSONObject(i));
                 MeshCategory meshCategoryCn = meshCategoryConverter.convert(categoriesCn.getJSONObject(i));
                 MeshCategory meshCategory = meshCategoryService.save(meshCategoryCn, meshCategoryEn);
-                if (meshCategory!=null){
-                    DrugCategory drugCategory=new DrugCategory();
+                if (meshCategory != null) {
+                    DrugCategory drugCategory = new DrugCategory();
                     drugCategory.setDrugKey(drug.getDrugKey());
                     drugCategory.setDrugId(drug.getDrugId());
                     drugCategory.setMeshCategoryKey(meshCategory.getMeshCategoryKey());
-                    drugCategory=drugCategoryRepository.save(drugCategory);
-                    if (isSaveCn){
+                    drugCategory = drugCategoryRepository.save(drugCategory);
+                    if (isSaveCn) {
                         cnDrugCategoryRepository.save(drugCategory);
                     }
                 }
             }
         }
-        //14.药物序列
-        String sequenceKey=PkGenerator.generator(DrugSequence.class);
-        JsonArrayConverter<DrugSequence> sequenceConverter=(json)->{
-            JSONArray sequences=json.getJSONArray("sequences");
-            List<DrugSequence> sequenceList=new ArrayList<>();
-            if (sequences!=null&&sequences.size()>0){
-                for (int i=0;i<sequences.size();i++){
-                    DrugSequence sequence=new DrugSequence();
-                    sequence.setSequenceKey(PkGenerator.md5(sequenceKey+i));
+        //---end  药物分类---------------------
+        //---start 药物序列--------------------
+        List<DrugSequence> dsList = drugSequenceRepository.findByDrugKey(drug.getDrugKey());
+        Map<String,String> dsKeyMap=new HashMap<>();
+        if (diList!=null){
+            dsKeyMap.putAll(dsList.stream().collect(Collectors.toMap(DrugSequence::getSequence, DrugSequence::getSequenceKey)));
+        }
+        String sequenceKey = PkGenerator.generator(DrugSequence.class);
+        JsonArrayConverter<DrugSequence> sequenceConverter = (json) -> {
+            JSONArray sequences = json.getJSONArray("sequences");
+            List<DrugSequence> sequenceList = new ArrayList<>();
+            if (sequences != null && sequences.size() > 0) {
+                for (int i = 0; i < sequences.size(); i++) {
+                    DrugSequence sequence = new DrugSequence();
                     sequence.setDrugId(drug.getDrugId());
                     sequence.setDrugKey(drug.getDrugKey());
                     sequence.setSequence(sequences.getString(i));
+                    String key = dsKeyMap.get(sequence.getSequence());
+                    sequence.setSequenceKey(key!=null?key:PkGenerator.md5(sequenceKey + i));
                     sequenceList.add(sequence);
                 }
             }
             return sequenceList;
         };
-        drugSequenceRepository.save(sequenceConverter.convert(en));
-        if (isSaveCn){
-            cnDrugSequenceRepository.save(sequenceConverter.convert(cn));
+        List<DrugSequence> enDS = sequenceConverter.convert(en);
+        drugSequenceRepository.save(enDS);
+        if (isSaveCn) {
+            List<DrugSequence> cnDS = sequenceConverter.convert(cn);
+            for (int i = 0; i < cnDS.size(); i++) {
+                cnDS.get(i).setSequenceKey(enDS.get(i).getSequenceKey());
+            }
+            cnDrugSequenceRepository.save(cnDS);
         }
+        //---end  药物序列---------------------
         //15.TODO（该字段全部为空，看不到结构，暂时不做） 药物食物不良反应
         // JSONArray foodInteractions=object.getJSONArray("foodInteractions");
         if (drugCn.getCheckState()==1){

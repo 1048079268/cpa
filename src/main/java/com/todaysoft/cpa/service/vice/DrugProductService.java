@@ -73,7 +73,7 @@ public class DrugProductService {
         //是否保存中文数据
         boolean isSaveCn = oldEn==null&&(oldCn==null||oldCn.getCreatedWay()==3);
         //是否是老库覆盖CPA数据
-        boolean isOldBaseData= oldEn==null && oldCn!=null;
+        boolean isOldBaseData= oldEn==null && oldCn!=null && oldCn.getCreatedWay()==3;
         //key
         String productKey=oldCn==null?PkGenerator.generator(DrugProduct.class):oldCn.getProductKey();
         JsonObjectConverter<DrugProduct> productConverter=(json)->{
@@ -107,25 +107,22 @@ public class DrugProductService {
         }
         cnDrugProduct.setProductName(cnDrugProduct.getProductNameEn());
         cnDrugProduct.setProductNameEn(enDrugProduct.getProductNameEn());
-        DrugProduct drugProduct=enDrugProduct;
-        if (oldEn==null){
-            //保留老库数据
-            if (isOldBaseData){
-                enDrugProduct.setCheckState(4);
-                cnDrugProduct.setProductName(MergeUtil.cover(oldCn.getProductName(),cnDrugProduct.getProductName()));
-                cnDrugProduct.setProductNameEn(MergeUtil.cover(oldCn.getProductNameEn(),cnDrugProduct.getProductNameEn()));
-                cnDrugProduct.setDosageForm(MergeUtil.cover(oldCn.getDosageForm(),cnDrugProduct.getDosageForm()));
-                cnDrugProduct.setInstructionUrl(MergeUtil.cover(oldCn.getInstructionUrl(),cnDrugProduct.getInstructionUrl()));
-                cnDrugProduct.setDosageStrength(MergeUtil.cover(oldCn.getDosageStrength(),cnDrugProduct.getDosageStrength()));
-                cnDrugProduct.setLabeller(MergeUtil.cover(oldCn.getLabeller(),cnDrugProduct.getLabeller()));
-            }
-            drugProduct = drugProductRepository.save(enDrugProduct);
-            if (isSaveCn){
-                cnDrugProductRepository.save(cnDrugProduct);
-            }
-            if (drugProduct.getCheckState()==1){
-                kbUpdateService.send("kt_drug_product");
-            }
+        //保留老库数据
+        if (isOldBaseData){
+            enDrugProduct.setCheckState(4);
+            cnDrugProduct.setProductName(MergeUtil.cover(oldCn.getProductName(),cnDrugProduct.getProductName()));
+            cnDrugProduct.setProductNameEn(MergeUtil.cover(oldCn.getProductNameEn(),cnDrugProduct.getProductNameEn()));
+            cnDrugProduct.setDosageForm(MergeUtil.cover(oldCn.getDosageForm(),cnDrugProduct.getDosageForm()));
+            cnDrugProduct.setInstructionUrl(MergeUtil.cover(oldCn.getInstructionUrl(),cnDrugProduct.getInstructionUrl()));
+            cnDrugProduct.setDosageStrength(MergeUtil.cover(oldCn.getDosageStrength(),cnDrugProduct.getDosageStrength()));
+            cnDrugProduct.setLabeller(MergeUtil.cover(oldCn.getLabeller(),cnDrugProduct.getLabeller()));
+        }
+        DrugProduct drugProduct = drugProductRepository.save(enDrugProduct);
+        if (isSaveCn){
+            cnDrugProductRepository.save(cnDrugProduct);
+        }
+        if (oldEn==null&&drugProduct.getCheckState()==1){
+            kbUpdateService.send("kt_drug_product");
         }
         //给药方式
         if (!StringUtils.isEmpty(en.getString("route"))&&!StringUtils.isEmpty(cn.getString("route"))){
@@ -141,10 +138,12 @@ public class DrugProductService {
                 enRoute.setRouteKey(generator);
                 drugProductRouteRepository.save(enRoute);
             }
-            List<DrugProductRoute> cnRoutes = cnDrugProductRouteRepository.findAll(Example.of(cnRoute));
-            if (isSaveCn&&cnRoutes==null||cnRoutes.size()==0){
-                cnRoute.setRouteKey(generator);
-                cnDrugProductRouteRepository.save(cnRoute);
+            if (isSaveCn) {
+                List<DrugProductRoute> cnRoutes = cnDrugProductRouteRepository.findAll(Example.of(cnRoute));
+                if (cnRoutes==null||cnRoutes.size()==0){
+                    cnRoute.setRouteKey(generator);
+                    cnDrugProductRouteRepository.save(cnRoute);
+                }
             }
         }
         return drugProduct;

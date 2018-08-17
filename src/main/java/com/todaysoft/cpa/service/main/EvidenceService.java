@@ -33,10 +33,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * @desc:
@@ -117,6 +116,11 @@ public class EvidenceService extends BaseService {
             cnEvidenceRepository.save(evidenceConverter.convert(cn));
         }
         //参考文献
+        List<EvidenceReference> referenceByEvidenceKey = evidenceReferenceRepository.findByEvidenceKey(evidence.getEvidenceKey());
+        Map<Integer,String> referenceKeyMap=new HashMap<>();
+        if (referenceByEvidenceKey!=null){
+            referenceKeyMap.putAll(referenceByEvidenceKey.stream().collect(Collectors.toMap(EvidenceReference::hashCode,EvidenceReference::getEvidenceReferenceKey)));
+        }
         JsonObjectConverter<EvidenceReference> referenceConverter=(json)->{
             JSONObject reference=json.getJSONObject("reference");
             if (reference!=null){
@@ -128,9 +132,18 @@ public class EvidenceService extends BaseService {
             }
             return null;
         };
-        evidenceReferenceRepository.save(referenceConverter.convert(en));
+        EvidenceReference enReference = referenceConverter.convert(en);
+        String rKey = referenceKeyMap.get(enReference.hashCode());
+        if (rKey!=null){
+            enReference.setEvidenceReferenceKey(rKey);
+        }
+        evidenceReferenceRepository.save(enReference);
         if (isSaveCn){
-            cnEvidenceReferenceRepository.save(referenceConverter.convert(cn));
+            EvidenceReference cnReference = referenceConverter.convert(cn);
+            if (rKey!=null){
+                cnReference.setEvidenceReferenceKey(rKey);
+            }
+            cnEvidenceReferenceRepository.save(cnReference);
         }
         //药物
         JsonArrayConverter<EvidenceDrug> evidenceDrugConverter=(json)->{

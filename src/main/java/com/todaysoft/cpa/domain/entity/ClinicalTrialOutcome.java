@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @desc:
@@ -183,48 +184,25 @@ public class ClinicalTrialOutcome {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (!(o instanceof ClinicalTrialOutcome)) return false;
         ClinicalTrialOutcome that = (ClinicalTrialOutcome) o;
-
-        if (clinicalTrailOutcomeKey != null ? !clinicalTrailOutcomeKey.equals(that.clinicalTrailOutcomeKey) : that.clinicalTrailOutcomeKey != null)
-            return false;
-        if (clinicalTrialKey != null ? !clinicalTrialKey.equals(that.clinicalTrialKey) : that.clinicalTrialKey != null)
-            return false;
-        if (clinicalTrailId != null ? !clinicalTrailId.equals(that.clinicalTrailId) : that.clinicalTrailId != null)
-            return false;
-        if (category != null ? !category.equals(that.category) : that.category != null) return false;
-        if (classification != null ? !classification.equals(that.classification) : that.classification != null)
-            return false;
-        if (title != null ? !title.equals(that.title) : that.title != null) return false;
-        if (resultGroup != null ? !resultGroup.equals(that.resultGroup) : that.resultGroup != null) return false;
-        if (unit != null ? !unit.equals(that.unit) : that.unit != null) return false;
-        if (paramType != null ? !paramType.equals(that.paramType) : that.paramType != null) return false;
-        if (paramValue != null ? !paramValue.equals(that.paramValue) : that.paramValue != null) return false;
-        if (dispType != null ? !dispType.equals(that.dispType) : that.dispType != null) return false;
-        if (dispValue != null ? !dispValue.equals(that.dispValue) : that.dispValue != null) return false;
-        if (dispMin != null ? !dispMin.equals(that.dispMin) : that.dispMin != null) return false;
-        if (dispMax != null ? !dispMax.equals(that.dispMax) : that.dispMax != null) return false;
-
-        return true;
+        return Objects.equals(getClinicalTrialKey(), that.getClinicalTrialKey()) &&
+                Objects.equals(getClinicalTrailId(), that.getClinicalTrailId()) &&
+                Objects.equals(getCategory(), that.getCategory()) &&
+                Objects.equals(getClassification(), that.getClassification()) &&
+                Objects.equals(getTitle(), that.getTitle()) &&
+                Objects.equals(getResultGroup(), that.getResultGroup()) &&
+                Objects.equals(getUnit(), that.getUnit()) &&
+                Objects.equals(getParamType(), that.getParamType()) &&
+                Objects.equals(getParamValue(), that.getParamValue()) &&
+                Objects.equals(getDispType(), that.getDispType()) &&
+                Objects.equals(getDispValue(), that.getDispValue()) &&
+                Objects.equals(getDispMin(), that.getDispMin()) &&
+                Objects.equals(getDispMax(), that.getDispMax());
     }
 
     @Override
     public int hashCode() {
-        int result = clinicalTrailOutcomeKey != null ? clinicalTrailOutcomeKey.hashCode() : 0;
-        result = 31 * result + (clinicalTrialKey != null ? clinicalTrialKey.hashCode() : 0);
-        result = 31 * result + (clinicalTrailId != null ? clinicalTrailId.hashCode() : 0);
-        result = 31 * result + (category != null ? category.hashCode() : 0);
-        result = 31 * result + (classification != null ? classification.hashCode() : 0);
-        result = 31 * result + (title != null ? title.hashCode() : 0);
-        result = 31 * result + (resultGroup != null ? resultGroup.hashCode() : 0);
-        result = 31 * result + (unit != null ? unit.hashCode() : 0);
-        result = 31 * result + (paramType != null ? paramType.hashCode() : 0);
-        result = 31 * result + (paramValue != null ? paramValue.hashCode() : 0);
-        result = 31 * result + (dispType != null ? dispType.hashCode() : 0);
-        result = 31 * result + (dispValue != null ? dispValue.hashCode() : 0);
-        result = 31 * result + (dispMin != null ? dispMin.hashCode() : 0);
-        result = 31 * result + (dispMax != null ? dispMax.hashCode() : 0);
-        return result;
+        return Objects.hash(getClinicalTrialKey(), getClinicalTrailId(), getCategory(), getClassification(), getTitle(), getResultGroup(), getUnit(), getParamType(), getParamValue(), getDispType(), getDispValue(), getDispMin(), getDispMax());
     }
 }

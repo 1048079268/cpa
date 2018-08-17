@@ -41,14 +41,13 @@ public class SaveDetailService {
      * @param flux id数据
      * @param latch 用以标识是否结束
      */
-    public void saveContentToMongo(Flux<List<DetailParam>> flux, final CountDownLatch latch){
+    public void saveContentToMongo(Flux<List<DetailParam>> flux){
         flux
                 .filter(list -> list!=null&&list.size()>0)
                 //如果订阅完成计数器减一
-                .doOnComplete(latch::countDown)
+                .toStream()
                 //订阅
-                .subscribe(list -> {
-                    final  CountDownLatch downLatch=new CountDownLatch(1);
+                .forEach(list -> {
                     //创建id流
                     Flux.fromStream(list.stream())
                             //切换为多线程模式
@@ -71,7 +70,6 @@ public class SaveDetailService {
                                     //判断新跑的数据是不是比数据库新
                                     int dbHash=StringUtils.isEmpty(mongoDataUpdateSince)?0:mongoDataUpdateSince.hashCode();
                                     int hash=StringUtils.isEmpty(updateSince)?0:updateSince.hashCode();
-                                    logger.debug("["+cpa.name()+"]更新"+mongoDataUpdateSince+"-to-"+updateSince+",id="+dataId+",isUpdate="+(hash>dbHash));
                                     return hash>dbHash;
                                 }
                                 return true;
@@ -82,24 +80,16 @@ public class SaveDetailService {
                             .map(this::saveToMongo)
                             //切换为单线程模式（可能不准确，应该是顺序模式）
                             .sequential()
-                            //如果订阅完成，当前计数器减一
-                            .doOnComplete(downLatch::countDown)
+                            .toStream()
                             //订阅
-                            .subscribe(param->{
+                            .forEach(param->{
                                 CPA cpa=param.getCpa();
                                 if (param.isSaveSuccess()){
                                     logger.debug("["+cpa.name()+"]保存成功，id="+param.getDataId());
                                 }else {
                                     logger.error("["+cpa.name()+"]保存失败,id="+param.getDataId());
-//                                    mongoService.upsertErrorDetail(param.toMongoDetail());
                                 }
                             });
-                    try {
-                        //等待流处理完成
-                        downLatch.await();
-                    } catch (InterruptedException e) {
-                        logger.error("等待保存数据到mongodb出错",e);
-                    }
                 });
 
     }

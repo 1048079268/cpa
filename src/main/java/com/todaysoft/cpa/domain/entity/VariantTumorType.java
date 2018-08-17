@@ -3,6 +3,7 @@ package com.todaysoft.cpa.domain.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @desc:
@@ -157,39 +158,22 @@ public class VariantTumorType {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof VariantTumorType)) return false;
-
         VariantTumorType that = (VariantTumorType) o;
-
-        if (getTypeKey() != null ? !getTypeKey().equals(that.getTypeKey()) : that.getTypeKey() != null) return false;
-        if (getVariantKey() != null ? !getVariantKey().equals(that.getVariantKey()) : that.getVariantKey() != null)
-            return false;
-        if (getVariantId() != null ? !getVariantId().equals(that.getVariantId()) : that.getVariantId() != null)
-            return false;
-        if (getSite1() != null ? !getSite1().equals(that.getSite1()) : that.getSite1() != null) return false;
-        if (getSite2() != null ? !getSite2().equals(that.getSite2()) : that.getSite2() != null) return false;
-        if (getSite3() != null ? !getSite3().equals(that.getSite3()) : that.getSite3() != null) return false;
-        if (getSite4() != null ? !getSite4().equals(that.getSite4()) : that.getSite4() != null) return false;
-        if (getHist1() != null ? !getHist1().equals(that.getHist1()) : that.getHist1() != null) return false;
-        if (getHist2() != null ? !getHist2().equals(that.getHist2()) : that.getHist2() != null) return false;
-        if (getHist3() != null ? !getHist3().equals(that.getHist3()) : that.getHist3() != null) return false;
-        if (getHist4() != null ? !getHist4().equals(that.getHist4()) : that.getHist4() != null) return false;
-        return getNumOfSamples() != null ? getNumOfSamples().equals(that.getNumOfSamples()) : that.getNumOfSamples() == null;
+        return Objects.equals(getVariantKey(), that.getVariantKey()) &&
+                Objects.equals(getVariantId(), that.getVariantId()) &&
+                Objects.equals(getSite1(), that.getSite1()) &&
+                Objects.equals(getSite2(), that.getSite2()) &&
+                Objects.equals(getSite3(), that.getSite3()) &&
+                Objects.equals(getSite4(), that.getSite4()) &&
+                Objects.equals(getHist1(), that.getHist1()) &&
+                Objects.equals(getHist2(), that.getHist2()) &&
+                Objects.equals(getHist3(), that.getHist3()) &&
+                Objects.equals(getHist4(), that.getHist4());
     }
 
     @Override
     public int hashCode() {
-        int result = getTypeKey() != null ? getTypeKey().hashCode() : 0;
-        result = 31 * result + (getVariantKey() != null ? getVariantKey().hashCode() : 0);
-        result = 31 * result + (getVariantId() != null ? getVariantId().hashCode() : 0);
-        result = 31 * result + (getSite1() != null ? getSite1().hashCode() : 0);
-        result = 31 * result + (getSite2() != null ? getSite2().hashCode() : 0);
-        result = 31 * result + (getSite3() != null ? getSite3().hashCode() : 0);
-        result = 31 * result + (getSite4() != null ? getSite4().hashCode() : 0);
-        result = 31 * result + (getHist1() != null ? getHist1().hashCode() : 0);
-        result = 31 * result + (getHist2() != null ? getHist2().hashCode() : 0);
-        result = 31 * result + (getHist3() != null ? getHist3().hashCode() : 0);
-        result = 31 * result + (getHist4() != null ? getHist4().hashCode() : 0);
-        result = 31 * result + (getNumOfSamples() != null ? getNumOfSamples().hashCode() : 0);
-        return result;
+
+        return Objects.hash(getVariantKey(), getVariantId(), getSite1(), getSite2(), getSite3(), getSite4(), getHist1(), getHist2(), getHist3(), getHist4());
     }
 }

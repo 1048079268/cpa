@@ -15,4 +15,6 @@ public interface ClinicalTrialOutcomeRepository extends JpaRepository<ClinicalTr
     @Query("select distinct co from ClinicalTrialOutcome  co ,DrugClinicalTrial dc ,Drug d " +
             "where co.clinicalTrialKey=dc.clinicalTrialKey and dc.drugKey=d.drugKey and d.oncoDrug=true")
     List<ClinicalTrialOutcome> statistics();
+
+    List<ClinicalTrialOutcome> findByClinicalTrialKey(String clinicalTrialKey);
 }

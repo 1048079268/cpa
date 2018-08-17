@@ -48,7 +48,7 @@ public class ScanListService {
      * 默认页数
      */
     private final static int DEFAULT_LIMIT =20;
-    private final static  int DEFAULT_PAGE=5;
+    private final static  int DEFAULT_PAGE = 1;
     /**
      * 遍历数据
      * @param cpa 遍历类型
@@ -169,9 +169,8 @@ public class ScanListService {
 
     /**
      * 保存突变样本量
-     * @param latch
      */
-    public void scanAndSaveMutationStatistics(final CountDownLatch latch){
+    public void scanAndSaveMutationStatistics(){
         CPA cpa = CPA.MUTATION_STATISTICS;
         //获取总页数
         Integer countPage = countPage(cpa,"");
@@ -195,9 +194,9 @@ public class ScanListService {
                 //过滤空
                 .filter(json->!json.isEmpty())
                 //如果订阅完成计数器减一
-                .doOnComplete(latch::countDown)
+                .toStream()
                 //订阅
-                .subscribe(array->{
+                .forEach(array->{
                     for (int i = 0; i < array.size(); i++) {
                         JSONObject json=new JSONObject();
                         JSONObject object = array.getJSONObject(i);

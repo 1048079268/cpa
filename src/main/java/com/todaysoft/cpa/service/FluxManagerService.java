@@ -18,6 +18,8 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -55,22 +57,24 @@ public class FluxManagerService {
      */
     public void task() throws InterruptedException {
         logger.info("开始执行同步数据到知识库任务");
+        ExecutorService service = Executors.newFixedThreadPool(4);
         //一级
         final CountDownLatch latch1=new CountDownLatch(2);
-        scan(CPA.GENE,geneService,latch1);
-        scanDrug(latch1);
+        service.submit(()->scan(CPA.GENE,geneService,latch1));
+        service.submit(()->scanDrug(latch1));
         latch1.await();
         //二级
         final CountDownLatch latch2=new CountDownLatch(3);
-        scan(CPA.CLINICAL_TRIAL,clinicalTrialService,latch2);
-        scan(CPA.VARIANT,variantService,latch2);
-        scan(CPA.PROTEIN,proteinService,latch2);
+        service.submit(()->scan(CPA.CLINICAL_TRIAL,clinicalTrialService,latch2));
+        service.submit(()->scan(CPA.VARIANT,variantService,latch2));
+        service.submit(()->scan(CPA.PROTEIN,proteinService,latch2));
         latch2.await();
         //三级
         final CountDownLatch latch3=new CountDownLatch(2);
-        scan(CPA.EVIDENCE,evidenceService,latch3);
-        scanMutationStatistic(latch3);
+        service.submit(()->scan(CPA.EVIDENCE,evidenceService,latch3));
+        service.submit(()->scanMutationStatistic(latch3));
         latch3.await();
+        service.shutdown();
         logger.info("同步数据到知识库任务执行完毕");
     }
 
@@ -81,52 +85,49 @@ public class FluxManagerService {
      * @param latch
      */
     private void scan(CPA cpa, BaseService baseService, final CountDownLatch latch){
-        long count = mongoService.countKtData(cpa.enDbName());
-        int i = (int) (count % DEFAULT_LIMIT);
-        int j = (int) (count / DEFAULT_LIMIT);
-        int totalPage=i==0?j:j+1;
-        if (logger.isDebugEnabled()){
-            totalPage=2;
-        }
-        Flux.range(0,totalPage)
-                .parallel()
-                .runOn(Schedulers.elastic())
-                .map(page->mongoService.pageKtData(cpa.enDbName(),new PageRequest(page,DEFAULT_LIMIT)))
-                .sequential()
-                .doOnComplete(latch::countDown)
-                .subscribe(list->{
-                    final CountDownLatch downLatch=new CountDownLatch(1);
-                    Flux.fromStream(list.stream())
-                            .filter(mongoData -> !mongoData.getKtMysqlSyncStatus())
-                            .parallel()
-                            .runOn(Schedulers.elastic())
-                            .map(data->{
-                                try {
-                                    JSONObject en = JSONObject.parseObject(data.getData());
-                                    MongoData mongoData = mongoService.get(data.getId(), cpa.cnDbName());
-                                    JSONObject cn = JSONObject.parseObject(mongoData.getData());
-                                    boolean save = baseService.save(en.getJSONObject(cpa.getName()), cn.getJSONObject(cpa.getName()), 0);
-                                    if (save) {
-                                        mongoService.updateSyncStatus(cpa.enDbName(), data.getId(), true);
-                                        logger.info("["+cpa.name()+"]同步到Mysql成功,id="+data.getId());
+        try {
+            long count = mongoService.countKtData(cpa.enDbName());
+            int i = (int) (count % DEFAULT_LIMIT);
+            int j = (int) (count / DEFAULT_LIMIT);
+            int totalPage=i==0?j:j+1;
+            Flux.range(0,totalPage)
+                    .parallel()
+                    .runOn(Schedulers.elastic())
+                    .map(page->mongoService.pageKtData(cpa.enDbName(),new PageRequest(page,DEFAULT_LIMIT)))
+                    .sequential()
+                    .toStream()
+                    .forEach(list->{
+                        Flux.fromStream(list.stream())
+                                .filter(mongoData -> !mongoData.getKtMysqlSyncStatus())
+                                .parallel()
+                                .runOn(Schedulers.elastic())
+                                .map(data->{
+                                    try {
+                                        JSONObject en = JSONObject.parseObject(data.getData());
+                                        MongoData mongoData = mongoService.get(data.getId(), cpa.cnDbName());
+                                        JSONObject cn = JSONObject.parseObject(mongoData.getData());
+                                        boolean save = baseService.save(en.getJSONObject(cpa.getName()), cn.getJSONObject(cpa.getName()), 0);
+                                        if (save) {
+                                            mongoService.updateSyncStatus(cpa.enDbName(), data.getId(), true);
+                                            logger.info("["+cpa.name()+"]同步到Mysql成功,id="+data.getId());
+                                        }
+                                        return save;
+                                    }catch (DataException e){
+                                        logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId()+",msg="+e.getMessage());
+                                    }catch (Exception e) {
+                                        logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId(),e);
                                     }
-                                    return save;
-                                }catch (DataException e){
-                                    logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId()+",msg="+e.getMessage());
-                                }catch (Exception e) {
-                                    logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId(),e);
-                                }
-                                return false;
-                            })
-                            .sequential()
-                            .doOnComplete(downLatch::countDown)
-                            .subscribe();
-                    try {
-                        downLatch.await();
-                    } catch (InterruptedException e) {
-                        logger.error(e);
-                    }
-                });
+                                    return false;
+                                })
+                                .sequential()
+                                .toStream()
+                                .forEach(r->{});
+                    });
+        } catch (Exception e) {
+            logger.error(cpa.name()+"未知错误",e);
+        }finally {
+            latch.countDown();
+        }
     }
 
 
@@ -136,36 +137,39 @@ public class FluxManagerService {
      */
     private void scanDrug(final CountDownLatch latch){
         CPA cpa=CPA.DRUG;
-        long count = mongoService.countKtData(cpa.enDbName());
-        int i = (int) (count % DEFAULT_LIMIT);
-        int j = (int) (count / DEFAULT_LIMIT);
-        int totalPage=i==0?j:j+1;
-        if (logger.isDebugEnabled()){
-            totalPage=2;
-        }
-        Flux.range(0,totalPage)
-                .map(page->mongoService.pageKtData(cpa.enDbName(),new PageRequest(page,DEFAULT_LIMIT)))
-                .doOnComplete(latch::countDown)
-                .subscribe(list->{
-                    list.stream()
-                            .filter(mongoData -> !mongoData.getKtMysqlSyncStatus())
-                            .forEach(data->{
-                                try {
-                                    JSONObject en = JSONObject.parseObject(data.getData());
-                                    MongoData mongoData = mongoService.get(data.getId(), cpa.cnDbName());
-                                    JSONObject cn=JSONObject.parseObject(mongoData.getData());
-                                    boolean save = drugService.save(en.getJSONObject(cpa.getName()), cn.getJSONObject(cpa.getName()), null);
-                                    if (save){
-                                        mongoService.updateSyncStatus(cpa.enDbName(),data.getId(),true);
-                                        logger.info("["+cpa.name()+"]同步到Mysql成功,id="+data.getId());
+        try {
+            long count = mongoService.countKtData(cpa.enDbName());
+            int i = (int) (count % DEFAULT_LIMIT);
+            int j = (int) (count / DEFAULT_LIMIT);
+            int totalPage=i==0?j:j+1;
+            Flux.range(0,totalPage)
+                    .map(page->mongoService.pageKtData(cpa.enDbName(),new PageRequest(page,DEFAULT_LIMIT)))
+                    .toStream()
+                    .forEach(list->{
+                        list.stream()
+                                .filter(mongoData -> !mongoData.getKtMysqlSyncStatus())
+                                .forEach(data->{
+                                    try {
+                                        JSONObject en = JSONObject.parseObject(data.getData());
+                                        MongoData mongoData = mongoService.get(data.getId(), cpa.cnDbName());
+                                        JSONObject cn=JSONObject.parseObject(mongoData.getData());
+                                        boolean save = drugService.save(en.getJSONObject(cpa.getName()), cn.getJSONObject(cpa.getName()), null);
+                                        if (save){
+                                            mongoService.updateSyncStatus(cpa.enDbName(),data.getId(),true);
+                                            logger.info("["+cpa.name()+"]同步到Mysql成功,id="+data.getId());
+                                        }
+                                    }catch (DataException e){
+                                        logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId()+",msg="+e.getMessage());
+                                    }catch (Exception e) {
+                                        logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId(),e);
                                     }
-                                }catch (DataException e){
-                                    logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId()+",msg="+e.getMessage());
-                                }catch (Exception e) {
-                                    logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId(),e);
-                                }
-                            });
-                });
+                                });
+                    });
+        } catch (Exception e) {
+            logger.error(cpa.name()+"未知错误",e);
+        }finally {
+            latch.countDown();
+        }
     }
 
     /**
@@ -174,37 +178,44 @@ public class FluxManagerService {
      */
     private void scanMutationStatistic(final CountDownLatch latch){
         CPA cpa=CPA.MUTATION_STATISTICS;
-        long count = mongoService.countKtData(cpa.getName());
-        int i = (int) (count % DEFAULT_LIMIT);
-        int j = (int) (count / DEFAULT_LIMIT);
-        int totalPage=i==0?j:j+1;
-        if (logger.isDebugEnabled()){
-            totalPage=2;
-        }
-        Flux.range(0,totalPage)
-                .parallel()
-                .runOn(Schedulers.elastic())
-                .map(page->mongoService.pageKtData(cpa.getName(),new PageRequest(page,DEFAULT_LIMIT)))
-                .sequential()
-                .doOnComplete(latch::countDown)
-                .subscribe(list->{
-                    list.stream()
-                            .filter(mongoData -> !mongoData.getKtMysqlSyncStatus())
-                            .forEach(data->{
-                                try {
-                                    JSONObject en = JSONObject.parseObject(data.getData());
-                                    boolean save = mutationStatisticService.save(en,en, 0);
-                                    if (save){
-                                        mongoService.updateSyncStatus(cpa.getName(),data.getId(),true);
-                                        logger.info("["+cpa.name()+"]同步到Mysql成功,id="+data.getId());
+        try {
+            long count = mongoService.countKtData(cpa.getName());
+            int i = (int) (count % DEFAULT_LIMIT);
+            int j = (int) (count / DEFAULT_LIMIT);
+            int totalPage=i==0?j:j+1;
+            Flux.range(0,totalPage)
+                    .parallel()
+                    .runOn(Schedulers.elastic())
+                    .map(page->mongoService.pageKtData(cpa.getName(),new PageRequest(page,DEFAULT_LIMIT)))
+                    .map(list->{
+                        list.stream()
+                                .filter(mongoData -> !mongoData.getKtMysqlSyncStatus())
+                                .forEach(data->{
+                                    try {
+                                        JSONObject en = JSONObject.parseObject(data.getData());
+                                        boolean save = mutationStatisticService.save(en,en, 0);
+                                        if (save){
+                                            mongoService.updateSyncStatus(cpa.getName(),data.getId(),true);
+                                            logger.info("["+cpa.name()+"]同步到Mysql成功,id="+data.getId());
+                                        }else {
+                                            logger.info("["+cpa.name()+"]同步未成功,条件不足");
+                                        }
+                                    }catch (DataException e){
+                                        logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId()+",msg="+e.getMessage());
+                                    }catch (Exception e) {
+                                        logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId(),e);
                                     }
-                                }catch (DataException e){
-                                    logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId()+",msg="+e.getMessage());
-                                }catch (Exception e) {
-                                    logger.error("["+cpa.name()+"]同步到Mysql失败,id="+data.getId(),e);
-                                }
-                            });
-                });
+                                });
+                        return true;
+                    })
+                    .sequential()
+                    .toStream()
+                    .forEach(bool->{});
+        } catch (Exception e) {
+            logger.error(cpa.name()+"未知错误",e);
+        }finally {
+            latch.countDown();
+        }
     }
 
 }

@@ -3,6 +3,7 @@ package com.todaysoft.cpa.domain.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @desc:
@@ -74,27 +75,17 @@ public class EvidenceReference {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (!(o instanceof EvidenceReference)) return false;
         EvidenceReference that = (EvidenceReference) o;
-
-        if (evidenceReferenceKey != null ? !evidenceReferenceKey.equals(that.evidenceReferenceKey) : that.evidenceReferenceKey != null)
-            return false;
-        if (evidenceKey != null ? !evidenceKey.equals(that.evidenceKey) : that.evidenceKey != null) return false;
-        if (evidenceId != null ? !evidenceId.equals(that.evidenceId) : that.evidenceId != null) return false;
-        if (refType != null ? !refType.equals(that.refType) : that.refType != null) return false;
-        if (externalId != null ? !externalId.equals(that.externalId) : that.externalId != null) return false;
-
-        return true;
+        return Objects.equals(getEvidenceKey(), that.getEvidenceKey()) &&
+                Objects.equals(getEvidenceId(), that.getEvidenceId()) &&
+                Objects.equals(getRefType(), that.getRefType()) &&
+                Objects.equals(getExternalId(), that.getExternalId());
     }
 
     @Override
     public int hashCode() {
-        int result = evidenceReferenceKey != null ? evidenceReferenceKey.hashCode() : 0;
-        result = 31 * result + (evidenceKey != null ? evidenceKey.hashCode() : 0);
-        result = 31 * result + (evidenceId != null ? evidenceId.hashCode() : 0);
-        result = 31 * result + (refType != null ? refType.hashCode() : 0);
-        result = 31 * result + (externalId != null ? externalId.hashCode() : 0);
-        return result;
+
+        return Objects.hash(getEvidenceKey(), getEvidenceId(), getRefType(), getExternalId());
     }
 }

@@ -14,4 +14,6 @@ import java.util.List;
 public interface DrugInteractionRepository extends JpaRepository<DrugInteraction,String> {
     @Query("select distinct di from DrugInteraction di,Drug d where di.drugKey=d.drugKey and d.oncoDrug=true ")
     List<DrugInteraction> statistics();
+
+    List<DrugInteraction> findByDrugKey(String drugKey);
 }

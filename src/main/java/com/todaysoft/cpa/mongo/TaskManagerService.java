@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 管理线程
@@ -49,7 +50,7 @@ public class TaskManagerService {
     private final static CPA[] INCREMENTAL_UPDATE ={
             CPA.GENE, CPA.CLINICAL_TRIAL,
             CPA.DRUG, CPA.VARIANT,
-            CPA.EVIDENCE
+            CPA.EVIDENCE,CPA.MUTATION_STATISTICS
     };
 
     /**
@@ -72,11 +73,9 @@ public class TaskManagerService {
         final CountDownLatch latch=new CountDownLatch(INCREMENTAL_UPDATE.length);
         //增量的
         for (CPA cpa : INCREMENTAL_UPDATE) {
-            service.submit(()->{
-                Flux<List<DetailParam>> scan = scanListService.scan(cpa,updateSince);
-                saveDetailService.saveContentToMongo(scan,latch);
-            });
+            service.submit(()->scanAndSave(cpa,updateSince,latch));
         }
+        //设置超时，防止线程假死导致latch一直等待
         latch.await();
         //更新时间
         mongoService.postUpdateSince(date);
@@ -85,25 +84,39 @@ public class TaskManagerService {
         logger.info("mongodb查漏任务开始");
         final CountDownLatch latch2=new CountDownLatch(FULL_AMOUNT_UPDATE.length);
         for (CPA cpa : FULL_AMOUNT_UPDATE) {
-            long cpaCount = scanListService.totalElement(cpa);
-            long dbCount = mongoService.countModule(cpa);
-            if (cpaCount>dbCount){
-                if (CPA.MUTATION_STATISTICS.equals(cpa)){
-                    //针对MUTATION_STATISTICS的处理
-                    service.submit(()-> scanListService.scanAndSaveMutationStatistics(latch2));
-                }else {
-                    service.submit(()->{
-                        Flux<List<DetailParam>> page =scanListService.scan(cpa,"");
-                        saveDetailService.saveContentToMongo(page,latch2);
-                    });
-                }
+            boolean isRun;
+            try {
+                long cpaCount = scanListService.totalElement(cpa);
+                long dbCount = mongoService.countModule(cpa);
+                isRun=cpaCount>dbCount;
+            } catch (Exception e) {
+                isRun=false;
+            }
+            if (isRun){
+                service.submit(()->scanAndSave(cpa,"",latch2));
             }else {
                 latch2.countDown();
             }
         }
+        //设置超时，防止线程假死导致latch一直等待
         latch2.await();
         service.shutdown();
         logger.info("mongodb查漏任务结束");
         fluxManagerService.task();
+    }
+
+    private void scanAndSave(CPA cpa,String updateSince,final CountDownLatch latch){
+        try {
+            if (CPA.MUTATION_STATISTICS.equals(cpa)){
+                scanListService.scanAndSaveMutationStatistics();
+            }else {
+                Flux<List<DetailParam>> page =scanListService.scan(cpa,updateSince);
+                saveDetailService.saveContentToMongo(page);
+            }
+        } catch (Exception e) {
+            logger.error(cpa.name()+"保存到mongodb出错",e);
+        } finally {
+            latch.countDown();
+        }
     }
 }

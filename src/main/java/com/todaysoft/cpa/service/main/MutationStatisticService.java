@@ -59,13 +59,19 @@ public class MutationStatisticService extends BaseService {
             return false;
         }
         List<VariantTumorType> variantTumorTypeList = variantTumorTypeRepository.findByDoidAndVariantKey(Integer.valueOf(statistic.getDoid()), dependenceKey);
+        if(variantTumorTypeList==null||variantTumorTypeList.size()==0){
+            return false;
+        }
         for (VariantTumorType variantTumorType : variantTumorTypeList) {
             if (variantTumorType!=null){
                 variantTumorType.setNumOfSamples(statistic.getNumOfSamples());
                 variantTumorTypeRepository.save(variantTumorType);
                 VariantTumorType tumorType = cnVariantTumorTypeRepository.findOne(variantTumorType.getTypeKey());
-                tumorType.setNumOfSamples(statistic.getNumOfSamples());
-                cnVariantTumorTypeRepository.save(tumorType);
+                //该模块必须是第一次插入才能更新中文
+                if (tumorType!=null&&tumorType.getNumOfSamples()==null){
+                    tumorType.setNumOfSamples(statistic.getNumOfSamples());
+                    cnVariantTumorTypeRepository.save(tumorType);
+                }
             }else {
                 throw new DataException("未找到相应的突变肿瘤类型记录，info->doid="+statistic.getDoid());
             }

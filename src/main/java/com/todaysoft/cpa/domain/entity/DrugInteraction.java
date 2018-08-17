@@ -5,6 +5,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @desc:
@@ -77,39 +78,17 @@ public class DrugInteraction implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (!(o instanceof DrugInteraction)) return false;
         DrugInteraction that = (DrugInteraction) o;
-
-        if (drugId != that.drugId) return false;
-        if (interactionKey != null ? !interactionKey.equals(that.interactionKey) : that.interactionKey != null)
-            return false;
-        if (drugKey != null ? !drugKey.equals(that.drugKey) : that.drugKey != null) return false;
-        if (drugIdInteraction != null ? !drugIdInteraction.equals(that.drugIdInteraction) : that.drugIdInteraction != null)
-            return false;
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
-
-        return true;
+        return getDrugId() == that.getDrugId() &&
+                Objects.equals(getDrugKey(), that.getDrugKey()) &&
+                Objects.equals(getDrugIdInteraction(), that.getDrugIdInteraction()) &&
+                Objects.equals(getDescription(), that.getDescription());
     }
 
     @Override
     public int hashCode() {
-        int result = interactionKey != null ? interactionKey.hashCode() : 0;
-        result = 31 * result + (drugKey != null ? drugKey.hashCode() : 0);
-        result = 31 * result + drugId;
-        result = 31 * result + (drugIdInteraction != null ? drugIdInteraction.hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        return result;
-    }
 
-    @Override
-    public String toString() {
-        return "DrugInteraction{" +
-                "interactionKey='" + interactionKey + '\'' +
-                ", drugKey='" + drugKey + '\'' +
-                ", drugId=" + drugId +
-                ", drugIdInteraction=" + drugIdInteraction +
-                ", description='" + description + '\'' +
-                '}';
+        return Objects.hash(getDrugKey(), getDrugId(), getDrugIdInteraction(), getDescription());
     }
 }

@@ -18,4 +18,6 @@ public interface CnVariantRepository extends JpaRepository<Variant,String> {
     Variant findByCosmicIdAndCreatedWay(String cosmicId, Integer createdWay);
 
     Variant findByVariantIdAndCreatedWay(Integer variantId, Integer createdWay);
+
+    Variant findByVariantId(Integer variantId);
 }

@@ -3,6 +3,7 @@ package com.todaysoft.cpa.domain.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @desc:
@@ -73,27 +74,17 @@ public class GeneExternalId {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (!(o instanceof GeneExternalId)) return false;
         GeneExternalId that = (GeneExternalId) o;
-
-        if (geneExternalIdKey != null ? !geneExternalIdKey.equals(that.geneExternalIdKey) : that.geneExternalIdKey != null)
-            return false;
-        if (geneKey != null ? !geneKey.equals(that.geneKey) : that.geneKey != null) return false;
-        if (geneId != null ? !geneId.equals(that.geneId) : that.geneId != null) return false;
-        if (source != null ? !source.equals(that.source) : that.source != null) return false;
-        if (sourceId != null ? !sourceId.equals(that.sourceId) : that.sourceId != null) return false;
-
-        return true;
+        return Objects.equals(getGeneKey(), that.getGeneKey()) &&
+                Objects.equals(getGeneId(), that.getGeneId()) &&
+                Objects.equals(getSource(), that.getSource()) &&
+                Objects.equals(getSourceId(), that.getSourceId());
     }
 
     @Override
     public int hashCode() {
-        int result = geneExternalIdKey != null ? geneExternalIdKey.hashCode() : 0;
-        result = 31 * result + (geneKey != null ? geneKey.hashCode() : 0);
-        result = 31 * result + (geneId != null ? geneId.hashCode() : 0);
-        result = 31 * result + (source != null ? source.hashCode() : 0);
-        result = 31 * result + (sourceId != null ? sourceId.hashCode() : 0);
-        return result;
+
+        return Objects.hash(getGeneKey(), getGeneId(), getSource(), getSourceId());
     }
 }

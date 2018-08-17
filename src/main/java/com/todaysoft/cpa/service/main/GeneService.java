@@ -68,7 +68,7 @@ public class GeneService extends BaseService {
         //是否保存中文数据
         boolean isSaveCn = oldEn==null&&(oldCn==null||oldCn.getCreateWay()==3);
         //是否是老库覆盖CPA数据
-        boolean isOldBaseData= oldEn==null && oldCn!=null;
+        boolean isOldBaseData= oldEn==null && oldCn!=null && oldCn.getCreateWay()==3;
         String geneKey=oldCn==null?PkGenerator.generator(Gene.class):oldCn.getGeneKey();
         JsonObjectConverter<Gene> geneConverter=(json)->{
             Gene gene = json.toJavaObject(Gene.class);
@@ -121,6 +121,11 @@ public class GeneService extends BaseService {
             cnGeneRepository.save(geneCn);
         }
         //外部数据库
+        List<GeneExternalId> geneExternalIds = geneExternalIdRepository.findByGeneKey(gene.getGeneKey());
+        Map<Integer,String> geiKeyMap=new HashMap<>();
+        if (geneExternalIds!=null){
+            geiKeyMap.putAll(geneExternalIds.stream().collect(Collectors.toMap(GeneExternalId::hashCode, GeneExternalId::getGeneExternalIdKey)));
+        }
         String externalIdKey=PkGenerator.generator(GeneExternalId.class);
         JsonArrayConverter<GeneExternalId> externalIdConverter=(json)->{
             JSONArray externalIds = json.getJSONArray("externalIds");
@@ -128,19 +133,30 @@ public class GeneService extends BaseService {
             if (externalIds != null && externalIds.size() > 0) {
                 for (int i = 0; i < externalIds.size(); i++) {
                     GeneExternalId externalId = externalIds.getObject(i, GeneExternalId.class);
-                    externalId.setGeneExternalIdKey(PkGenerator.md5(externalIdKey+i));
                     externalId.setGeneId(gene.getGeneId());
                     externalId.setGeneKey(gene.getGeneKey());
+                    String key=geiKeyMap.get(externalId.hashCode());
+                    externalId.setGeneExternalIdKey(key!=null?key:PkGenerator.md5(externalIdKey+i));
                     externalIdsList.add(externalId);
                 }
             }
             return externalIdsList;
         };
-        geneExternalIdRepository.save(externalIdConverter.convert(en));
+        List<GeneExternalId> enGEI = externalIdConverter.convert(en);
+        geneExternalIdRepository.save(enGEI);
         if(isSaveCn){
-            cnGeneExternalIdRepository.save(externalIdConverter.convert(cn));
+            List<GeneExternalId> cnGEI = externalIdConverter.convert(cn);
+            for (int i = 0; i < cnGEI.size(); i++) {
+                cnGEI.get(i).setGeneExternalIdKey(enGEI.get(i).getGeneExternalIdKey());
+            }
+            cnGeneExternalIdRepository.save(cnGEI);
         }
         //4.基因位置
+        List<GeneLocation> glList = geneLocationRepository.findByGeneKey(gene.getGeneKey());
+        Map<Integer,String> glKeyMap=new HashMap<>();
+        if (glList!=null){
+            glKeyMap.putAll(glList.stream().collect(Collectors.toMap(GeneLocation::hashCode, GeneLocation::getGeneLocationKey)));
+        }
         String locationKey=PkGenerator.generator(GeneLocation.class);
         JsonArrayConverter<GeneLocation> locationConverter=(json)->{
             JSONArray locations = json.getJSONArray("locations");
@@ -148,17 +164,23 @@ public class GeneService extends BaseService {
             if (locations != null && locations.size() > 0) {
                 for (int i = 0; i < locations.size(); i++) {
                     GeneLocation location = locations.getObject(i, GeneLocation.class);
-                    location.setGeneLocationKey(PkGenerator.md5(locationKey+i));
                     location.setGeneKey(gene.getGeneKey());
                     location.setGeneId(gene.getGeneId());
+                    String key = glKeyMap.get(location.hashCode());
+                    location.setGeneLocationKey(key!=null?key:PkGenerator.md5(locationKey+i));
                     locationList.add(location);
                 }
             }
             return locationList;
         };
-        geneLocationRepository.save(locationConverter.convert(en));
+        List<GeneLocation> enLocation = locationConverter.convert(en);
+        geneLocationRepository.save(enLocation);
         if (isSaveCn){
-            cnGeneLocationRepository.save(locationConverter.convert(cn));
+            List<GeneLocation> cnLocation = locationConverter.convert(cn);
+            for (int i = 0; i < cnLocation.size(); i++) {
+                cnLocation.get(i).setGeneLocationKey(enLocation.get(i).getGeneLocationKey());
+            }
+            cnGeneLocationRepository.save(cnLocation);
         }
         if (status!=0){
             return true;

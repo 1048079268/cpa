@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @desc:
@@ -85,28 +86,18 @@ public class DrugExternalId implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (!(o instanceof DrugExternalId)) return false;
         DrugExternalId that = (DrugExternalId) o;
-
-        if (drugId != that.drugId) return false;
-        if (externalIdKey != null ? !externalIdKey.equals(that.externalIdKey) : that.externalIdKey != null)
-            return false;
-        if (drugKey != null ? !drugKey.equals(that.drugKey) : that.drugKey != null) return false;
-        if (externalIdSource != null ? !externalIdSource.equals(that.externalIdSource) : that.externalIdSource != null)
-            return false;
-        if (externalId != null ? !externalId.equals(that.externalId) : that.externalId != null) return false;
-
-        return true;
+        return getDrugId() == that.getDrugId() &&
+                Objects.equals(getDrugKey(), that.getDrugKey()) &&
+                Objects.equals(getExternalIdSource(), that.getExternalIdSource()) &&
+                Objects.equals(getExternalId(), that.getExternalId()) &&
+                Objects.equals(isPrimary, that.isPrimary);
     }
 
     @Override
     public int hashCode() {
-        int result = externalIdKey != null ? externalIdKey.hashCode() : 0;
-        result = 31 * result + (drugKey != null ? drugKey.hashCode() : 0);
-        result = 31 * result + drugId;
-        result = 31 * result + (externalIdSource != null ? externalIdSource.hashCode() : 0);
-        result = 31 * result + (externalId != null ? externalId.hashCode() : 0);
-        return result;
+
+        return Objects.hash(getDrugKey(), getDrugId(), getExternalIdSource(), getExternalId(), isPrimary);
     }
 }

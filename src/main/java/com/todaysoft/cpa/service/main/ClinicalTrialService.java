@@ -37,9 +37,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @desc:
@@ -94,7 +93,7 @@ public class ClinicalTrialService extends BaseService {
         //是否保存中文数据
         boolean isSaveCn = oldEn==null&&(oldCn==null||oldCn.getCreatedWay()==3);
         //是否是老库覆盖CPA数据
-        boolean isOldBaseData= oldEn==null && oldCn!=null;
+        boolean isOldBaseData= oldEn==null && oldCn!=null && oldCn.getCreatedWay()==3;
         //判断使用哪个id
         String clinicalTrialKey=oldCn==null?PkGenerator.generator(ClinicalTrial.class):oldCn.getClinicalTrialKey();
         JsonObjectConverter<ClinicalTrial> converter=(json)->{
@@ -277,24 +276,36 @@ public class ClinicalTrialService extends BaseService {
      */
     private void saveFixed(ClinicalTrial clinicalTrial,JSONObject en,JSONObject cn,boolean isSaveCn) throws InterruptedException {
         //成果
+        List<ClinicalTrialOutcome> hasOutcomes = clinicalTrialOutcomeRepository.findByClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
+        Map<Integer, String> outcomeMap=new HashMap<>();
+        if (hasOutcomes!=null){
+            outcomeMap = hasOutcomes.stream().collect(Collectors.toMap(ClinicalTrialOutcome::hashCode, ClinicalTrialOutcome::getClinicalTrailOutcomeKey));
+        }
         String outcomesKey=PkGenerator.generator(ClinicalTrialOutcome.class);
+        Map<Integer, String> finalOutcomeMap = outcomeMap;
         JsonArrayConverter<ClinicalTrialOutcome> outcomeJsonArrayConverter=(json)->{
             JSONArray outcomes=json.getJSONArray("outcomes");
             List<ClinicalTrialOutcome> outcomeList=new ArrayList<>();
             if (outcomes!=null&&outcomes.size()>0){
                 for (int i=0;i<outcomes.size();i++){
                     ClinicalTrialOutcome outcome=outcomes.getObject(i,ClinicalTrialOutcome.class);
-                    outcome.setClinicalTrailOutcomeKey(PkGenerator.md5(outcomesKey+i));
                     outcome.setClinicalTrailId(clinicalTrial.getClinicalTrialId());
                     outcome.setClinicalTrialKey(clinicalTrial.getClinicalTrialKey());
+                    String key = finalOutcomeMap.get(outcome.hashCode());
+                    outcome.setClinicalTrailOutcomeKey(key==null?PkGenerator.md5(outcomesKey+i):key);
                     outcomeList.add(outcome);
                 }
             }
             return outcomeList;
         };
-        clinicalTrialOutcomeRepository.save(outcomeJsonArrayConverter.convert(en));
+        List<ClinicalTrialOutcome> enOutcomes = outcomeJsonArrayConverter.convert(en);
+        clinicalTrialOutcomeRepository.save(enOutcomes);
         if (isSaveCn){
-            cnClinicalTrialOutcomeRepository.save(outcomeJsonArrayConverter.convert(cn));
+            List<ClinicalTrialOutcome> cnOutcomes = outcomeJsonArrayConverter.convert(cn);
+            for (int i = 0; i < cnOutcomes.size(); i++) {
+                cnOutcomes.get(i).setClinicalTrailOutcomeKey(enOutcomes.get(i).getClinicalTrailOutcomeKey());
+            }
+            cnClinicalTrialOutcomeRepository.save(cnOutcomes);
         }
         //与疾病关联
         JsonArrayConverter<ClinicalTrialCancer> cancerJsonArrayConverter=(json)->{

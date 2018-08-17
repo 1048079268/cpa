@@ -35,8 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @desc:
@@ -114,6 +114,11 @@ public class VariantService extends BaseService {
         JSONArray enTumorTypes=en.getJSONArray("tumorTypes");
         JSONArray cnTumorTypes=cn.getJSONArray("tumorTypes");
         if (enTumorTypes!=null&&enTumorTypes.size()>0){
+            List<VariantTumorType> vttList = variantTumorTypeRepository.findByVariantKey(variant.getVariantKey());
+            Map<Integer,String> vttKeyMap=new HashMap<>();
+            if (vttList!=null){
+                vttKeyMap.putAll(vttList.stream().collect(Collectors.toMap(VariantTumorType::hashCode, VariantTumorType::getTypeKey)));
+            }
             for (int i=0;i<enTumorTypes.size();i++){
                 String typeKey=PkGenerator.generator(VariantTumorType.class);
                 JsonObjectConverter<VariantTumorType> tumorTypeConverter=(json)->{
@@ -129,6 +134,11 @@ public class VariantService extends BaseService {
                 VariantTumorType variantTumorTypeEn = tumorTypeConverter.convert(enTumorTypes.getJSONObject(i));
                 VariantTumorType variantTumorTypeCn = tumorTypeConverter.convert(cnTumorTypes.getJSONObject(i));
                 if (variantTumorTypeEn!=null&&variantTumorTypeCn!=null){
+                    String key = vttKeyMap.get(variantTumorTypeEn.hashCode());
+                    if (key!=null){
+                        variantTumorTypeEn.setTypeKey(key);
+                        variantTumorTypeCn.setTypeKey(key);
+                    }
                     variantTumorTypeRepository.save(variantTumorTypeEn);
                     if (isSaveCn){
                         cnVariantTumorTypeRepository.save(variantTumorTypeCn);
