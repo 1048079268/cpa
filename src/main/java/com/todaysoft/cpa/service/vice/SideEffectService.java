@@ -78,11 +78,11 @@ public class SideEffectService{
             cnSideEffect.setCreatedWay(old.getCreatedWay());
             cnSideEffect.setCreatedByName(old.getCreatedByName());
         }
-        old=sideEffectRepository.save(enSideEffect);
+        SideEffect effect=sideEffectRepository.save(enSideEffect);
         if (isSaveCn){
             cnSideEffectRepository.save(cnSideEffect);
         }
-        if (old.getCheckState()==1){
+        if (old==null&&effect.getCheckState()==1){
             kbUpdateService.send("kt_side_effect");
         }
         return old;

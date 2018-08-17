@@ -170,7 +170,7 @@ public class EvidenceService extends BaseService {
         if (isSaveCn){
             cnEvidenceDrugRepository.save(evidenceDrugConverter.convert(cn));
         }
-        if (evidence.getCheckState()==1){
+        if (old==null&&evidence.getCheckState()==1){
             kbUpdateService.send("kt_evidence");
         }
         return true;

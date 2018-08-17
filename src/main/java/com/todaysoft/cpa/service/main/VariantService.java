@@ -184,7 +184,7 @@ public class VariantService extends BaseService {
 //        Page evidencePage=new Page(CPA.VARIANT.contentUrl+"/"+variant.getVariantId()+"/"+CPA.EVIDENCE.name+"s");
 //        ContentParam evidenceParam=new ContentParam(CPA.EVIDENCE,evidenceService,true,variant.getVariantKey());
 //        MainService.childrenTreadPool.execute(new IdThread(evidencePage,evidenceParam));
-        if (variant.getCheckState()==1){
+        if (old==null&&variant.getCheckState()==1){
             kbUpdateService.send("kt_variant");
         }
         return true;

@@ -74,7 +74,7 @@ public class IndicationService{
         if (isSaveCn){
             cnIndicationRepository.save(cnIndication);
         }
-        if (indication.getCheckState()==1){
+        if (old==null&&indication.getCheckState()==1){
             kbUpdateService.send("kt_indication");
         }
         return indication;

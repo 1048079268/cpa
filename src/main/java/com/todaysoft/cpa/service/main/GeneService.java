@@ -195,7 +195,7 @@ public class GeneService extends BaseService {
 //        Page variantPage=new Page(CPA.GENE.contentUrl+"/"+gene.getGeneId()+"/"+CPA.VARIANT.name+"s");
 //        ContentParam variantParam=new ContentParam(CPA.VARIANT,variantService,true,gene.getGeneKey());
 //        MainService.childrenTreadPool.execute(new IdThread(variantPage,variantParam));
-        if (geneCn.getCheckState()==1){
+        if (oldEn==null&&geneCn.getCheckState()==1){
             kbUpdateService.send("kt_gene");
         }
         return true;

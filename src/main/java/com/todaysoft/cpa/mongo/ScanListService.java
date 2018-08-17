@@ -48,7 +48,7 @@ public class ScanListService {
      * 默认页数
      */
     private final static int DEFAULT_LIMIT =20;
-    private final static  int DEFAULT_PAGE = 1;
+    private final static  int DEFAULT_PAGE = 5;
     /**
      * 遍历数据
      * @param cpa 遍历类型

@@ -598,7 +598,7 @@ public class DrugService{
         //---end  药物序列---------------------
         //15.TODO（该字段全部为空，看不到结构，暂时不做） 药物食物不良反应
         // JSONArray foodInteractions=object.getJSONArray("foodInteractions");
-        if (drugCn.getCheckState()==1){
+        if (oldEn==null&&drugCn.getCheckState()==1){
             kbUpdateService.send("kt_drug");
         }
         return true;

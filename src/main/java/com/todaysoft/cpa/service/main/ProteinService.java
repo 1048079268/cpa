@@ -83,7 +83,7 @@ public class ProteinService extends BaseService {
         if (isSaveCn){
             cnProteinRepository.save(proteinConverter.convert(cn));
         }
-        if (protein.getCheckState()==1){
+        if (old==null&&protein.getCheckState()==1){
             kbUpdateService.send("kt_protein");
         }
         return true;

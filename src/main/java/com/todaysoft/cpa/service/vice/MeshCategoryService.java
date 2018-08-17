@@ -76,7 +76,7 @@ public class MeshCategoryService {
         if (isSaveCn){
             cnMeshCategoryRepository.save(cnMeshCategory);
         }
-        if (meshCategory.getCheckState()==1){
+        if (old==null&&meshCategory.getCheckState()==1){
             kbUpdateService.send("kt_mesh_category");
         }
         return meshCategory;

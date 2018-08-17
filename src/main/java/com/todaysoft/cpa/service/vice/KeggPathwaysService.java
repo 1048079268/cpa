@@ -119,7 +119,7 @@ public class KeggPathwaysService{
         if (isSaveCn){
             cnKeggPathwayRepository.save(cnKeggPathway);
         }
-        if (pathway.getCheckState()==1){
+        if (oldEn==null&&pathway.getCheckState()==1){
             kbUpdateService.send("kt_kegg_pathway");
         }
         return pathway;

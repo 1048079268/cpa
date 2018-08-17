@@ -39,7 +39,6 @@ public class SaveDetailService {
     /**
      * 保存到mongodb
      * @param flux id数据
-     * @param latch 用以标识是否结束
      */
     public void saveContentToMongo(Flux<List<DetailParam>> flux){
         flux

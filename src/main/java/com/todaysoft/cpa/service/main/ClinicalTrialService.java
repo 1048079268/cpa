@@ -184,7 +184,7 @@ public class ClinicalTrialService extends BaseService {
         if (isSaveCn){
             cnDrugClinicalTrialRepository.save(clinicalTrialConverter.convert(cn));
         }
-        if (clinicalTrialCn.getCheckState()==1){
+        if (oldEn==null&&clinicalTrialCn.getCheckState()==1){
             kbUpdateService.send("kt_clinical_trial");
         }
         return true;
