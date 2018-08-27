@@ -2,7 +2,9 @@ package com.todaysoft.cpa.domain.cn.variants;
 
 import com.todaysoft.cpa.domain.entity.Variant;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
@@ -20,4 +22,8 @@ public interface CnVariantRepository extends JpaRepository<Variant,String> {
     Variant findByVariantIdAndCreatedWay(Integer variantId, Integer createdWay);
 
     Variant findByVariantId(Integer variantId);
+
+    @Modifying
+    @Transactional
+    void deleteByVariantIdAndCreatedWay(Integer variantId, Integer createdWay);
 }

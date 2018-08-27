@@ -23,5 +23,8 @@ public interface CnDrugRepository extends JpaRepository<Drug,String>{
 
     Drug findByNameEn(String nameEn);
 
+    @Query("select d from Drug d where (d.nameEn=?1 and d.createWay=3) or (d.drugId=?2 and d.createWay=2)")
+    Drug findByNameEnOrDrugId(String nameEn,Integer drugId);
+
     Drug findByNameEnOrNameChinese(String nameEn, String nameChinese);
 }

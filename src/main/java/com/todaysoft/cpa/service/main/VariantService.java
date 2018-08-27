@@ -29,6 +29,8 @@ import com.todaysoft.cpa.utils.PkGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,7 +92,7 @@ public class VariantService extends BaseService {
         Variant old = variantRepository.findByVariantId(object.getVariantId());
         boolean isSaveCn=old==null;
         boolean isUseOldState=old!=null;
-        String variantKey=old==null?PkGenerator.generator(Protein.class):old.getVariantKey();
+        String variantKey=old==null?PkGenerator.generator(Variant.class):old.getVariantKey();
         JsonObjectConverter<Variant> variantConverter=(json)->{
             Variant variant = json.toJavaObject(Variant.class);
             variant.setVariantKey(variantKey);
@@ -200,5 +202,40 @@ public class VariantService extends BaseService {
         while (iterator.hasNext()){
             CPA.VARIANT.dbId.add(String.valueOf(iterator.next()));
         }
+    }
+
+    /**
+     * 删除重复数据
+     * @return
+     */
+    public Integer deleteDuplicate(){
+        int start=0,limit=100;
+        List<Integer> dupVariantIds=new ArrayList<>();
+        int count=0;
+        do {
+            try {
+                dupVariantIds=variantRepository.findDuplicateId(start,limit);
+                if (dupVariantIds!=null){
+                    for (Integer dupVariantId : dupVariantIds) {
+                        if (deleteDupVariantId(dupVariantId)) {
+                            count++;
+                        }
+                    }
+                }
+                start+=limit;
+            } catch (Exception e) {
+                logger.error("删除数据失败，start"+start,e);
+            }
+        }while (dupVariantIds!=null&&dupVariantIds.size()>0);
+        return count;
+    }
+
+    @Transactional
+    public boolean deleteDupVariantId(Integer dupVariantId){
+        if (dupVariantId!=null&&dupVariantId!=0){
+            variantRepository.deleteByVariantIdAndCreatedWay(dupVariantId,2);
+            cnVariantRepository.deleteByVariantIdAndCreatedWay(dupVariantId,2);
+        }
+        return true;
     }
 }

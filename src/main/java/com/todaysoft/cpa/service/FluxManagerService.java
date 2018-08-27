@@ -7,6 +7,7 @@ import com.todaysoft.cpa.mongo.MongoService;
 import com.todaysoft.cpa.mongo.domain.MongoData;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.service.main.*;
+import com.todaysoft.cpa.service.vice.DrugProductService;
 import com.todaysoft.cpa.utils.DataException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,6 +51,8 @@ public class FluxManagerService {
     private EvidenceService evidenceService;
     @Autowired
     private ClinicalTrialService clinicalTrialService;
+    @Autowired
+    private DrugProductService drugProductService;
 
     /**
      * 改啊改，改又改
@@ -76,6 +79,16 @@ public class FluxManagerService {
         latch3.await();
         service.shutdown();
         logger.info("同步数据到知识库任务执行完毕");
+    }
+
+    /**
+     * 清除重复数据
+     */
+    public void clearDupData(){
+        Integer vDuplicate = variantService.deleteDuplicate();
+        logger.warn("清除突变重复数据，num="+vDuplicate);
+        Integer dpDuplicate = drugProductService.deleteDuplicate();
+        logger.warn("清除药品重复数据，num="+dpDuplicate);
     }
 
     /**

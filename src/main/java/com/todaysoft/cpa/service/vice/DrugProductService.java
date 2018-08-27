@@ -6,10 +6,7 @@ import com.todaysoft.cpa.domain.cn.drug.CnDrugProductRepository;
 import com.todaysoft.cpa.domain.cn.drug.CnDrugProductRouteRepository;
 import com.todaysoft.cpa.domain.en.drug.DrugProductRepository;
 import com.todaysoft.cpa.domain.en.drug.DrugProductRouteRepository;
-import com.todaysoft.cpa.domain.entity.Drug;
-import com.todaysoft.cpa.domain.entity.DrugProduct;
-import com.todaysoft.cpa.domain.entity.DrugProductIngredient;
-import com.todaysoft.cpa.domain.entity.DrugProductRoute;
+import com.todaysoft.cpa.domain.entity.*;
 import com.todaysoft.cpa.merge.MergeInfo;
 import com.todaysoft.cpa.service.KbUpdateService;
 import com.todaysoft.cpa.utils.DateUtil;
@@ -19,6 +16,8 @@ import com.todaysoft.cpa.utils.MergeUtil;
 import com.todaysoft.cpa.utils.PkGenerator;
 import com.todaysoft.cpa.utils.dosage.Dosage;
 import com.todaysoft.cpa.utils.dosage.DosageUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
@@ -37,6 +36,7 @@ import java.util.Map;
  */
 @Service
 public class DrugProductService {
+    private static Logger logger= LogManager.getLogger(DrugProductService.class);
     private static Map<String,DrugProduct> CPA_DRUG_PRODUCT=new HashMap<>();
     private static Map<String,DrugProduct> OLD_DRUG_PRODUCT=new HashMap<>();
     @Autowired
@@ -164,5 +164,39 @@ public class DrugProductService {
             return approvalNO;
         }
         return null;
+    }
+    /**
+     * 删除重复数据
+     * @return
+     */
+    public Integer deleteDuplicate(){
+        int start=0,limit=100;
+        List<String> dupAppNos=new ArrayList<>();
+        int count=0;
+        do {
+            try {
+                dupAppNos=drugProductRepository.findDuplicateId(start,limit);
+                if (dupAppNos!=null){
+                    for (String appNo : dupAppNos) {
+                        if (deleteDupAppNos(appNo)) {
+                            count++;
+                        }
+                    }
+                }
+                start+=limit;
+            } catch (Exception e) {
+                logger.error("删除数据失败，start="+start,e);
+            }
+        }while (dupAppNos!=null&&dupAppNos.size()>0);
+        return count;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteDupAppNos(String appNo){
+        if (appNo!=null&&appNo.length()>0){
+            drugProductRepository.deleteByApprovalNumberAndCreatedWay(appNo,2);
+            cnDrugProductRepository.deleteByApprovalNumberAndCreatedWay(appNo,2);
+        }
+        return true;
     }
 }

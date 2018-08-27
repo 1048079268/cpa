@@ -5,6 +5,7 @@ import com.todaysoft.cpa.compare.JsonDataType;
 import com.todaysoft.cpa.mongo.TaskManagerService;
 import com.todaysoft.cpa.param.CPA;
 import com.todaysoft.cpa.param.GlobalVar;
+import com.todaysoft.cpa.service.FluxManagerService;
 import com.todaysoft.cpa.service.MainService;
 import com.todaysoft.cpa.service.vice.KeggPathwaysService;
 import com.todaysoft.cpa.statistics.StatisticsService;
@@ -43,9 +44,13 @@ public class Start implements CommandLineRunner {
     private Environment environment;
     @Autowired
     private KeggPathwaysService keggPathwaysService;
+    @Autowired
+    private FluxManagerService fluxManagerService;
     @Override
     public void run(String... strings) throws IOException, InterruptedException, InvalidFormatException {
         initCpaModule();
+        //启动清除重复数据
+        fluxManagerService.clearDupData();
 //        mainService.manager();
         logger.info("<<<<<<<<<启动完成>>>>>>>>>");
     }
