@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,7 +65,7 @@ public class TaskManagerService {
      *   如果增量没有失败则不必再跑全量的扫描
      * @throws InterruptedException 异常
      */
-    @Scheduled(fixedDelay = 600000,initialDelay = 1000)
+    @Scheduled(fixedDelay = 600000,initialDelay = 10000)
     public void task() throws InterruptedException {
         String updateSince = mongoService.updateSince();
         logger.info("mongodb同步任务开始，本次增量参数为"+updateSince);
@@ -118,5 +120,24 @@ public class TaskManagerService {
         } finally {
             latch.countDown();
         }
+    }
+
+    /**
+     * 统计mongodb信息
+     * @return
+     */
+    public Map<String,Object> statMongo(){
+        Map<String,Object> map=new HashMap<>();
+        for (CPA cpa : CPA.values()) {
+            Map<String,Long> hashMap=new HashMap<>();
+            long countModule = mongoService.countModule(cpa);
+            long moduleTrue = mongoService.countModuleByMysql(cpa, true);
+            long moduleFalse = mongoService.countModuleByMysql(cpa, false);
+            hashMap.put("count",countModule);
+            hashMap.put("true",moduleTrue);
+            hashMap.put("false",moduleFalse);
+            map.put(cpa.name(),hashMap);
+        }
+        return map;
     }
 }

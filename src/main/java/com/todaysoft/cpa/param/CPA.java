@@ -65,6 +65,9 @@ public enum CPA {
      * @return
      */
     public String enDbName(){
+        if (MUTATION_STATISTICS.equals(this)){
+            return this.name;
+        }
         return this.name+"_"+GlobalVar.getLangEn();
     }
 
