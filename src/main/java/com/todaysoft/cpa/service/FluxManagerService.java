@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -65,18 +66,18 @@ public class FluxManagerService {
         final CountDownLatch latch1=new CountDownLatch(2);
         service.submit(()->scan(CPA.GENE,geneService,latch1));
         service.submit(()->scanDrug(latch1));
-        latch1.await();
+        latch1.await(3,TimeUnit.DAYS);
         //二级
         final CountDownLatch latch2=new CountDownLatch(3);
         service.submit(()->scan(CPA.CLINICAL_TRIAL,clinicalTrialService,latch2));
         service.submit(()->scan(CPA.VARIANT,variantService,latch2));
         service.submit(()->scan(CPA.PROTEIN,proteinService,latch2));
-        latch2.await();
+        latch2.await(5,TimeUnit.DAYS);
         //三级
         final CountDownLatch latch3=new CountDownLatch(2);
         service.submit(()->scan(CPA.EVIDENCE,evidenceService,latch3));
         service.submit(()->scanMutationStatistic(latch3));
-        latch3.await();
+        latch3.await(3,TimeUnit.DAYS);
         service.shutdown();
         logger.info("同步数据到知识库任务执行完毕");
     }

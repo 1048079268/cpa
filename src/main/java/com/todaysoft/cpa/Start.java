@@ -51,8 +51,8 @@ public class Start implements CommandLineRunner {
         initCpaModule();
         //启动清除重复数据
         fluxManagerService.clearDupData();
-//        mainService.manager();
-        logger.info("<<<<<<<<<启动完成>>>>>>>>>");
+        logger.warn("<<<<<<<<< Loading Finished >>>>>>>>>");
+        taskManagerService.task();
     }
 
     /**

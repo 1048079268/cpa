@@ -6,6 +6,7 @@ import com.todaysoft.cpa.utils.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -65,46 +66,55 @@ public class TaskManagerService {
      *   如果增量没有失败则不必再跑全量的扫描
      * @throws InterruptedException 异常
      */
-    @Scheduled(fixedDelay = 600000,initialDelay = 10000)
-    public void task() throws InterruptedException {
-        String updateSince = mongoService.updateSince();
-        logger.info("mongodb同步任务开始，本次增量参数为"+updateSince);
-        String date = DateUtil.formatDate0(new Date());
-        ExecutorService service = Executors.newFixedThreadPool(4);
-        //同步接口数据
-        final CountDownLatch latch=new CountDownLatch(INCREMENTAL_UPDATE.length);
-        //增量的
-        for (CPA cpa : INCREMENTAL_UPDATE) {
-            service.submit(()->scanAndSave(cpa,updateSince,latch));
-        }
-        //设置超时，防止线程假死导致latch一直等待
-        latch.await();
-        //更新时间
-        mongoService.postUpdateSince(date);
-        logger.info("mongodb同步任务结束，下次增量参数为"+date);
-        //查漏
-        logger.info("mongodb查漏任务开始");
-        final CountDownLatch latch2=new CountDownLatch(FULL_AMOUNT_UPDATE.length);
-        for (CPA cpa : FULL_AMOUNT_UPDATE) {
-            boolean isRun;
+//    @Scheduled(fixedDelay = 600000,initialDelay = 10000)
+    @Async
+    public void task(){
+        logger.warn("Start run task");
+        while (true) {
             try {
-                long cpaCount = scanListService.totalElement(cpa);
-                long dbCount = mongoService.countModule(cpa);
-                isRun=cpaCount>dbCount;
+                Thread.sleep(600000);
+                String updateSince = mongoService.updateSince();
+                logger.info("mongodb同步任务开始，本次增量参数为"+updateSince);
+                String date = DateUtil.formatDate0(new Date());
+                ExecutorService service = Executors.newFixedThreadPool(4);
+                //同步接口数据
+                final CountDownLatch latch=new CountDownLatch(INCREMENTAL_UPDATE.length);
+                //增量的
+                for (CPA cpa : INCREMENTAL_UPDATE) {
+                    service.submit(()->scanAndSave(cpa,updateSince,latch));
+                }
+                //设置超时，防止线程假死导致latch一直等待
+                latch.await(2,TimeUnit.DAYS);
+                //更新时间
+                mongoService.postUpdateSince(date);
+                logger.info("mongodb同步任务结束，下次增量参数为"+date);
+                //查漏
+                logger.info("mongodb查漏任务开始");
+                final CountDownLatch latch2=new CountDownLatch(FULL_AMOUNT_UPDATE.length);
+                for (CPA cpa : FULL_AMOUNT_UPDATE) {
+                    boolean isRun;
+                    try {
+                        long cpaCount = scanListService.totalElement(cpa);
+                        long dbCount = mongoService.countModule(cpa);
+                        isRun=cpaCount>dbCount;
+                    } catch (Exception e) {
+                        isRun=false;
+                    }
+                    if (isRun){
+                        service.submit(()->scanAndSave(cpa,"",latch2));
+                    }else {
+                        latch2.countDown();
+                    }
+                }
+                //设置超时，防止线程假死导致latch一直等待
+                latch2.await(5,TimeUnit.DAYS);
+                service.shutdown();
+                logger.info("mongodb查漏任务结束");
+                fluxManagerService.task();
             } catch (Exception e) {
-                isRun=false;
-            }
-            if (isRun){
-                service.submit(()->scanAndSave(cpa,"",latch2));
-            }else {
-                latch2.countDown();
+                logger.error("定时任务出错",e);
             }
         }
-        //设置超时，防止线程假死导致latch一直等待
-        latch2.await();
-        service.shutdown();
-        logger.info("mongodb查漏任务结束");
-        fluxManagerService.task();
     }
 
     private void scanAndSave(CPA cpa,String updateSince,final CountDownLatch latch){

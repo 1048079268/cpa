@@ -221,6 +221,7 @@ public class VariantService extends BaseService {
                             count++;
                         }
                     }
+                    logger.warn("删除突变重复数据，start="+start);
                 }
                 start+=limit;
             } catch (Exception e) {
