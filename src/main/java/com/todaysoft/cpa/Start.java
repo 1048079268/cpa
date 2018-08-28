@@ -49,8 +49,6 @@ public class Start implements CommandLineRunner {
     @Override
     public void run(String... strings) throws IOException, InterruptedException, InvalidFormatException {
         initCpaModule();
-        //启动清除重复数据
-        fluxManagerService.clearDupData();
         logger.warn("<<<<<<<<< Loading Finished >>>>>>>>>");
         taskManagerService.task();
     }

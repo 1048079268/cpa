@@ -64,11 +64,11 @@ public class TaskManagerService {
      *   以防止有失败的数据没同步。
      *   先进行增量的原因是因为如果更新前两方的数据量一致，接口新增的数据会先通过增量获取到
      *   如果增量没有失败则不必再跑全量的扫描
-     * @throws InterruptedException 异常
      */
 //    @Scheduled(fixedDelay = 600000,initialDelay = 10000)
     @Async
     public void task(){
+        fluxManagerService.clearDupData();
         logger.warn("Start run task");
         while (true) {
             try {
