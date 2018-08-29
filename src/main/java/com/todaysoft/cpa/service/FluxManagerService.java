@@ -62,23 +62,25 @@ public class FluxManagerService {
     public void task() throws InterruptedException {
         logger.info("开始执行同步数据到知识库任务");
         ExecutorService service = Executors.newFixedThreadPool(4);
+        ExecutorService childrenExecutors = Executors.newFixedThreadPool(4);
         //一级
         final CountDownLatch latch1=new CountDownLatch(2);
-        service.submit(()->scan(CPA.GENE,geneService,latch1));
+        service.submit(()->scan(CPA.GENE,geneService,latch1,childrenExecutors));
         service.submit(()->scanDrug(latch1));
         latch1.await(3,TimeUnit.DAYS);
         //二级
         final CountDownLatch latch2=new CountDownLatch(3);
-        service.submit(()->scan(CPA.CLINICAL_TRIAL,clinicalTrialService,latch2));
-        service.submit(()->scan(CPA.VARIANT,variantService,latch2));
-        service.submit(()->scan(CPA.PROTEIN,proteinService,latch2));
+        service.submit(()->scan(CPA.CLINICAL_TRIAL,clinicalTrialService,latch2,childrenExecutors));
+        service.submit(()->scan(CPA.VARIANT,variantService,latch2,childrenExecutors));
+        service.submit(()->scan(CPA.PROTEIN,proteinService,latch2,childrenExecutors));
         latch2.await(5,TimeUnit.DAYS);
         //三级
         final CountDownLatch latch3=new CountDownLatch(2);
-        service.submit(()->scan(CPA.EVIDENCE,evidenceService,latch3));
-        service.submit(()->scanMutationStatistic(latch3));
+        service.submit(()->scan(CPA.EVIDENCE,evidenceService,latch3,childrenExecutors));
+        service.submit(()->scanMutationStatistic(latch3,childrenExecutors));
         latch3.await(3,TimeUnit.DAYS);
         service.shutdown();
+        childrenExecutors.shutdown();
         logger.info("同步数据到知识库任务执行完毕");
     }
 
@@ -98,7 +100,7 @@ public class FluxManagerService {
      * @param baseService
      * @param latch
      */
-    private void scan(CPA cpa, BaseService baseService, final CountDownLatch latch){
+    private void scan(CPA cpa, BaseService baseService, final CountDownLatch latch,ExecutorService service){
         try {
             long count = mongoService.countKtData(cpa.enDbName());
             int i = (int) (count % DEFAULT_LIMIT);
@@ -106,15 +108,13 @@ public class FluxManagerService {
             int totalPage=i==0?j:j+1;
             Flux.range(0,totalPage)
                     .parallel()
-                    .runOn(Schedulers.elastic())
+                    .runOn(Schedulers.fromExecutor(service))
                     .map(page->mongoService.pageKtData(cpa.enDbName(),new PageRequest(page,DEFAULT_LIMIT)))
                     .sequential()
                     .toStream()
                     .forEach(list->{
                         Flux.fromStream(list.stream())
                                 .filter(mongoData -> !mongoData.getKtMysqlSyncStatus())
-                                .parallel()
-                                .runOn(Schedulers.elastic())
                                 .map(data->{
                                     try {
                                         JSONObject en = JSONObject.parseObject(data.getData());
@@ -133,7 +133,6 @@ public class FluxManagerService {
                                     }
                                     return false;
                                 })
-                                .sequential()
                                 .toStream()
                                 .forEach(r->{});
                     });
@@ -190,7 +189,7 @@ public class FluxManagerService {
      * 扫描并保存突变样本量
      * @param latch
      */
-    private void scanMutationStatistic(final CountDownLatch latch){
+    private void scanMutationStatistic(final CountDownLatch latch,ExecutorService service){
         CPA cpa=CPA.MUTATION_STATISTICS;
         try {
             long count = mongoService.countKtData(cpa.getName());
@@ -199,7 +198,7 @@ public class FluxManagerService {
             int totalPage=i==0?j:j+1;
             Flux.range(0,totalPage)
                     .parallel()
-                    .runOn(Schedulers.elastic())
+                    .runOn(Schedulers.fromExecutor(service))
                     .map(page->mongoService.pageKtData(cpa.getName(),new PageRequest(page,DEFAULT_LIMIT)))
                     .map(list->{
                         list.stream()
