@@ -12,6 +12,7 @@ import com.todaysoft.cpa.utils.DataException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -54,6 +55,8 @@ public class FluxManagerService {
     private ClinicalTrialService clinicalTrialService;
     @Autowired
     private DrugProductService drugProductService;
+    @Value("${task.thread.pool.size}")
+    public Integer taskThreadPoolSize=3;
 
     /**
      * 改啊改，改又改
@@ -61,8 +64,8 @@ public class FluxManagerService {
      */
     public void task() throws InterruptedException {
         logger.info("开始执行同步数据到知识库任务");
-        ExecutorService service = Executors.newFixedThreadPool(4);
-        ExecutorService childrenExecutors = Executors.newFixedThreadPool(4);
+        ExecutorService service = Executors.newFixedThreadPool(taskThreadPoolSize);
+        ExecutorService childrenExecutors = Executors.newFixedThreadPool(taskThreadPoolSize);
         //一级
         final CountDownLatch latch1=new CountDownLatch(2);
         service.submit(()->scan(CPA.GENE,geneService,latch1,childrenExecutors));

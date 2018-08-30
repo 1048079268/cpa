@@ -6,6 +6,7 @@ import com.todaysoft.cpa.utils.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,9 @@ public class TaskManagerService {
     private MongoService mongoService;
     @Autowired
     private FluxManagerService fluxManagerService;
+
+    @Value("${task.thread.pool.size}")
+    public Integer taskThreadPoolSize=3;
     /**
      * 全量更新或者根据总量补全的模块
      */
@@ -76,7 +80,7 @@ public class TaskManagerService {
                 String updateSince = mongoService.updateSince();
                 logger.info("mongodb同步任务开始，本次增量参数为"+updateSince);
                 String date = DateUtil.formatDate0(new Date());
-                ExecutorService service = Executors.newFixedThreadPool(4);
+                ExecutorService service = Executors.newFixedThreadPool(taskThreadPoolSize);
                 //同步接口数据
                 final CountDownLatch latch=new CountDownLatch(INCREMENTAL_UPDATE.length);
                 //增量的
