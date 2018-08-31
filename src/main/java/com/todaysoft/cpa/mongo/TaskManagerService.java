@@ -76,7 +76,6 @@ public class TaskManagerService {
         logger.warn("Start run task");
         while (true) {
             try {
-                Thread.sleep(600000);
                 String updateSince = mongoService.updateSince();
                 logger.info("mongodb同步任务开始，本次增量参数为"+updateSince);
                 String date = DateUtil.formatDate0(new Date());
@@ -117,6 +116,12 @@ public class TaskManagerService {
                 fluxManagerService.task();
             } catch (Exception e) {
                 logger.error("定时任务出错",e);
+            }finally {
+                try {
+                    Thread.sleep(600000);
+                } catch (InterruptedException e) {
+                    logger.error("Interrupted",e);
+                }
             }
         }
     }

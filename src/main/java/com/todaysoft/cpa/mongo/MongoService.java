@@ -2,6 +2,7 @@ package com.todaysoft.cpa.mongo;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBCursor;
 import com.mongodb.WriteResult;
 import com.todaysoft.cpa.mongo.domain.*;
 import com.todaysoft.cpa.param.CPA;
@@ -10,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -142,11 +144,11 @@ public class MongoService {
     }
 
     public long countModule(CPA cpa){
-        return mongoTemplate.count(Query.query(Criteria.where("data").exists(true)),cpa.enDbName());
+        return mongoTemplate.count(new Query(),cpa.enDbName());
     }
 
     public long countModuleByMysql(CPA cpa,boolean ktMysqlStatus){
-        Criteria criteria = Criteria.where("data").exists(true).and("ktMysqlSyncStatus").is(ktMysqlStatus);
+        Criteria criteria = Criteria.where("ktMysqlSyncStatus").is(ktMysqlStatus);
         return mongoTemplate.count(Query.query(criteria),cpa.enDbName());
     }
 
@@ -156,8 +158,7 @@ public class MongoService {
      * @return
      */
     public long countKtData(String  collection){
-        Query query = Query.query(Criteria.where("data").exists(true));
-        return mongoTemplate.count(query, collection);
+        return mongoTemplate.count(new Query(), collection);
     }
 
     /**
@@ -179,7 +180,20 @@ public class MongoService {
      * @return 分页数据
      */
     public List<MongoData> pageKtData(String collection, Pageable pageable){
-        Query query = Query.query(Criteria.where("data").exists(true)).with(pageable);
+        Query query = new Query().with(pageable);
+        List<MongoData> mongoData = mongoTemplate.find(query, MongoData.class, collection);
+        return mongoData;
+    }
+
+    /**
+     * 滚动分页
+     * @param collection 集合名
+     * @param scrollId 滚动id
+     * @param limit 限制
+     * @return 分页数据
+     */
+    public List<MongoData> pageScroll(String collection,String scrollId,int limit){
+        Query query = Query.query(Criteria.where("_id").gt(scrollId)).limit(limit);
         List<MongoData> mongoData = mongoTemplate.find(query, MongoData.class, collection);
         return mongoData;
     }
